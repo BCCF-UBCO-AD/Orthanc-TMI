@@ -9,4 +9,5 @@
 
 ### Launching Docker container:
 Generate config file: `sudo docker run --rm --entrypoint=cat jodogne/orthanc /etc/orthanc/orthanc.json > ~/orthanc/orthanc.json`
+
 Start container: `sudo docker run -p 4242:4242 -p 8042:8042 --rm -v ~/orthanc/orthanc.json:/etc/orthanc/orthanc.json:ro -v ~/orthanc/orthanc-db/:/var/lib/orthanc/db/ jodogne/orthanc-plugins`
