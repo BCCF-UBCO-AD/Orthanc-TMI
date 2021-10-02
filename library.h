@@ -1,6 +1,0 @@
-#ifndef ORTHANC_TMI_LIBRARY_H
-#define ORTHANC_TMI_LIBRARY_H
-
-void hello();
-
-#endif //ORTHANC_TMI_LIBRARY_H
