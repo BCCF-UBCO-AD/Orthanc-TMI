@@ -1,5 +1,6 @@
 # Orthanc-TMI
 
+This software has been developed as a plugin to run on Orthanc DICOM servers.
 
 ## Notes:
 - https://hub.docker.com/r/jodogne/orthanc
