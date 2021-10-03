@@ -16,7 +16,7 @@ Generate config file: `sudo docker run --rm --entrypoint=cat jodogne/orthanc /et
 
 Start container: `sudo docker run -p 4242:4242 -p 8042:8042 --rm -v ~/orthanc/orthanc.json:/etc/orthanc/orthanc.json:ro -v ~/orthanc/orthanc-db/:/var/lib/orthanc/db/ jodogne/orthanc-plugins`
 
-#### Testing
+### Testing
 
   - Google_Test Framework for unit Testing. [Here](https://github.com/google/googletest.git)
   - Circle CI or similar for continuous integration.
