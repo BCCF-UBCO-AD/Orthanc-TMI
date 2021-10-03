@@ -2,14 +2,13 @@
 
 This software has been developed as a plugin to run on Orthanc DICOM servers.
 
-## Notes:
-- https://hub.docker.com/r/jodogne/orthanc
-- https://book.orthanc-server.com/developers/creating-plugins.html
-- https://book.orthanc-server.com/users/docker.html#usage-with-plugins-enabled
-- https://sdk.orthanc-server.com/
-- https://www.codeproject.com/Articles/797118/Implementing-a-WADO-Server-using-Orthanc
+# Project
 
-### Time Line
+## Tech Stack
+
+## Time Line
+
+## Contributing
 
 ### Launching Docker container:
 
@@ -23,4 +22,9 @@ Start container: `sudo docker run -p 4242:4242 -p 8042:8042 --rm -v ~/orthanc/or
   - Circle CI or similar for continuous integration.
   - Circle CI with GitHub to test  pull requests to main and develop branches
 
-### Tech Stack
+# Notes:
+- https://hub.docker.com/r/jodogne/orthanc
+- https://book.orthanc-server.com/developers/creating-plugins.html
+- https://book.orthanc-server.com/users/docker.html#usage-with-plugins-enabled
+- https://sdk.orthanc-server.com/
+- https://www.codeproject.com/Articles/797118/Implementing-a-WADO-Server-using-Orthanc
