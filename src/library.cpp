@@ -1,7 +1,9 @@
-#include "library.h"
-
-#include <iostream>
-
-void hello() {
-    std::cout << "Hello, World!" << std::endl;
+int32_t OrthancPluginInitialize(OrthancPluginContext* context){
 }
+void OrthancPluginFinalize(){
+}
+const char* OrthancPluginGetName(){
+}
+const char* OrthancPluginGetVersion(){
+}
+
