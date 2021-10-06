@@ -3,6 +3,18 @@
 
 static OrthancPluginContext* context_ = nullptr;
 
+OrthancPluginErrorCode OnStoredCallback(OrthancPluginDicomInstance* instance,
+                                        const char* instanceId) {
+    char buffer[1024];
+    sprintf(buffer, "Just received a DICOM instance of size %d and ID %s from origin %d (AET %s)",
+            (int) OrthancPluginGetInstanceSize(context_, instance), instanceId,
+            OrthancPluginGetInstanceOrigin(context_, instance),
+            OrthancPluginGetInstanceRemoteAet(context_, instance));
+    OrthancPluginLogWarning(context_, buffer);
+
+    return OrthancPluginErrorCode_Success;
+}
+
 extern "C" {
     int32_t OrthancPluginInitialize(OrthancPluginContext* context){
         context_ = context;
@@ -19,6 +31,9 @@ extern "C" {
             OrthancPluginLogError(context, info);
             return -1;
         }
+
+        OrthancPluginRegisterOnStoredInstanceCallback(context_,
+                                                      reinterpret_cast<OrthancPluginOnStoredInstanceCallback>(OnStoredCallback));
         return 0;
     }
     
