@@ -77,3 +77,6 @@ fabric.properties
 .idea
 
 build/
+
+docker/plugins
+docker/orthanc-db
