@@ -1,2 +1,3 @@
 file(GLOB_RECURSE SOURCES LIST_DIRECTORIES true *.cpp)
 add_library(${PLUGIN_NAME} SHARED ${SOURCES})
+file(COPY_FILE ${CMAKE_CURRENT_BINARY_DIR}/${PLUGIN_NAME}.so ../docker/plugins/${PLUGIN_NAME}.so)
