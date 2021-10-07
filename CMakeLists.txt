@@ -9,8 +9,8 @@ set(PLUGIN_NAME DataAnonymizer)
 set(TESTS ${CMAKE_PROJECT_NAME}-tests)
 
 # dependencies
-file(GLOB_RECURSE PLUGIN_SOURCES LIST_DIRECTORIES true *.cpp)
-file(GLOB_RECURSE TEST_SOURCES LIST_DIRECTORIES false *.cpp)
+file(GLOB_RECURSE PLUGIN_SOURCES LIST_DIRECTORIES true src/*)
+file(GLOB_RECURSE TEST_SOURCES LIST_DIRECTORIES true test/*)
 add_subdirectory(lib/googletest)
 
 # plugin target
