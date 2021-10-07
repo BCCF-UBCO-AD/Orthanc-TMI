@@ -4,7 +4,7 @@ set(CMAKE_SHARED_LIBRARY_PREFIX_CXX "")
 
 # project variables
 set(PROJECT_DIR ${CMAKE_CURRENT_LIST_DIR})
-project(Orthanc_TMI)
+project(Orthanc-TMI)
 set(PLUGIN_NAME DataAnonymizer)
 set(TESTS ${CMAKE_PROJECT_NAME}-tests)
 
