@@ -1,33 +1,17 @@
 version: '3.1'  # Secrets are only available since this version of Docker Compose
 services:
-  mongo-db:
-    image: mongo:latest
-    container_name: mongo-server
+  # https://hub.docker.com/_/postgres
+  # Credentials will be passed via secrets later
+  postgres:
+    image: postgres:latest
+    container_name: postgres
     restart: always
     ports:
-      - "27017:27017"
+      - 5432:5432
     volumes:
-      - ./mongo-db:/data/db
+      - ./postgres:/var/lib/postgresql/data
     environment:
-      MONGO_INITDB_DATABASE: demodb
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
-
-  mongo-express:
-    image: mongo-express:latest
-    container_name: mongo-express
-    restart: always
-    ports:
-      - "8081:8081"
-    links:
-      - mongo-db
-    depends_on:
-      - mongo-db
-    environment:
-      ME_CONFIG_MONGODB_SERVER: mongo-server
-      ME_CONFIG_MONGODB_ADMINUSERNAME: root
-      ME_CONFIG_MONGODB_ADMINPASSWORD: example
-      ME_CONFIG_MONGODB_PORT: 27017
+      POSTGRES_PASSWORD: example
 
   orthanc:
     image: jodogne/orthanc-plugins:latest
@@ -35,8 +19,8 @@ services:
     restart: always
     command: /run/secrets/  # Path to the configuration files (stored as secrets)
     ports:
-      - "4242:4242"
-      - "8042:8042"
+      - 4242:4242
+      - 8042:8042
     volumes:
       - ./orthanc-db:/var/lib/orthanc/db
       - ./plugins:/usr/share/orthanc/plugins
