@@ -1,7 +1,7 @@
 # Orthanc-TMI
 
 This software has been developed as a plugin to run on Orthanc DICOM servers.
-
+## Getting Started
 ### Build
 ```bash
 # clone repo
@@ -43,6 +43,7 @@ sudo docker run -p 4242:4242 -p 8042:8042 --rm -v $wd/docker/orthanc.json:/etc/o
 ```
 The plugin's cmake file tells the build system to copy the plugin binary to `docker/plugins/` which is integrally linked to the docker container seen in the commands above.
 
+## Contributing
 ### Style Guide
 ```cpp
 #include <iostream>
@@ -68,7 +69,7 @@ void Foo(){
 }
 ```
 
-## Branching
+### Branching
 Be mindful if you delete branches. Other branches may want a particular fix without merging all of develop (assuming it is merged with develop).
 
 - Feature branches: `feat-`
