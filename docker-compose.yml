@@ -9,7 +9,7 @@ services:
     ports:
       - 5432:5432
     volumes:
-      - ./postgres:/var/lib/postgresql/data
+      - ./docker/postgres:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: example
 
@@ -22,8 +22,8 @@ services:
       - 4242:4242
       - 8042:8042
     volumes:
-      - ./orthanc-db:/var/lib/orthanc/db
-      - ./plugins:/usr/share/orthanc/plugins
+      - ./docker/orthanc-db:/var/lib/orthanc/db
+      - ./docker/plugins:/usr/share/orthanc/plugins
     secrets:
       - orthanc.json
     environment:
@@ -31,4 +31,4 @@ services:
 
 secrets:
   orthanc.json:
-    file: orthanc.json
+    file: ./docker/orthanc.json
