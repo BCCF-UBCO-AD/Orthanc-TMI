@@ -4,11 +4,60 @@ This software has been developed as a plugin to run on Orthanc DICOM servers.
 
 # Project
 
+
+## Building
+```bash
+#clone repo
+git clone https://github.com/BCCF-UBCO-AD/Orthanc-TMI.git orthanc-tmi
+cd orthanc-tmi
+git checkout develop
+git submodule init
+git submodule update
+mkdir build
+cd build
+cmake .. -G Ninja
+make
+```
+
 ## Tech Stack
 
 ## Time Line
 
 ## Contributing
+### Style Guide
+```cpp
+#include <iostream>
+
+int main(){
+    int foo_total_count = 0;
+    std::cout << ++foo_total_count;
+}
+
+class FooBar{
+private:
+    //members
+    int foo_total_count = 0;
+    
+    //methods
+    void foo(){}
+public:
+    bool public_flag = false;
+    void Bar(){}
+};
+
+void Foo(){
+}
+```
+
+### Branching
+Be mindful if you delete branches. Other branches may want a particular fix without merging all of develop (assuming it is merged with develop).
+
+- Feature branches: `feat-`
+  - delete after or keep
+- One commit fix branches: `hotfix-` or github default
+  - keep after
+- Other fix branches: `fix-` `patch-`
+  - keep after
 
 ### Launching Docker container:
 
@@ -39,6 +88,11 @@ The plugin's cmake file tells the build system to copy the plugin binary to `doc
 1. build the plugin
 2. run docker
 3. perform tests
+##### to run docker
+```bash
+$ run-docker.sh
+```
+
 #### notes
   - Google_Test Framework for unit Testing. [Here](https://github.com/google/googletest.git)
   - Circle CI or similar for continuous integration.
