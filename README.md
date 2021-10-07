@@ -2,28 +2,47 @@
 
 This software has been developed as a plugin to run on Orthanc DICOM servers.
 
-# Project
-
-
-## Building
+### Build
 ```bash
-#clone repo
+# clone repo
 git clone https://github.com/BCCF-UBCO-AD/Orthanc-TMI.git orthanc-tmi
 cd orthanc-tmi
+# develop is where all the action is
 git checkout develop
+# we need to populate submodules (googletest)
 git submodule init
 git submodule update
+# build
 mkdir build
 cd build
 cmake .. -G Ninja
 ninja
 ```
 
-## Tech Stack
+### Docker
+To test, whatever, on your local system just run the script.
+```bash
+$ run-docker.sh
+```
+Then proceed to test whatever in whatever way.
 
-## Time Line
+#### Docker behind the scenes
+```bash
+# First we generated a default orthanc.json file.
+sudo docker run --rm --entrypoint=cat jodogne/orthanc-plugins /etc/orthanc/orthanc.json > docker/orthanc.json
 
-## Contributing
+# Now we're free to start the container:
+sudo docker run -p 4242:4242 -p 8042:8042 --rm -v docker/orthanc.json:/etc/orthanc/orthanc.json:ro -v docker/orthanc-db/:/var/lib/orthanc/db/ -v docker/plugins:/usr/share/orthanc/plugins jodogne/orthanc-plugins
+
+# Unfortunately absolute paths were needed, so our bash script just figures that out for us.
+#!/bin/bash
+wd=$(realpath $(dirname "${BASH_SOURCE[0]}"))
+mkdir $wd/docker/orthanc-db
+mkdir $wd/docker/plugins
+sudo docker run -p 4242:4242 -p 8042:8042 --rm -v $wd/docker/orthanc.json:/etc/orthanc/orthanc.json:ro -v $wd/docker/orthanc-db/:/var/lib/orthanc/db/ -v $wd/docker/plugins:/usr/share/orthanc/plugins jodogne/orthanc-plugins
+```
+The plugin's cmake file tells the build system to copy the plugin binary to `docker/plugins/` which is integrally linked to the docker container seen in the commands above.
+
 ### Style Guide
 ```cpp
 #include <iostream>
@@ -49,7 +68,7 @@ void Foo(){
 }
 ```
 
-### Branching
+## Branching
 Be mindful if you delete branches. Other branches may want a particular fix without merging all of develop (assuming it is merged with develop).
 
 - Feature branches: `feat-`
@@ -59,41 +78,11 @@ Be mindful if you delete branches. Other branches may want a particular fix with
 - Other fix branches: `fix-` `patch-`
   - keep after
 
-### Launching Docker container:
+# Tech Stack
 
-On your local system, from the project root run:
-```bash
-$ run-docker.sh
-```
+# Time Line
 
-#### Behind the scenes
-```bash
-# First we generated a default orthanc.json file.
-sudo docker run --rm --entrypoint=cat jodogne/orthanc-plugins /etc/orthanc/orthanc.json > docker/orthanc.json
-
-# Now we're free to start the container:
-sudo docker run -p 4242:4242 -p 8042:8042 --rm -v docker/orthanc.json:/etc/orthanc/orthanc.json:ro -v docker/orthanc-db/:/var/lib/orthanc/db/ -v docker/plugins:/usr/share/orthanc/plugins jodogne/orthanc-plugins
-
-# Unfortunately absolute paths were needed, so our bash script just figures that out for us.
-#!/bin/bash
-wd=$(realpath $(dirname "${BASH_SOURCE[0]}"))
-mkdir $wd/docker/orthanc-db
-mkdir $wd/docker/plugins
-sudo docker run -p 4242:4242 -p 8042:8042 --rm -v $wd/docker/orthanc.json:/etc/orthanc/orthanc.json:ro -v $wd/docker/orthanc-db/:/var/lib/orthanc/db/ -v $wd/docker/plugins:/usr/share/orthanc/plugins jodogne/orthanc-plugins
-```
-The plugin's cmake file tells the build system to copy the plugin binary to `docker/plugins/` which is integrally linked to the docker container seen in the commands above.
-
-### Testing
-#### local testing
-1. build the plugin
-2. run docker
-3. perform tests
-##### to run docker
-```bash
-$ run-docker.sh
-```
-
-#### notes
+# Testing
   - Google_Test Framework for unit Testing. [Here](https://github.com/google/googletest.git)
   - Circle CI or similar for continuous integration.
   - Circle CI with GitHub to test  pull requests to main and develop branches
