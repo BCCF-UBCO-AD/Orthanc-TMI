@@ -1,0 +1,50 @@
+version: '3.1'  # Secrets are only available since this version of Docker Compose
+services:
+  mongo-db:
+    image: mongo:latest
+    container_name: mongo-server
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./mongodb:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: demodb
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+
+  mongo-express:
+    image: mongo-express:latest
+    container_name: mongo-express
+    restart: always
+    ports:
+      - "8081:8081"
+    links:
+      - mongo-db
+    depends_on:
+      - mongo-db
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo-server
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: example
+      ME_CONFIG_MONGODB_PORT: 27017
+
+  orthanc:
+    image: jodogne/orthanc-plugins:latest
+    container_name: orthanc-server
+    restart: always
+    command: /run/secrets/  # Path to the configuration files (stored as secrets)
+    ports:
+      - "4242:4242"
+      - "8042:8042"
+    volumes:
+      - ./orthanc-db:/var/lib/orthanc/db
+      - ./plugins:/usr/share/orthanc/plugins
+    secrets:
+      - orthanc.json
+    environment:
+      - ORTHANC_NAME=TMI
+
+secrets:
+  orthanc.json:
+    file: orthanc.json
