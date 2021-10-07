@@ -2,7 +2,8 @@
 
 This software has been developed as a plugin to run on Orthanc DICOM servers.
 ## Getting Started
-### Build
+### Clone
+Don't forget to populate submodules.
 ```bash
 # clone repo
 git clone https://github.com/BCCF-UBCO-AD/Orthanc-TMI.git orthanc-tmi
@@ -12,13 +13,29 @@ git checkout develop
 # we need to populate submodules (googletest)
 git submodule init
 git submodule update
-# build
+```
+
+### Build
+The cmake configuration will ensure the plugin binary is copied to `docker/plugins` where the docker server can read it.
+```bash
+mkdir build
+cd build
+# configure build
+# on linux
+cmake ..
+# on windows, pretty sure they've got VS as the default
+cmake .. -G "Unix Makefiles"
+
+# perform build
+make
+```
+or if you're a cool ninja
+```bash
 mkdir build
 cd build
 cmake .. -G Ninja
 ninja
 ```
-The cmake configuration will ensure the plugin binary is copied to a directory where docker will see it.
 
 ### Docker
 To test, whatever, on your local system just launch docker.
