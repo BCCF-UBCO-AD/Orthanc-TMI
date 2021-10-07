@@ -1,6 +1,7 @@
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
-int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+//appears to be the form of a basic unit test
+// https://github.com/google/googletest/blob/master/googletest/samples/sample1_unittest.cc
+// https://google.github.io/googletest/primer.html
+TEST(TestSuiteName, TestName) {
 }
