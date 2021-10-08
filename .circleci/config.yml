@@ -20,7 +20,7 @@ jobs:
       - run:
           name: Build with CMake
           command: |
-            cd Orthanc-TMI
+            ls
             mkdir build
             cmake ..
             make
