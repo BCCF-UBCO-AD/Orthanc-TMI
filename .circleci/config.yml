@@ -10,7 +10,6 @@ jobs:
           command: |
             sudo apt-get install gcc
             sudo apt-get install cmake
-            sudo apt-get install docker-compose
             echo 'Environment setup complete'
   google-test:
     machine:
