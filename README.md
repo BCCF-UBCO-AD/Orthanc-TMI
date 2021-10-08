@@ -51,6 +51,7 @@ The docker reads the a copy of the build from `docker/plugins/`.
 |------|---------|
 | master | stable branch |
 | develop | development branch for **merging** new libraries/features/etc. |
+| documents | documentation branch for independent updating of documents |
 | readme | readme update branch for standalone updates to the readme file |
 | libraries | library integration branch for getting new libraries up and running
 
@@ -96,7 +97,7 @@ void Foo(){
 | Library | Purpose | URI |
 |---------|---------|-----|
 | libpqxx | Postgres API | <ul><li>https://github.com/jtv/libpqxx.git <li>https://libpqxx.readthedocs.io/en/stable/a01382.html |
-| nlohmann/json | json API | <ul><li>https://github.com/nlohmann/json.git <li>https://github.com/nlohmann/json#integration |
+| nlohmann/json | json API | <ul><li>https://github.com/nlohmann/json.git <li>https://github.com/nlohmann/json#integration <li>https://nlohmann.github.io/json/api/basic_json/|
 | googletest | unit testing | <ul><li>https://github.com/google/googletest.git |
 
 # Time Line
