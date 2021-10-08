@@ -46,6 +46,26 @@ Then proceed to test whatever in whatever way.
 The docker reads the a copy of the build from `docker/plugins/`.
 
 ## Contributing
+### Branches
+| Name | Purpose |
+|------|---------|
+| master | stable branch |
+| develop | development branch for **merging** new libraries/features/etc. |
+| readme | readme update branch for standalone updates to the readme file |
+| libraries | library integration branch for getting new libraries up and running
+
+
+### Branching
+We may want to merge branches to things other than develop, use best judgement. As a general guide:
+
+| Prefix | Purpose | Delete After? |
+|--------|---------|----------|
+| `feat-` | feature development | ok |
+| `user-patch-` | fixes from github | no |
+| `hotfix-` | single commit fixes | no |
+| `patch-` | fixes for tracked issues | no |
+| `fix-` | other fixes | no |
+
 ### Style Guide
 ```cpp
 #include <iostream>
@@ -70,16 +90,6 @@ public:
 void Foo(){
 }
 ```
-
-### Branching
-Be mindful if you delete branches. Other branches may want a particular fix without merging all of develop (assuming it is merged with develop).
-
-- Feature branches: `feat-`
-  - delete after or keep
-- One commit fix branches: `hotfix-` or github default
-  - keep after
-- Other fix branches: `fix-` `patch-`
-  - keep after
 
 # Tech Stack
 ### Libraries
