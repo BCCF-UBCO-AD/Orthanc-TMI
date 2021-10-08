@@ -1,4 +1,5 @@
 #include <orthanc/OrthancCPlugin.h>
+#include <string>
 #include "configuration.h"
 
 static OrthancPluginContext* context_ = nullptr;
@@ -13,9 +14,24 @@ OrthancPluginErrorCode OnStoredCallback(OrthancPluginDicomInstance* instance,
     OrthancPluginLogWarning(context_, buffer);
 
     char* json = OrthancPluginGetInstanceJson(context_, instance);
-    OrthancPluginLogWarning(context_, json);
+
+    // Write JSON content to instanceId.json
+    char filename[1024];
+    sprintf(filename, "/var/lib/orthanc/db/%s.json", instanceId);
+    OrthancPluginErrorCode error = OrthancPluginWriteFile(context_, filename, json, strlen(json));
     OrthancPluginFreeString(context_, json);
-    
+    if (error)
+    {
+        return error;
+    }
+
+    // Remove the original DICOM instance
+    std::string uri = "/instances/" + std::string(instanceId);
+    error = OrthancPluginRestApiDelete(context_, uri.c_str());
+    if (error)
+    {
+        return error;
+    }
     return OrthancPluginErrorCode_Success;
 }
 
