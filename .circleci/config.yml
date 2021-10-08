@@ -19,7 +19,7 @@ jobs:
       - run:
           name: Build with CMake
           command: |
-            ls
+            cd Orthan-TMI
             mkdir build
             cmake ..
             make
