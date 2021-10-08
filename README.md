@@ -86,6 +86,12 @@ Be mindful if you delete branches. Other branches may want a particular fix with
   - keep after
 
 # Tech Stack
+### Libraries
+| Library | Purpose | URI |
+|---------|---------|-----|
+| libpqxx | Postgres API | <ul><li>https://github.com/jtv/libpqxx.git <li>https://libpqxx.readthedocs.io/en/stable/a01382.html |
+| nlohmann/json | json API | <ul><li>https://github.com/nlohmann/json.git <li>https://github.com/nlohmann/json#integration |
+| googletest | unit testing | <ul><li>https://github.com/google/googletest.git |
 
 # Time Line
 
