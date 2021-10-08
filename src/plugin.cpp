@@ -12,6 +12,10 @@ OrthancPluginErrorCode OnStoredCallback(OrthancPluginDicomInstance* instance,
             OrthancPluginGetInstanceRemoteAet(context_, instance));
     OrthancPluginLogWarning(context_, buffer);
 
+    char* json = OrthancPluginGetInstanceJson(context_, instance);
+    OrthancPluginLogWarning(context_, json);
+    OrthancPluginFreeString(context_, json);
+    
     return OrthancPluginErrorCode_Success;
 }
 
