@@ -20,10 +20,11 @@ jobs:
       - run:
           name: Build with CMake
           command: |
-          mkdir build
-          cmake ..
-          make
-          echo 'Build complete'
+            mkdir build
+            cmake ..
+            make
+            echo 'Build complete'
+          
       - run:
           name: Run googletest suite
           command: |
