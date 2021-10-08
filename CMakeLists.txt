@@ -14,9 +14,12 @@ set(TESTS ${CMAKE_PROJECT_NAME}-tests)
 file(GLOB_RECURSE PLUGIN_SOURCES LIST_DIRECTORIES true src/*)
 file(GLOB_RECURSE TEST_SOURCES LIST_DIRECTORIES true test/*)
 add_subdirectory(extern/googletest)
+add_subdirectory(extern/libpqxx)
+#add_subdirectory(extern/json)
 
 # plugin target
 include_directories(include)
+include_directories(extern/json/single_include/)
 add_library(${PLUGIN_NAME} SHARED ${PLUGIN_SOURCES})
 add_custom_command(
         TARGET ${PLUGIN_NAME} POST_BUILD
@@ -25,9 +28,9 @@ add_custom_command(
         ${PROJECT_DIR}/docker/plugins/${PLUGIN_NAME}.so)
 
 # test target
-#nclude_directories(${gmock_build_include_dirs})
+#include_directories(${gmock_build_include_dirs})
 
 add_executable(${TESTS} ${TEST_SOURCES} ${PLUGIN_SOURCES})
-target_link_libraries(${TESTS} PUBLIC gtest)
+target_link_libraries(${TESTS} PUBLIC gtest pqxx)
 
 add_test(NAME ${TESTS} COMMAND ${TESTS})
