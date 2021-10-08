@@ -1,0 +1,34 @@
+version: '3.1'  # Secrets are only available since this version of Docker Compose
+services:
+  # https://hub.docker.com/_/postgres
+  # Credentials will be passed via secrets later
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    restart: always
+    ports:
+      - 5432:5432
+    volumes:
+      - ./docker/postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: example
+
+  orthanc:
+    image: jodogne/orthanc-plugins:latest
+    container_name: orthanc-server
+    restart: always
+    command: /run/secrets/  # Path to the configuration files (stored as secrets)
+    ports:
+      - 4242:4242
+      - 8042:8042
+    volumes:
+      - ./docker/orthanc-db:/var/lib/orthanc/db
+      - ./docker/plugins:/usr/share/orthanc/plugins
+    secrets:
+      - orthanc.json
+    environment:
+      - ORTHANC_NAME=TMI
+
+secrets:
+  orthanc.json:
+    file: ./docker/orthanc.json

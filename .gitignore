@@ -78,5 +78,4 @@ fabric.properties
 
 build/
 
-docker/plugins
-docker/orthanc-db
+docker/*/
