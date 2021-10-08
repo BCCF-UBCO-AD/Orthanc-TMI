@@ -19,8 +19,7 @@ jobs:
       - run:
           name: Build with CMake
           command: |
-            cd Orthan-TMI
-            mkdir build
+            mkdir cmake-build-debug
             cmake ..
             make
             echo 'Build complete'
@@ -28,7 +27,7 @@ jobs:
       - run:
           name: Run googletest suite
           command: |
-            cd build
+            cd cmake-build-debug
             ./Orthanc-TMI-tests
             echo 'Test run complete'
 
