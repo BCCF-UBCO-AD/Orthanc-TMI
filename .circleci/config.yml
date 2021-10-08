@@ -1,0 +1,39 @@
+version: 2.1
+
+jobs:
+  build:
+    machine:
+      image: ubuntu-1604:202004-01
+    steps:
+      - run:
+          name: Environment Setup
+          command: |
+            apt-get install gcc
+            apt-get install cmake
+            apt-get install docker-compose
+            echo 'Environment setup complete'
+  google-test:
+    machine:
+      image: ubuntu-1604:202004-01
+    steps:
+      - checkout
+      - run:
+          name: Build with CMake
+          command: |
+          mkdir build
+          cmake ..
+          make
+          echo 'Build complete'
+      - run:
+          name: Run googletest suite
+          command: |
+            cd build
+            ./Orthanc-TMI-tests
+            echo 'Test run complete'
+
+workflows:
+  version: 2
+  GoogleTest:
+    jobs:
+      - build
+      - google-test
