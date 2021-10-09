@@ -1,7 +1,7 @@
 version: 2.1
 
 jobs:
-  google-test:
+  build:
     machine:
       image: ubuntu-1604:202004-01
     steps:
@@ -22,7 +22,6 @@ jobs:
             sudo apt update
             sudo apt install cmake
             echo 'Environment setup complete'
-
       - run:
           name: Build with CMake
           command: |
@@ -33,7 +32,14 @@ jobs:
             cmake ..
             make
             echo 'Build complete'
-          
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - build
+  google-test:
+    machine:
+      image: ubuntu-1604:202004-01
+    steps: 
       - run:
           name: Run googletest suite
           command: |
@@ -48,4 +54,5 @@ workflows:
   version: 2
   GoogleTest:
     jobs:
+      - build
       - google-test
