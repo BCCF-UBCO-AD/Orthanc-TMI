@@ -20,7 +20,7 @@ add_custom_command(
         TARGET ${PLUGIN_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
         ${CMAKE_CURRENT_BINARY_DIR}/${PLUGIN_NAME}.so
-        ${PROJECT_DIR}/docker/plugins/${PLUGIN_NAME}.so)
+        ${PROJECT_DIR}/docker/orthanc/plugins/${PLUGIN_NAME}.so)
 
 # test target
 include_directories(lib/googletest/googlemock/include)
