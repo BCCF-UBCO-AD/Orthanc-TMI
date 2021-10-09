@@ -78,4 +78,7 @@ fabric.properties
 
 build/
 
-docker/*/
+#Docker
+docker/orthanc/plugins/*
+docker/orthanc/db/*
+docker/postgres/data/*
