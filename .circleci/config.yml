@@ -36,7 +36,7 @@ jobs:
           name: Run googletest suite
           command: |
             cd build
-            ./Orthanc-TMI-tests --gtest_ouput=xml
+            ./Orthanc-TMI-tests --gtest_ouput=json
       - store_test_results:
           path: ./build
 
