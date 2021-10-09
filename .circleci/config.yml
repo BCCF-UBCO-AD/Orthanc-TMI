@@ -55,4 +55,6 @@ workflows:
   GoogleTest:
     jobs:
       - build
-      - google-test
+      - google-test:
+          requires:
+            - build
