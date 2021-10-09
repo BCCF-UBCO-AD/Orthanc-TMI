@@ -1,16 +1,6 @@
 version: 2.1
 
 jobs:
-  build:
-    machine:
-      image: ubuntu-1604:202004-01
-    steps:
-      - run:
-          name: Environment Setup
-          command: |
-            sudo apt-get install gcc
-            sudo apt-get install cmake
-            echo 'Environment setup complete'
   google-test:
     machine:
       image: ubuntu-1604:202004-01
@@ -20,7 +10,7 @@ jobs:
           name: Environment Setup
           command: |
             sudo apt-get install gcc
-            sudo apt purge --auto-remove cmake --allow
+            sudo apt purge --auto-remove cmake
             sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
             sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ xenial main'
             sudo apt update --allow
