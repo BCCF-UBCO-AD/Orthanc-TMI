@@ -21,3 +21,14 @@ WIP
 ## Non-functional requirements & environmental constraints
 
 WIP
+
+## Tech stack
+
+- Server — [Orthanc](https://www.orthanc-server.com/)
+- Plugin Programming Language — C++
+
+## Testing
+
+We are using GoogleTest, Google’s C++ testing and mocking framework, to test our plugin's features.
+
+We are planning on using the [CircleCI](circleci.com) platform to handle continuous testing. With the help of a robust and reliable CI pipeline, we will be able to test features before merging and find issues sooner.
