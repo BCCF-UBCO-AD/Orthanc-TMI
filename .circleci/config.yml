@@ -38,7 +38,7 @@ jobs:
             cd build
             ./Orthanc-TMI-tests --gtest_ouput=xml
       - store_test_results:
-          path: ~/Orthanc-TMI/build
+          path: ./build
 
 workflows:
   version: 2
