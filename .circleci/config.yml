@@ -26,6 +26,8 @@ jobs:
       - run:
           name: Build with CMake
           command: |
+            git submodule init
+            git submodule update
             mkdir build
             cd build
             cmake ..
