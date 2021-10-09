@@ -24,8 +24,8 @@ add_library(${PLUGIN_NAME} SHARED ${PLUGIN_SOURCES})
 add_custom_command(
         TARGET ${PLUGIN_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-        ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${PLUGIN_NAME}.so
-        ${PROJECT_DIR}/docker/plugins/${PLUGIN_NAME}.so)
+        ${CMAKE_CURRENT_BINARY_DIR}/${PLUGIN_NAME}.so
+        ${PROJECT_DIR}/docker/orthanc/plugins/${PLUGIN_NAME}.so)
 
 # test target
 #include_directories(${gmock_build_include_dirs})
