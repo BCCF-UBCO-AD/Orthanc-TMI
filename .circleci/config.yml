@@ -36,12 +36,10 @@ jobs:
           name: Run googletest suite
           command: |
             cd build
-            ./Orthanc-TMI-tests --gtest_ouput=json
             ./Orthanc-TMI-tests --gtest_output=xml:build/
       - store_test_results:
           path: ./build
-      - store_artifacts:
-          path: ./build
+
 
 workflows:
   version: 2
