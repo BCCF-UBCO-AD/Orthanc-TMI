@@ -36,5 +36,4 @@ workflows:
   version: 2
   GoogleTest:
     jobs:
-      - build
       - google-test
