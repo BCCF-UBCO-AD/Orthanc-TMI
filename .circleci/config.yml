@@ -1,7 +1,7 @@
 version: 2.1
 
 jobs:
-  build:
+  google-test:
     machine:
       image: ubuntu-1604:202004-01
     steps:
@@ -32,29 +32,16 @@ jobs:
             cmake ..
             make
             echo 'Build complete'
-      - persist_to_workspace:
-          root: ./
-          paths:
-            - build
-  google-test:
-    machine:
-      image: ubuntu-1604:202004-01
-    steps: 
       - run:
           name: Run googletest suite
           command: |
             cd build
             ./Orthanc-TMI-tests --gtest_ouput=xml:test.xml
-            echo 'Tests run complete'
-      
       - store_test_results:
-          path: build
+          path: ~/Orthanc-TMI/build
 
 workflows:
   version: 2
   GoogleTest:
     jobs:
-      - build
-      - google-test:
-          requires:
-            - build
+      - google-test
