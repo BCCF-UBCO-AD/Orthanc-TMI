@@ -8,11 +8,11 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
 project(Orthanc-TMI)
 set(PLUGIN_NAME DataAnonymizer)
-set(TESTS ${CMAKE_PROJECT_NAME}-tests)
+set(TEST_TARGET all-tests)
 
 # dependencies
-file(GLOB_RECURSE PLUGIN_SOURCES LIST_DIRECTORIES true src/*)
-file(GLOB_RECURSE TEST_SOURCES LIST_DIRECTORIES true test/*)
+file(GLOB_RECURSE PLUGIN_SOURCES LIST_DIRECTORIES false src/*)
+file(GLOB_RECURSE TEST_SOURCES LIST_DIRECTORIES false test/*)
 add_subdirectory(extern/googletest)
 add_subdirectory(extern/libpqxx)
 #add_subdirectory(extern/json)
@@ -30,7 +30,7 @@ add_custom_command(
 # test target
 #include_directories(${gmock_build_include_dirs})
 
-add_executable(${TESTS} ${TEST_SOURCES} ${PLUGIN_SOURCES})
-target_link_libraries(${TESTS} PUBLIC gtest pqxx)
+add_executable(${TEST_TARGET} ${TEST_SOURCES} ${PLUGIN_SOURCES})
+target_link_libraries(${TEST_TARGET} PUBLIC gtest pqxx)
 
-add_test(NAME ${TESTS} COMMAND ${TESTS})
+add_test(NAME ${TEST_TARGET} COMMAND ${TEST_TARGET})
