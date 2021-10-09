@@ -37,8 +37,11 @@ jobs:
       - run:
           name: Run googletest suite
           command: |
-            ./Orthanc-TMI-tests --gtest_ouput="xml"
+            Orthanc-TMI-tests --gtest_ouput="xml"
             echo 'Tests run complete'
+      
+      - store_test_results:
+          path: build
 
 workflows:
   version: 2
