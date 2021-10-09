@@ -11,10 +11,7 @@ jobs:
           command: |
             sudo apt-get install gcc
             sudo apt purge --auto-remove cmake
-            sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
-            sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ xenial main'
-            sudo apt update --allow
-            sudo apt install cmake --allow
+            sudo snap install cmake --classic
             echo 'Environment setup complete'
 
       - run:
