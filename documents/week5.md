@@ -10,3 +10,7 @@
 - Asked for clarification on how the plugin will fit into the pipeline
 
 ## Professor Group Meeting
+
+- Discussed client meeting and progress
+- Clarified expectations for video presentation
+- Discussed plans for testing and continuous integration
