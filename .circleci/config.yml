@@ -9,7 +9,8 @@ jobs:
       - run:
           name: Environment Setup
           command: |
-            sudo snap refresh snapd
+            sudo snap install snapd
+            sudo snap refresh
             sudo apt-get install gcc
             sudo apt purge --auto-remove cmake
             sudo snap install cmake --classic
