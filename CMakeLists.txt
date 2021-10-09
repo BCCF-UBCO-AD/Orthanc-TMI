@@ -12,7 +12,7 @@ set(TEST_TARGET all-tests)
 
 # dependencies
 file(GLOB_RECURSE PLUGIN_SOURCES LIST_DIRECTORIES false src/*)
-file(GLOB_RECURSE TEST_SOURCES LIST_DIRECTORIES false test/*)
+file(GLOB_RECURSE TEST_SOURCES LIST_DIRECTORIES false tests/*)
 add_subdirectory(extern/googletest)
 add_subdirectory(extern/libpqxx)
 #add_subdirectory(extern/json)
