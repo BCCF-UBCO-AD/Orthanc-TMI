@@ -29,7 +29,7 @@ jobs:
           command: |
             cd cmake-build-debug
             ./Orthanc-TMI-tests
-            echo 'Test run complete'
+            echo 'Tests run complete'
 
 workflows:
   version: 2
