@@ -3,12 +3,14 @@ version: 2.1
 jobs:
   google-test:
     machine:
-      image: ubuntu-1604:202004-01
+      image: ubuntu-2004:202107-02
     steps:
       - checkout
       - run:
           name: Environment Setup
           command: |
+            git submodule init
+            git submodule update
             sudo apt-get install gcc
             sudo apt purge --auto-remove cmake
             sudo apt update && \
@@ -21,12 +23,17 @@ jobs:
             sudo rm /etc/apt/trusted.gpg.d/kitware.gpg
             sudo apt update
             sudo apt install cmake
+            sudo apt-get install wget ca-certificates
+            wget --no-check-certificate --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+            sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" >> /etc/apt/sources.list.d/pgdg.list'
+            sudo apt-get update
+            sudo apt-get install postgresql postgresql-contrib
+            sudo apt-get install libpq5
+            sudo apt-get install libpq-dev
             echo 'Environment setup complete'
       - run:
           name: Build with CMake
           command: |
-            git submodule init
-            git submodule update
             mkdir build
             cd build
             cmake ..
@@ -36,7 +43,7 @@ jobs:
           name: Run googletest suite
           command: |
             cd build
-            ./Orthanc-TMI-tests --gtest_output=xml:build/
+            ./bin/all-tests --gtest_output=xml:build/
       - store_test_results:
           path: ./build
 
