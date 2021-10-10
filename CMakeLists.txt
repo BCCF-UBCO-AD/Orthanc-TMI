@@ -24,7 +24,7 @@ add_library(${PLUGIN_TARGET} SHARED ${PLUGIN_SOURCES})
 add_custom_command(
         TARGET ${PLUGIN_TARGET} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-        ${CMAKE_CURRENT_BINARY_DIR}/${PLUGIN_TARGET}.so
+        ${PROJECT_BINARY_DIR}/bin/${PLUGIN_TARGET}.so
         ${PROJECT_DIR}/docker/orthanc/plugins/${PLUGIN_TARGET}.so)
 
 # test target
