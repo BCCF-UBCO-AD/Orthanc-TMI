@@ -9,6 +9,8 @@ jobs:
       - run:
           name: Environment Setup
           command: |
+            git submodule init
+            git submodule update
             sudo apt-get install gcc
             sudo apt purge --auto-remove cmake
             sudo apt update && \
@@ -21,14 +23,15 @@ jobs:
             sudo rm /etc/apt/trusted.gpg.d/kitware.gpg
             sudo apt update
             sudo apt install cmake
-            sudo dpkg --get-selections | grep -e "libpq-dev\|postgresql-server-dev"
-            sudo apt-get install libpq-dev postgresql-server-dev-all
+            sudo apt-get install wget ca-certificates
+            wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+            sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" >> /etc/apt/sources.list.d/pgdg.list'
+            sudo apt-get update
+            sudo apt-get install postgresql postgresql-contrib
             echo 'Environment setup complete'
       - run:
           name: Build with CMake
           command: |
-            git submodule init
-            git submodule update
             mkdir build
             cd build
             cmake ..
