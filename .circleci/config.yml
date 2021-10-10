@@ -30,7 +30,6 @@ jobs:
             sudo apt-get install postgresql postgresql-contrib
             sudo apt-get install libpq5
             sudo apt-get install libpq-dev
-            sudo docker-compose up
             echo 'Environment setup complete'
       - run:
           name: Build with CMake
