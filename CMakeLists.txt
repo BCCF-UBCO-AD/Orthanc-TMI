@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.21)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_SHARED_LIBRARY_PREFIX_CXX "")
 
@@ -7,7 +7,7 @@ set(PROJECT_DIR ${CMAKE_CURRENT_LIST_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
 project(Orthanc-TMI)
-set(PLUGIN_NAME DataAnonymizer)
+set(PLUGIN_TARGET DataAnonymizer)
 set(TEST_TARGET all-tests)
 
 # dependencies
@@ -20,12 +20,12 @@ add_subdirectory(extern/libpqxx)
 # plugin target
 include_directories(include)
 include_directories(extern/json/single_include/)
-add_library(${PLUGIN_NAME} SHARED ${PLUGIN_SOURCES})
+add_library(${PLUGIN_TARGET} SHARED ${PLUGIN_SOURCES})
 add_custom_command(
-        TARGET ${PLUGIN_NAME} POST_BUILD
+        TARGET ${PLUGIN_TARGET} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-        ${CMAKE_CURRENT_BINARY_DIR}/${PLUGIN_NAME}.so
-        ${PROJECT_DIR}/docker/orthanc/plugins/${PLUGIN_NAME}.so)
+        ${CMAKE_CURRENT_BINARY_DIR}/${PLUGIN_TARGET}.so
+        ${PROJECT_DIR}/docker/orthanc/plugins/${PLUGIN_TARGET}.so)
 
 # test target
 #include_directories(${gmock_build_include_dirs})
