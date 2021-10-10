@@ -62,6 +62,7 @@ We may want to merge branches to things other than develop, use best judgement. 
 | Prefix | Purpose | Delete After? |
 |--------|---------|----------|
 | `feat-` | feature development | ok |
+| `refactor-` | refactoring existing systems | no |
 | `user-patch-` | fixes from github | no |
 | `hotfix-` | single commit fixes | no |
 | `patch-` | fixes for tracked issues | no |
