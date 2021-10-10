@@ -30,6 +30,7 @@ jobs:
             sudo apt-get install postgresql postgresql-contrib
             sudo apt-get install libpq5
             sudo apt-get install libpq-dev
+            sudo dock-compose up
             echo 'Environment setup complete'
       - run:
           name: Build with CMake
@@ -43,7 +44,7 @@ jobs:
           name: Run googletest suite
           command: |
             cd build
-            ./all-tests --gtest_output=xml:build/
+            ./build/all-tests --gtest_output=xml:build/
       - store_test_results:
           path: ./build
 
