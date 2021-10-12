@@ -50,6 +50,59 @@ If running in WSL, change the volume for Postgres to any location that's native 
 For example, change ``./docker/postgres:/var/lib/postgresql/data`` to ``~/docker/postgres:/var/lib/postgresql/data``
 
 ## Contributing
+### Style Guide
+The C++ auto style settings can be found in CLion at `Settings -> Editor -> Code Style -> C++`, here you can import our styles from `c++styles.xml` in the project root.
+
+Short and simple example of naming conventions and other formats to adhere to in order to maintain consistency.
+```cpp
+#include <iostream>
+
+#define MY_MACRO auto x = [](){Foo();};
+
+int main(){
+    int foo_total_count = 0; 
+    std::cout << ++foo_total_count;
+}
+
+class FooBar{ //Our classes should be PascalCase, unless implemented inside another class or inside a cpp file
+    struct data_type{
+        int example_of;
+        int private_inner_class;
+    };
+    struct Data{ //no convention, up to preference for these
+        int example_of; //these still gotta be underscore_case
+        int private_inner_class;
+    };
+public: //variable order really only matters in terms of what is logical and or if you need memory structured a particular way
+    int special_public_var_packed_at_the_front_of_object = 42;
+private:
+    //members
+    int foo_total_count = 0;
+    
+    //methods
+    void foo(){}
+    //hard wrap at col 120
+    //this can be negotiated if someone can't fit 120+ chars in their clion views (font change? proggyfonts.net/)
+    //it also doesn't apply to comments, use your best judgement for comments
+    void helper(std::unordered_map<size_t, std::vector<std::vector<iterator_type_with_a_long_name>> the_thing, int x){}
+    void helper2(std::unordered_map<size_t, std::vector<std::vector<iterator_type_with_a_long_name>> the_thing,
+                 std::unordered_map<size_t, std::vector<std::vector<iterator_type_with_a_long_name>> the_thing2){}
+    void helper2(int x, /* when the signature surpasses, newline each arg */
+                 int y,
+                 int z,
+                 std::unordered_map<size_t, std::vector<std::vector<size_t>> the_thing, 
+                 std::unordered_map<size_t, std::vector<std::vector<iterator_type_with_a_long_name>> the_thing2){}
+protected:
+    void protected_special_helper(){}
+public:
+    bool public_flag = false;
+    void Bar(){}
+};
+
+void Foo(int foo_bar){
+}
+```
+
 ### Branches
 | Name | Purpose |
 |------|---------|
@@ -71,31 +124,6 @@ We may want to merge branches to things other than develop, use best judgement. 
 | `hotfix-` | single commit fixes | no |
 | `patch-` | fixes for tracked issues | no |
 | `fix-` | other fixes | no |
-
-### Style Guide
-```cpp
-#include <iostream>
-
-int main(){
-    int foo_total_count = 0;
-    std::cout << ++foo_total_count;
-}
-
-class FooBar{
-private:
-    //members
-    int foo_total_count = 0;
-    
-    //methods
-    void foo(){}
-public:
-    bool public_flag = false;
-    void Bar(){}
-};
-
-void Foo(){
-}
-```
 
 # Tech Stack
 ### Libraries
