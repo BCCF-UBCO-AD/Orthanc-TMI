@@ -138,7 +138,7 @@ First and foremost this project [creates an Orthanc plugin](https://book.orthanc
 | libpq | PostgreSQL API | <ul><li>https://github.com/postgres/postgres.git <li>https://www.postgresql.org/docs/14/install-procedure.html |
 | libpqxx | libpq wrapper | <ul><li>https://github.com/jtv/libpqxx.git <li>https://libpqxx.readthedocs.io/en/stable/a01382.html |
 | nlohmann/json | json API | <ul><li>https://github.com/nlohmann/json.git <li>https://github.com/nlohmann/json#integration <li>https://nlohmann.github.io/json/api/basic_json/|
-| googletest | unit testing | <ul><li>https://github.com/google/googletest.git |
+| [googletest](lib/googletest) | unit testing | <ul><li>https://github.com/google/googletest.git |
 
 # Time Line
 
