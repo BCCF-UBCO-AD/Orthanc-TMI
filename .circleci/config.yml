@@ -1,0 +1,48 @@
+version: 2.1
+
+jobs:
+  google-test:
+    machine:
+      image: ubuntu-1604:202004-01
+    steps:
+      - checkout
+      - run:
+          name: Environment Setup
+          command: |
+            sudo apt-get install gcc
+            sudo apt purge --auto-remove cmake
+            sudo apt update && \
+            sudo apt install -y software-properties-common lsb-release && \
+            sudo apt clean all
+            wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
+            sudo apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main"
+            sudo apt update
+            sudo apt install kitware-archive-keyring
+            sudo rm /etc/apt/trusted.gpg.d/kitware.gpg
+            sudo apt update
+            sudo apt install cmake
+            echo 'Environment setup complete'
+      - run:
+          name: Build with CMake
+          command: |
+            git submodule init
+            git submodule update
+            mkdir build
+            cd build
+            cmake ..
+            make
+            echo 'Build complete'
+      - run:
+          name: Run googletest suite
+          command: |
+            cd build
+            ./Orthanc-TMI-tests --gtest_output=xml:build/
+      - store_test_results:
+          path: ./build
+
+
+workflows:
+  version: 2
+  GoogleTest:
+    jobs:
+      - google-test

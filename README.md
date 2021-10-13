@@ -43,7 +43,11 @@ To test, whatever, on your local system just launch docker.
 $ sudo docker-compose up
 ```
 Then proceed to test whatever in whatever way.
-The docker reads the a copy of the build from `docker/plugins/`.
+The docker reads a copy of the build from `docker/plugins/`.
+
+If running in WSL, change the volume for Postgres to any location that's native to your linux distribution. Using directories located in ``/mnt`` will cause permission problems. WSL's default directory for anything in Windows are ``/mnt``
+
+For example, change ``./docker/postgres:/var/lib/postgresql/data`` to ``~/docker/postgres:/var/lib/postgresql/data``
 
 ## Contributing
 ### Style Guide
