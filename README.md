@@ -122,10 +122,21 @@ We may want to merge branches to things other than develop, use best judgement. 
 | `fix-` | other fixes | no |
 
 # Tech Stack
-### Libraries
+### Dependencies
+First and foremost this project [creates an Orthanc plugin](https://book.orthanc-server.com/developers/creating-plugins.html#structure-of-the-plugins), so the Orthanc [plugin SDK](https://sdk.orthanc-server.com/index.html) is required. Which is available as [OrthancCPlugin.h](https://hg.orthanc-server.com/orthanc/file/Orthanc-1.9.7/OrthancServer/Plugins/Include/orthanc/OrthancCPlugin.h)
+#### Tools
+* GCC - compiler
+* Cmake compatible build system (eg. GNU Make, Ninja)
+* Cmake 3.20 - configures build system
+* Docker - local testing ([docker image](https://hub.docker.com/r/jodogne/orthanc-plugins))
+* Github Actions - remote testing
+* CLion (recommended)
+
+#### Submodules
 | Library | Purpose | URI |
 |---------|---------|-----|
-| libpqxx | Postgres API | <ul><li>https://github.com/jtv/libpqxx.git <li>https://libpqxx.readthedocs.io/en/stable/a01382.html |
+| libpq | PostgreSQL API | <ul><li>https://github.com/postgres/postgres.git <li>https://www.postgresql.org/docs/14/install-procedure.html |
+| libpqxx | libpq wrapper | <ul><li>https://github.com/jtv/libpqxx.git <li>https://libpqxx.readthedocs.io/en/stable/a01382.html |
 | nlohmann/json | json API | <ul><li>https://github.com/nlohmann/json.git <li>https://github.com/nlohmann/json#integration <li>https://nlohmann.github.io/json/api/basic_json/|
 | googletest | unit testing | <ul><li>https://github.com/google/googletest.git |
 
@@ -137,8 +148,4 @@ We may want to merge branches to things other than develop, use best judgement. 
   - Circle CI with GitHub to test  pull requests to main and develop branches
 
 # Notes:
-- https://hub.docker.com/r/jodogne/orthanc
-- https://book.orthanc-server.com/developers/creating-plugins.html
 - https://book.orthanc-server.com/users/docker.html#usage-with-plugins-enabled
-- https://sdk.orthanc-server.com/
-- https://www.codeproject.com/Articles/797118/Implementing-a-WADO-Server-using-Orthanc
