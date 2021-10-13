@@ -135,7 +135,7 @@ First and foremost this project [creates an Orthanc plugin](https://book.orthanc
 #### Submodules
 | Library | Purpose | URI |
 |---------|---------|-----|
-| [libpq](lib) | PostgreSQL API | <ul><li>[external repo](https://github.com/postgres/postgres.git) <li>[docs - install](https://www.postgresql.org/docs/14/install-procedure.html) |
+| [libpq](lib) | PostgreSQL API | <ul><li>[external repo](https://github.com/postgres/postgres.git) <li>[docs - configure/build/install](https://www.postgresql.org/docs/14/install-procedure.html) |
 | [libpqxx](lib) | libpq wrapper | <ul><li>[external repo](https://github.com/jtv/libpqxx.git) <li>[docs - API](https://libpqxx.readthedocs.io/en/stable/a01382.html) |
 | [nlohmann/json](lib) | json API | <ul><li>[external repo](https://github.com/nlohmann/json.git) <li>[docs - integration](https://github.com/nlohmann/json#integration) <li>[docs - API](https://nlohmann.github.io/json/api/basic_json/) |
 | [googletest](lib) | unit testing | <ul><li>[external repo](https://github.com/google/googletest.git) |
