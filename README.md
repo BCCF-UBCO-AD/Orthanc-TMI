@@ -135,10 +135,10 @@ First and foremost this project [creates an Orthanc plugin](https://book.orthanc
 #### Submodules
 | Library | Purpose | URI |
 |---------|---------|-----|
-| libpq | PostgreSQL API | <ul><li>https://github.com/postgres/postgres.git <li>https://www.postgresql.org/docs/14/install-procedure.html |
-| libpqxx | libpq wrapper | <ul><li>https://github.com/jtv/libpqxx.git <li>https://libpqxx.readthedocs.io/en/stable/a01382.html |
-| nlohmann/json | json API | <ul><li>https://github.com/nlohmann/json.git <li>https://github.com/nlohmann/json#integration <li>https://nlohmann.github.io/json/api/basic_json/|
-| [googletest](lib/googletest) | unit testing | <ul><li>https://github.com/google/googletest.git |
+| [libpq](lib) | PostgreSQL API | <ul><li>https://github.com/postgres/postgres.git <li>https://www.postgresql.org/docs/14/install-procedure.html |
+| [libpqxx](lib) | libpq wrapper | <ul><li>https://github.com/jtv/libpqxx.git <li>https://libpqxx.readthedocs.io/en/stable/a01382.html |
+| [nlohmann/json](lib) | json API | <ul><li>https://github.com/nlohmann/json.git <li>https://github.com/nlohmann/json#integration <li>https://nlohmann.github.io/json/api/basic_json/|
+| [googletest](lib) | unit testing | <ul><li>https://github.com/google/googletest.git |
 
 # Time Line
 
