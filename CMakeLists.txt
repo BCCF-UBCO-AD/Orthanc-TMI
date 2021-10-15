@@ -21,7 +21,7 @@ find_package(PostgreSQL)
 if( NOT PostgreSQL_FOUND )
     message("## Couldn't find PostgreSQL installed on system.")
     # directories
-    set(LIBPQ_INSTALL ${PROJECT_DIR}/build/libpq-install/)
+    set(LIBPQ_INSTALL ${PROJECT_BINARY_DIR}/libpq-install/)
     set(POSTGRESQL_DIR ${PROJECT_DIR}/extern/libpq/)
     # configure make build & its install directory
     message("## configuring extern/libpq")
