@@ -1,0 +1,41 @@
+  on:
+    pull_request:
+      branches:
+        - master
+        - develop
+
+  env:
+    BUILD_TYPE: Debug
+
+  jobs:
+    Google_Test:
+      runs-on: ubuntu-20.04
+      steps:
+        - name: Clone Orthanc-TMI
+          uses: actions/checkout@v2
+          with:
+            submodules: true
+        - name: Prepare test environment
+          run: |
+            docker-compose up -d
+        - name: Install dependencies
+          run: |
+            sudo apt install -y software-properties-common lsb-release
+            sudo apt-get install \
+              gcc \
+              ninja-build \
+              cmake \
+              postgresql \
+              postgresql-contrib \
+              libpq5 \
+              libpq-dev
+        - name: Build
+          run: |
+            cmake \
+              -S . \
+              -B build \
+              -G Ninja
+            ninja -C build
+        - name: Run tests
+          run: |
+            build/bin/all-tests --gtest_output=xml:build/
