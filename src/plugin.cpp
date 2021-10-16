@@ -1,6 +1,6 @@
 #include <orthanc/OrthancCPlugin.h>
 #include <string>
-#include <nlohmann/json.hpp>
+#include <regex>
 #include "configuration.h"
 
 static OrthancPluginContext *context_ = nullptr;
@@ -29,9 +29,19 @@ OrthancPluginErrorCode OnStoredCallback(OrthancPluginDicomInstance *instance, co
     error = OrthancPluginRestApiGet(context_, &instance_buffer, instance_uri.c_str());
     if (error) return error;
 
-    auto instance_json = nlohmann::json::parse(std::string((char *) instance_buffer.data));
+    std::string instance_json = std::string((char *) instance_buffer.data);
+    std::regex uuid_regex("[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}");
+    std::smatch uuid_match;
+    std::string file_uuid;
+    if (std::regex_search(instance_json, uuid_match, uuid_regex)) {
+        file_uuid = uuid_match.str(1);
+    } else {
+        return OrthancPluginErrorCode_InternalError;
+    }
+
     char anonymized_filename[1024];
-    sprintf(anonymized_filename, "%s", instance_json["FileUuid"].get<std::string>().c_str());
+    sprintf(anonymized_filename, "/var/lib/orthanc/db/%s/%s/%s_anon",
+            file_uuid.substr(0,2).c_str(), file_uuid.substr(2,4).c_str(), file_uuid.c_str());
     OrthancPluginLogWarning(context_, anonymized_filename);
     //error = OrthancPluginWriteFile(context_, anonymized_filename, anonymized_buffer.data, anonymized_buffer.size);
     if (error) return error;
