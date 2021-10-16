@@ -7,21 +7,6 @@
   // displayed in Orthanc Explorer and at the URI "/system".
   "Name" : "Orthanc inside Docker",
 
-  "PostgreSQL" : {
-    "EnableIndex" : true,
-    "EnableStorage" : false,
-    "Host" : "postgres",
-    "Port" : 5432,
-    "Database" : "orthanc",
-    "Username" : "postgres",
-    "Password" : "example",
-    "Lock" : false,
-    "EnableSsl" : false,               // New in release 3.0
-    "MaximumConnectionRetries" : 10,   // New in release 3.0
-    "ConnectionRetryInterval" : 5,     // New in release 3.0
-    "IndexConnectionsCount" : 1        // New in release 4.0
-  },
-
   // Path to the directory that holds the heavyweight files (i.e. the
   // raw DICOM instances). Backslashes must be either escaped by
   // doubling them, or replaced by forward slashes "/".
