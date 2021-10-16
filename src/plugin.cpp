@@ -14,20 +14,26 @@ OrthancPluginErrorCode OnStoredCallback(OrthancPluginDicomInstance *instance, co
 
     std::string instanceId_str = std::string(instanceId);
 
+    OrthancPluginErrorCode error;
+
     OrthancPluginMemoryBuffer anonymized_buffer;
-    std::string anonymize_uri = "/instances/" + std::string(instanceId) + "/anonymize";
+    std::string anonymize_uri = "/instances/" + instanceId_str + "/anonymize";
     std::string anonymize_body = "{}";
-    OrthancPluginErrorCode error = OrthancPluginRestApiPost(context_, &anonymized_buffer, anonymize_uri.c_str(),
-                                                            anonymize_body.c_str(), anonymize_body.length());
+    error = OrthancPluginRestApiPost(context_, &anonymized_buffer, anonymize_uri.c_str(), anonymize_body.c_str(), anonymize_body.length());
     if (error) return error;
 
-    // Todo: how do we get the file uuid? currently using instance uuid which does not match the filesystem.
+    OrthancPluginMemoryBuffer instance_buffer;
+    std::string instance_uri = "/instances/" + instanceId_str;
+    error = OrthancPluginRestApiGet(context_, &instance_buffer, instance_uri.c_str());
+    if (error) return error;
+
     char anonymized_filename[1024];
-    sprintf(anonymized_filename, "/var/lib/orthanc/db/%s_anon" ,instanceId);
+    sprintf(anonymized_filename, "%s" ,(char *)instance_buffer.data);
     OrthancPluginLogWarning(context_, anonymized_filename);
-    error = OrthancPluginWriteFile(context_, anonymized_filename, anonymized_buffer.data, anonymized_buffer.size);
+    //error = OrthancPluginWriteFile(context_, anonymized_filename, anonymized_buffer.data, anonymized_buffer.size);
     if (error) return error;
 
+    OrthancPluginFreeMemoryBuffer(context_, &instance_buffer);
     OrthancPluginFreeMemoryBuffer(context_, &anonymized_buffer);
 
     return OrthancPluginErrorCode_Success;
