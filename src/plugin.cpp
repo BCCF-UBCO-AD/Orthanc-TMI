@@ -1,5 +1,6 @@
 #include <orthanc/OrthancCPlugin.h>
 #include <string>
+#include <nlohmann/json.hpp>
 #include "configuration.h"
 
 static OrthancPluginContext *context_ = nullptr;
@@ -19,7 +20,8 @@ OrthancPluginErrorCode OnStoredCallback(OrthancPluginDicomInstance *instance, co
     OrthancPluginMemoryBuffer anonymized_buffer;
     std::string anonymize_uri = "/instances/" + instanceId_str + "/anonymize";
     std::string anonymize_body = "{}";
-    error = OrthancPluginRestApiPost(context_, &anonymized_buffer, anonymize_uri.c_str(), anonymize_body.c_str(), anonymize_body.length());
+    error = OrthancPluginRestApiPost(context_, &anonymized_buffer, anonymize_uri.c_str(), anonymize_body.c_str(),
+                                     anonymize_body.length());
     if (error) return error;
 
     OrthancPluginMemoryBuffer instance_buffer;
@@ -27,8 +29,9 @@ OrthancPluginErrorCode OnStoredCallback(OrthancPluginDicomInstance *instance, co
     error = OrthancPluginRestApiGet(context_, &instance_buffer, instance_uri.c_str());
     if (error) return error;
 
+    auto instance_json = nlohmann::json::parse(std::string((char *) instance_buffer.data));
     char anonymized_filename[1024];
-    sprintf(anonymized_filename, "%s" ,(char *)instance_buffer.data);
+    sprintf(anonymized_filename, "%s", instance_json["FileUuid"].get<std::string>().c_str());
     OrthancPluginLogWarning(context_, anonymized_filename);
     //error = OrthancPluginWriteFile(context_, anonymized_filename, anonymized_buffer.data, anonymized_buffer.size);
     if (error) return error;
