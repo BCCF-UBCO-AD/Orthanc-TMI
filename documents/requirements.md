@@ -24,8 +24,23 @@ WIP
 
 ## Tech stack
 
-- Server — [Orthanc](https://www.orthanc-server.com/)
-- Plugin Programming Language — C++
+### Dependencies
+First and foremost this project [creates an Orthanc plugin](https://book.orthanc-server.com/developers/creating-plugins.html#structure-of-the-plugins) in C++, so the Orthanc [plugin SDK](https://sdk.orthanc-server.com/index.html) is required. Which is available as [OrthancCPlugin.h](https://hg.orthanc-server.com/orthanc/file/Orthanc-1.9.7/OrthancServer/Plugins/Include/orthanc/OrthancCPlugin.h)
+#### Tools
+* GCC - compiler (C/C++ languages)
+* Cmake compatible build system (eg. GNU Make, Ninja)
+* Cmake 3.20 - configures build system
+* Docker - local testing ([docker image](https://hub.docker.com/r/jodogne/orthanc-plugins))
+* Github Actions - remote testing
+* CLion (recommended)
+
+#### Submodules
+| Library | Purpose | URI |
+|---------|---------|-----|
+| [libpq](lib) | PostgreSQL API | <ul><li>[external repo](https://github.com/postgres/postgres.git) <li>[docs - configure/build/install](https://www.postgresql.org/docs/14/install-procedure.html) |
+| [libpqxx](lib) | libpq wrapper | <ul><li>[external repo](https://github.com/jtv/libpqxx.git) <li>[docs - API](https://libpqxx.readthedocs.io/en/stable/a01382.html) |
+| [nlohmann/json](lib) | json API | <ul><li>[external repo](https://github.com/nlohmann/json.git) <li>[docs - integration](https://github.com/nlohmann/json#integration) <li>[docs - API](https://nlohmann.github.io/json/api/basic_json/) |
+| [googletest](lib) | unit testing | <ul><li>[external repo](https://github.com/google/googletest.git) |
 
 ## Testing
 
