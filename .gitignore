@@ -74,11 +74,12 @@ fabric.properties
 .idea/caches/build_file_checksums.ser
 
 #IDE File
-.idea
-
+.idea/*
+lib/*
 build/
 
 #Docker
 docker/orthanc/plugins/*
 docker/orthanc/db/*
 docker/postgres/data/*
+docker/orthanc-db/*
