@@ -41,14 +41,20 @@ OrthancPluginErrorCode OnStoredCallback(OrthancPluginDicomInstance *instance, co
     }
 
     char anonymized_filename[1024];
-    sprintf(anonymized_filename, "/var/lib/orthanc/db/%s/%s/%s_anon",
-            file_uuid.substr(0,2).c_str(), file_uuid.substr(2,2).c_str(), file_uuid.c_str());
+    char* anonymized_md5 = OrthancPluginComputeMd5(context_, anonymized_buffer.data, anonymized_buffer.size);
+    sprintf(anonymized_filename, "Anonymized:\n  Filename: /var/lib/orthanc/db/%s/%s/%s_anon\n  MD5: %s\n  Size: %d",
+            file_uuid.substr(0,2).c_str(), file_uuid.substr(2,2).c_str(), file_uuid.c_str(),
+            anonymized_md5, anonymized_buffer.size);
     OrthancPluginLogWarning(context_, anonymized_filename);
+
+    // Should then update MD5 and filesize in database
+
     error = OrthancPluginWriteFile(context_, anonymized_filename, anonymized_buffer.data, anonymized_buffer.size);
     if (error) return error;
 
     OrthancPluginFreeMemoryBuffer(context_, &instance_buffer);
     OrthancPluginFreeMemoryBuffer(context_, &anonymized_buffer);
+    OrthancPluginFreeString(context_, anonymized_md5);
 
     return OrthancPluginErrorCode_Success;
 }
