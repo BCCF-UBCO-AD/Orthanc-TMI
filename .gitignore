@@ -42,6 +42,7 @@
 
 # CMake
 cmake-build-*/
+build/
 
 # Mongo Explorer plugin
 .idea/**/mongoSettings.xml
@@ -76,9 +77,9 @@ fabric.properties
 #IDE File
 .idea
 
-build/
-
 #Docker
-docker/orthanc/plugins/*
-docker/orthanc/db/*
-docker/postgres/data/*
+docker/orthanc/db/
+docker/postgres/data/
+
+#submodules
+extern/
