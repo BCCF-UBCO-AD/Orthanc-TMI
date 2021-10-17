@@ -1,12 +1,6 @@
 [submodule "extern/googletest"]
 	path = extern/googletest
 	url = https://github.com/google/googletest.git
-[submodule "extern/postgres"]
-	path = extern/postgres
-	url = https://github.com/postgres/postgres.git
-[submodule "extern/libpqxx"]
-	path = extern/libpqxx
-	url = https://github.com/jtv/libpqxx.git
 [submodule "extern/nlohmann-json"]
 	path = extern/nlohmann-json
 	url = https://github.com/nlohmann/json.git
