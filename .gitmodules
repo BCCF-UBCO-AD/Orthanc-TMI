@@ -1,7 +1,6 @@
 [submodule "extern/googletest"]
 	path = extern/googletest
 	url = https://github.com/google/googletest.git
-
 [submodule "extern/postgres"]
 	path = extern/postgres
 	url = https://github.com/postgres/postgres.git
