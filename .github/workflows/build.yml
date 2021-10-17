@@ -38,4 +38,4 @@
             ninja -C build
         - name: Run tests
           run: |
-            Orthanc-TMI-tests --gtest_output=xml:build/
+            build/Orthanc-TMI-tests --gtest_output=xml:build/
