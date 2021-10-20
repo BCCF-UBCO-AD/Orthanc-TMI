@@ -44,6 +44,4 @@ First and foremost this project [creates an Orthanc plugin](https://book.orthanc
 
 ## Testing
 
-We are using GoogleTest, Google’s C++ testing and mocking framework, to test our plugin's features.
-
-We are planning on using the [CircleCI](circleci.com) platform to handle continuous testing. With the help of a robust and reliable CI pipeline, we will be able to test features before merging and find issues sooner.
+We have decided on using a combination of Google Test Framework and Github Actions to implement our testing software suite. There are three parts to our testing strategy: Unit Testing, Integration Testing, and System Testing. The first two come together in our passive regression testing approach that ensures new additions to the develop and master branchs work as expected. While the third will be active testing sessions to identify weak points in the plugin that need to be fixed or imporved.
