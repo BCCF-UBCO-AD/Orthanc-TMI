@@ -6,15 +6,15 @@ We are tasked with developing a plugin that extends the open-source Picture Arch
 
 ## User groups
 
-### Medical researchers
+Medical Research Managers are expected to be the main user group for this plugin and pipeline. The anonymized DICOM files can be used by researchers to train future Artificial Intelligence models, and the patient information can be used to verify the accuracy of the AI models.
 
-Medical researchers are expected to be the main user group for this software. The anonymized DICOM files and patient data can be used by researchers to train future Artificial Intelligence (AI) projects. The plugin must be able to automatize work that was previously done manually so as to make it as easy as possible for researchers to query large datasets of medical records.
+Medical IT Staff will also be interacting with our pipeline. They are expected to maintain and manage the pipeline. IT Staff will have the knowledge to query the database system to retrieve information needed by researchers.
 
 ## Overview of data flow diagram
 
 ![](assets/DFD.png)
 
-## Milestone requirements 
+## Milestone requirements
 
 WIP
 
