@@ -20,11 +20,55 @@ Medical IT Staff will also be interacting with our pipeline. They are expected t
 
 ## Milestone requirements
 
-WIP
+### Peer Testing #1
+The first peer testing will occur on November 14, 2021. For this first peer testing session, we are planning on having the following functional requirements ready for user feedback:
+- Receive DICOM files from medical modalities via DICOM protocol.
+- Store incoming DICOM files with anonymized PHI.
+- Store retrievable PHI using the anonymized DICOM file's UUID.
+
+### Peer Testing #2
+The second peer testing will occur on March 2-4, 2022. For the second peer testing session, we are planning on having the following functional requirements ready for user feedback:
+- Identify potential PHI mismatches.
+- Read PHI from the database.
+- Download DICOM files en masse.
+
+### Final Product
+The final product and deliverables are due on April 22, 2022. We are planning on having the following functional requirements ready:
+- Download PHI as CSV.
+- Filter PHI from the database.
+- Filter DICOM files for download.
+- Link new PHI to existing records.
+- Organize DICOM files in the file system.
+
+## Functional Requirements
+- Receive DICOM files from medical modalities via DICOM protocol.
+- Store incoming DICOM files with anonymized PHI.
+- Store retrievable PHI using the anonymized DICOM file's UUID.
+- Identify potential PHI mismatches.
+- Read PHI from the database.
+- Download PHI as CSV.
+- Download DICOM files en masse.
+- Filter PHI from the database.
+- Filter DICOM files for download.
+
+**Extras**
+
+- Link new PHI to existing records.
+- Organize DICOM files in the file system.
 
 ## Non-functional requirements & environmental constraints
 
-WIP
+**Security**: PHI must be securely stored and protected from unauthorized access.
+
+**Reliability**: Must be able to reliably receive and process DICOM files with minimal downtime.
+
+**Maintainability**: IT admins need to be able to manage and maintain the pipeline without needing to modify code. So there should be adequate documentation for building, installing, and configuring the pipeline.
+
+**Usability**: The pipeline should be user-friendly and accessible.
+
+### Environmental Constraint
+
+To comply with HIPAA (Health Insurance Portability and Accountability Act), all components of the pipeline must be within BC Cancer's security network. This limits our options for our system architecture as we won't be able to use established cloud services like AWS and Azure to handle computing, database, and storage. In addition, due to limited funding, the server infrastructure that we'll be working with won't be as powerful as we would like. We'll have to optimize our pipeline to be as efficient as possible to handle the large amount of data (125GiB/day) that we need to process.
 
 ## Tech stack
 
