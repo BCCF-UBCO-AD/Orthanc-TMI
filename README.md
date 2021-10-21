@@ -1,5 +1,10 @@
 # Orthanc-TMI
 
+### Table of Contents
+
+ - [Dependencies](#dependencies)
+ - [Contributing](#contributing)
+
 This software has been developed as a plugin to run on Orthanc DICOM servers.
 ## Dependencies
 First and foremost this project [creates an Orthanc plugin](https://book.orthanc-server.com/developers/creating-plugins.html#structure-of-the-plugins), so the Orthanc [plugin SDK](https://sdk.orthanc-server.com/index.html) is required. Which is available as [OrthancCPlugin.h](https://hg.orthanc-server.com/orthanc/file/Orthanc-1.9.7/OrthancServer/Plugins/Include/orthanc/OrthancCPlugin.h)
