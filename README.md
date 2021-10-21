@@ -1,6 +1,40 @@
 # Orthanc-TMI
 
+### Table of Contents
+
+ - [Dependencies](#dependencies)
+   - [Tools](#tools)
+   - [Submodules](#submodules)
+ - [Getting Started](#getting-started)
+   - [Clone](#clone)
+   - [Build](#build)
+   - [Docker](#docker)
+     - [WSL](#windows-subsystem-for-linux)
+ - [Contributing](#contributing)
+   - [Style Guide](#style-guide)
+   - [Special Branches](#special-branches)
+   - [Branching](#branching)
+ - [Testing](#testing)
+
 This software has been developed as a plugin to run on Orthanc DICOM servers.
+## Dependencies
+First and foremost this project [creates an Orthanc plugin](https://book.orthanc-server.com/developers/creating-plugins.html#structure-of-the-plugins), so the Orthanc [plugin SDK](https://sdk.orthanc-server.com/index.html) is required. Which is available as [OrthancCPlugin.h](https://hg.orthanc-server.com/orthanc/file/Orthanc-1.9.7/OrthancServer/Plugins/Include/orthanc/OrthancCPlugin.h)
+#### Tools
+* GCC - compiler
+* Cmake compatible build system (eg. GNU Make, Ninja)
+* Cmake 3.20 - configures build system
+* Docker - local testing ([docker image](https://hub.docker.com/r/jodogne/orthanc-plugins))
+* Github Actions - remote testing
+* CLion (recommended)
+
+#### Submodules
+| Library | Purpose | URI |
+|---------|---------|-----|
+| [libpq](lib) | PostgreSQL API | <ul><li>[external repo](https://github.com/postgres/postgres.git) <li>[docs - configure/build/install](https://www.postgresql.org/docs/14/install-procedure.html) |
+| [libpqxx](lib) | libpq wrapper | <ul><li>[external repo](https://github.com/jtv/libpqxx.git) <li>[docs - API](https://libpqxx.readthedocs.io/en/stable/a01382.html) |
+| [nlohmann/json](lib) | json API | <ul><li>[external repo](https://github.com/nlohmann/json.git) <li>[docs - integration](https://github.com/nlohmann/json#integration) <li>[docs - API](https://nlohmann.github.io/json/api/basic_json/) |
+| [googletest](lib) | unit testing | <ul><li>[external repo](https://github.com/google/googletest.git) |
+
 ## Getting Started
 ### Clone
 Don't forget to populate submodules.
@@ -38,16 +72,22 @@ ninja
 ```
 
 ### Docker
-To test, whatever, on your local system just launch docker.
+To test locally you'll need to launch docker with..
 ```bash
 $ sudo docker-compose up
 ```
-Then proceed to test whatever in whatever way.
-The docker reads a copy of the build from `docker/plugins/`.
+Then you can proceed to test whatever in whatever way. The docker server reads a copy of the plugin binary from `docker/plugins/` (cmake configures the copy operation).
 
-If running in WSL, change the volume for Postgres to any location that's native to your linux distribution. Using directories located in ``/mnt`` will cause permission problems. WSL's default directory for anything in Windows are ``/mnt``
+#### Windows Subsystem for Linux
+When working in WSL, permissions may be an issue for docker mounting the persistent PostgreSQL data. By default Windows' file systems will be mounted under ``/mnt`` for WSL. To avoid permission issues with mounting docker's `/var/lib/postgresql/data` you'll need to change the volume for Postgres to any location that's native to your linux distribution.
 
-For example, change ``./docker/postgres:/var/lib/postgresql/data`` to ``~/docker/postgres:/var/lib/postgresql/data``
+You can edit `docker-compose.yml` where..
+```bash
+#instead of using
+./docker/postgres:/var/lib/postgresql/data
+#use this instead
+~/docker/postgres:/var/lib/postgresql/data
+```
 
 ## Contributing
 ### Style Guide
@@ -103,7 +143,7 @@ void Foo(int foo_bar){
 }
 ```
 
-### Branches
+### Special Branches
 | Name | Purpose |
 |------|---------|
 | master | stable branch |
@@ -114,7 +154,19 @@ void Foo(int foo_bar){
 
 
 ### Branching
-We may want to merge branches to things other than develop, use best judgement. As a general guide:
+Our strategy is simple: 
+ 1. develop code in a branch
+    - test
+    - fix
+    - test
+ 2. merge to * *(if and when needed)*
+ 3. merge to develop
+      - test
+      - fix
+      - test
+ 4. merge to master.
+
+As a general guide to naming branches:
 
 | Prefix | Purpose | Delete After? |
 |--------|---------|----------|
@@ -125,28 +177,9 @@ We may want to merge branches to things other than develop, use best judgement. 
 | `patch-` | fixes for tracked issues | no |
 | `fix-` | other fixes | no |
 
-# Tech Stack
-### Dependencies
-First and foremost this project [creates an Orthanc plugin](https://book.orthanc-server.com/developers/creating-plugins.html#structure-of-the-plugins), so the Orthanc [plugin SDK](https://sdk.orthanc-server.com/index.html) is required. Which is available as [OrthancCPlugin.h](https://hg.orthanc-server.com/orthanc/file/Orthanc-1.9.7/OrthancServer/Plugins/Include/orthanc/OrthancCPlugin.h)
-#### Tools
-* GCC - compiler
-* Cmake compatible build system (eg. GNU Make, Ninja)
-* Cmake 3.20 - configures build system
-* Docker - local testing ([docker image](https://hub.docker.com/r/jodogne/orthanc-plugins))
-* Github Actions - remote testing
-* CLion (recommended)
+## The Darkest Time Line
 
-#### Submodules
-| Library | Purpose | URI |
-|---------|---------|-----|
-| [libpq](lib) | PostgreSQL API | <ul><li>[external repo](https://github.com/postgres/postgres.git) <li>[docs - configure/build/install](https://www.postgresql.org/docs/14/install-procedure.html) |
-| [libpqxx](lib) | libpq wrapper | <ul><li>[external repo](https://github.com/jtv/libpqxx.git) <li>[docs - API](https://libpqxx.readthedocs.io/en/stable/a01382.html) |
-| [nlohmann/json](lib) | json API | <ul><li>[external repo](https://github.com/nlohmann/json.git) <li>[docs - integration](https://github.com/nlohmann/json#integration) <li>[docs - API](https://nlohmann.github.io/json/api/basic_json/) |
-| [googletest](lib) | unit testing | <ul><li>[external repo](https://github.com/google/googletest.git) |
-
-# Time Line
-
-# Testing
+## Testing
   - Google_Test Framework for unit Testing. [Here](https://github.com/google/googletest.git)
   - Circle CI or similar for continuous integration.
   - Circle CI with GitHub to test  pull requests to main and develop branches
