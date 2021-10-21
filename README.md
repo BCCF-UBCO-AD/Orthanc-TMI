@@ -1,5 +1,21 @@
 # Orthanc-TMI
 
+### Table of Contents
+
+ - [Dependencies](#dependencies)
+   - [Tools](#tools)
+   - [Submodules](#submodules)
+ - [Getting Started](#getting-started)
+   - [Clone](#clone)
+   - [Build](#build)
+   - [Docker](#docker)
+     - [WSL](#windows-subsystem-for-linux)
+ - [Contributing](#contributing)
+   - [Style Guide](#style-guide)
+   - [Special Branches](#special-branches)
+   - [Branching](#branching)
+ - [Testing](#testing)
+
 This software has been developed as a plugin to run on Orthanc DICOM servers.
 ## Dependencies
 First and foremost this project [creates an Orthanc plugin](https://book.orthanc-server.com/developers/creating-plugins.html#structure-of-the-plugins), so the Orthanc [plugin SDK](https://sdk.orthanc-server.com/index.html) is required. Which is available as [OrthancCPlugin.h](https://hg.orthanc-server.com/orthanc/file/Orthanc-1.9.7/OrthancServer/Plugins/Include/orthanc/OrthancCPlugin.h)
@@ -127,7 +143,7 @@ void Foo(int foo_bar){
 }
 ```
 
-### Branches
+### Special Branches
 | Name | Purpose |
 |------|---------|
 | master | stable branch |
@@ -138,7 +154,19 @@ void Foo(int foo_bar){
 
 
 ### Branching
-We may want to merge branches to things other than develop, use best judgement. As a general guide:
+Our strategy is simple: 
+ 1. develop code in a branch
+    - test
+    - fix
+    - test
+ 2. merge to * *(if and when needed)*
+ 3. merge to develop
+      - test
+      - fix
+      - test
+ 4. merge to master.
+
+As a general guide to naming branches:
 
 | Prefix | Purpose | Delete After? |
 |--------|---------|----------|
