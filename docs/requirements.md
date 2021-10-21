@@ -1,4 +1,4 @@
-# Requirements and Design Milestone
+# Requirements and Design Report
 
 ## High-level description
 
@@ -10,9 +10,13 @@ Medical Research Managers are expected to be the main user group for this plugin
 
 Medical IT Staff will also be interacting with our pipeline. They are expected to maintain and manage the pipeline. IT Staff will have the knowledge to query the database system to retrieve information needed by researchers.
 
-## Overview of data flow diagram
+## Overview of data flow diagrams
 
-![](assets/DFD.png)
+### Level 0 Data Flow Diagram
+![](assets/DFD-0.png)
+
+### Level 1 Data Flow Diagram
+![](assets/DFD-1.png)
 
 ## Milestone requirements
 
