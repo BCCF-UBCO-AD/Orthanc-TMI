@@ -15,9 +15,6 @@
           uses: actions/checkout@v2
           with:
             submodules: true
-        - name: Prepare test environment
-          run: |
-            docker-compose up -d
         - name: Install dependencies
           run: |
             sudo apt install -y software-properties-common lsb-release
@@ -36,6 +33,12 @@
               -B build \
               -G Ninja
             ninja -C build
+        - name: Launch docker test environment
+          run: |
+            docker-compose up -d
+        - name: Wait for docker
+          run: |
+            sleep 30s
         - name: Run tests
           run: |
             build/bin/all-tests --gtest_output=xml:build/
