@@ -4,3 +4,6 @@
 [submodule "extern/nlohmann-json"]
 	path = extern/nlohmann-json
 	url = https://github.com/nlohmann/json.git
+[submodule "extern/libpqxx"]
+	path = extern/libpqxx
+	url = https://github.com/jtv/libpqxx.git
