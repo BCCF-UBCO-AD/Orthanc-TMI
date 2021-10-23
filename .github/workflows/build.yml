@@ -33,7 +33,7 @@
               -B build \
               -G Ninja
             ninja -C build DataAnonymizer
-            ninja -C build Orthanc-TMI-tests
+            ninja -C build all-tests
         - name: Launch Docker
           run: |
             docker-compose up -d && sleep 5s
