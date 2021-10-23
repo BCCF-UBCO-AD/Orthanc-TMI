@@ -3,7 +3,7 @@
       branches:
         - master
         - develop
-        - *
+        - libraries
 
   env:
     BUILD_TYPE: Debug
