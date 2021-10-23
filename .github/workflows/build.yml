@@ -40,5 +40,7 @@
             docker-compose up -d && sleep 10s
         - name: Run tests
           run: |
-            if docker ps --all --filter name=orthanc-server --format '{{.Status}}' | grep Up; then : else exit 1; fi
+            status=$(docker ps --all --filter name=orthanc-server --format '{{.Status}}')
+            echo $status
+            if echo $status | grep Exit; then exit 1; fi
             build/bin/all-tests --gtest_output=xml:build/
