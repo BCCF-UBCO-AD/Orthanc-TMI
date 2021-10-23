@@ -33,12 +33,10 @@
               -B build \
               -G Ninja
             ninja -C build
-        - name: Launch docker test environment
+        - name: Prepare test environment
           run: |
-            docker-compose up -d
-        - name: Wait for docker
-          run: |
-            sleep 30s
+            docker-compose up -d && sleep 30s
+            if sudo docker ps --all --filter name=orthanc-server --format '{{.Status}}' | grep Up; then : else throw "Orthanc failed to start, probably couldn't load the plugin"; fi
         - name: Run tests
           run: |
             build/bin/all-tests --gtest_output=xml:build/

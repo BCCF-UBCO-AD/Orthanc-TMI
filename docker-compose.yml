@@ -19,7 +19,6 @@ services:
   orthanc:
     image: jodogne/orthanc-plugins:latest
     container_name: orthanc-server
-    restart: always
     command: /run/secrets/  # Path to the configuration files (stored as secrets)
     depends_on:
       - postgres
