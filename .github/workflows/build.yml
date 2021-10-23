@@ -15,9 +15,6 @@
           uses: actions/checkout@v2
           with:
             submodules: true
-        - name: Prepare test environment
-          run: |
-            docker-compose up -d
         - name: Install dependencies
           run: |
             sudo apt install -y software-properties-common lsb-release
@@ -36,6 +33,10 @@
               -B build \
               -G Ninja
             ninja -C build
+        - name: Prepare test environment
+          run: |
+            docker-compose up -d && sleep 30s
+            if sudo docker ps --all --filter name=orthanc-server --format '{{.Status}}' | grep Up; then : else throw "Orthanc failed to start, probably couldn't load the plugin"; fi
         - name: Run tests
           run: |
             build/Orthanc-TMI-tests --gtest_output=xml:build/
