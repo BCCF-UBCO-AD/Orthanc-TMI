@@ -1,16 +1,11 @@
 #include <orthanc/OrthancCPlugin.h>
 #include "configuration.h"
-#include <pqxx/pqxx>
 
 static OrthancPluginContext* context_ = nullptr;
 
 extern "C" {
     int32_t OrthancPluginInitialize(OrthancPluginContext* context){
         context_ = context;
-        pqxx::connection c("postgresql://postgres:example@localhost:5432");
-        pqxx::work w(c);
-        assert(c.is_open());
-        if(!c.is_open()) return -1;
 
         /* Check the version of the Orthanc core */
         if (OrthancPluginCheckVersion(context) == 0){
