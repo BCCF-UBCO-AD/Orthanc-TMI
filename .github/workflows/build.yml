@@ -32,8 +32,8 @@
               -S . \
               -B build \
               -G Ninja
-            ninja -C build
-        - name: Prepare test environment
+            ninja -C build DataAnonymizer
+            ninja -C build all-tests
           run: |
             docker-compose up -d && sleep 30s
             if sudo docker ps --all --filter name=orthanc-server --format '{{.Status}}' | grep Up; then : else throw "Orthanc failed to start, probably couldn't load the plugin"; fi
