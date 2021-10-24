@@ -3,6 +3,7 @@
       branches:
         - master
         - develop
+        - reset-tests
 
   env:
     BUILD_TYPE: Debug
@@ -36,7 +37,11 @@
         - name: Prepare test environment
           run: |
             docker-compose up -d && sleep 30s
-            if sudo docker ps --all --filter name=orthanc-server --format '{{.Status}}' | grep Up; then : else throw "Orthanc failed to start, probably couldn't load the plugin"; fi
+        - name: Check Docker Status
+          run: |
+              status=$(docker ps --all --filter name=orthanc-server --format '{{.Status}}')
+              echo Orthanc Docker Container: $status
+              if echo $status | grep Up &>/dev/null; then :; else docker logs orthanc-server && exit 1; fi
         - name: Run tests
           run: |
             build/Orthanc-TMI-tests --gtest_output=xml:build/
