@@ -17,8 +17,8 @@
             submodules: true
         - name: Install dependencies
           run: |
-            apt install -y software-properties-common lsb-release
-            apt-get install \
+            sudo apt install -y software-properties-common lsb-release
+            sudo apt-get install \
               gcc \
               ninja-build \
               cmake \
