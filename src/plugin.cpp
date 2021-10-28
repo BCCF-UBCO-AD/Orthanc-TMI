@@ -1,6 +1,8 @@
 #include <orthanc/OrthancCPlugin.h>
 #include "configuration.h"
 
+#include <string>
+
 namespace globals {
     static OrthancPluginContext *context = nullptr;
 }
@@ -58,6 +60,16 @@ OrthancPluginDicomInstance* Anonymize(const OrthancPluginDicomInstance* instance
     //    for(int64_t i = 0; i < size; ++i){
     //        printf("%c", readable_buffer[i]);
     //    }
+    size_t preamble = 128;
+    size_t prefix = 4;
+    if(size <= preamble + prefix){
+        // throw error, or something
+    }
+    if(std::string_view(readable_buffer+preamble,prefix) != "DICM"){
+        // apparently not a DICOM file... so...
+        // throw error, or something
+    }
+    // todo: loop over tags; getNextTag(ptr)?
 
     // extract header
     // extract PHI
