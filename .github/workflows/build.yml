@@ -32,8 +32,8 @@
               -S . \
               -B build \
               -G Ninja
-            ninja -C build DataAnonymizer
-            ninja -C build Orthanc-TMI-tests
+            ninja -C build data-anonymizer
+            ninja -C build all-tests
         - name: Launch Docker
           run: |
             docker-compose down
@@ -45,4 +45,4 @@
 #            if echo $status | grep Up &>/dev/null; then :; else docker logs orthanc-server && exit 1; fi
         - name: Run Unit Tests
           run: |
-            build/Orthanc-TMI-tests --gtest_output=xml:build/
+            build/bin/all-tests --gtest_output=xml:build/
