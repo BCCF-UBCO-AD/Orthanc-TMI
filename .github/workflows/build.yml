@@ -32,7 +32,7 @@
               -S . \
               -B build \
               -G Ninja
-            ninja -C build DataAnonymizer
+            ninja -C build data-anonymizer
             ninja -C build all-tests
         - name: Launch Docker
           run: |

@@ -10,7 +10,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
 
 # target names
-set(PLUGIN_TARGET DataAnonymizer)
+set(PLUGIN_TARGET data-anonymizer)
 set(TEST_TARGET all-tests)
 
 # dependencies
