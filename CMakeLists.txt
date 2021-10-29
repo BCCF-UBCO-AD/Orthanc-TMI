@@ -16,11 +16,11 @@ add_subdirectory(lib/googletest)
 # plugin target
 include_directories(include)
 add_library(${PLUGIN_NAME} SHARED ${PLUGIN_SOURCES})
-#add_custom_command(
-#        TARGET ${PLUGIN_NAME} POST_BUILD
-#        COMMAND ${CMAKE_COMMAND} -E copy
-#        ${CMAKE_CURRENT_BINARY_DIR}/${PLUGIN_NAME}.so
-#        ${PROJECT_DIR}/docker/orthanc/plugins/${PLUGIN_NAME}.so)
+add_custom_command(
+        TARGET ${PLUGIN_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${CMAKE_CURRENT_BINARY_DIR}/${PLUGIN_NAME}.so
+        ${PROJECT_DIR}/docker/orthanc/plugins/${PLUGIN_NAME}.so)
 
 # test target
 include_directories(lib/googletest/googlemock/include)
