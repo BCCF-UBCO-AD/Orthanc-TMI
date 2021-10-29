@@ -8,16 +8,13 @@
     BUILD_TYPE: Debug
 
   jobs:
-    Google_Test:
+    Orthanc-TMI:
       runs-on: ubuntu-20.04
       steps:
         - name: Clone Orthanc-TMI
           uses: actions/checkout@v2
           with:
             submodules: true
-        - name: Prepare test environment
-          run: |
-            docker-compose up -d
         - name: Install dependencies
           run: |
             sudo apt install -y software-properties-common lsb-release
@@ -35,7 +32,17 @@
               -S . \
               -B build \
               -G Ninja
-            ninja -C build
-        - name: Run tests
+            ninja -C build data-anonymizer
+            ninja -C build all-tests
+        - name: Launch Docker
           run: |
-            build/Orthanc-TMI-tests --gtest_output=xml:build/
+            docker-compose down
+            docker-compose up -d && sleep 5s
+#        - name: Check Docker Status
+#          run: |
+#            status=$(docker ps --all --filter name=orthanc-server --format '{{.Status}}')
+#            echo Orthanc Docker Container: $status
+#            if echo $status | grep Up &>/dev/null; then :; else docker logs orthanc-server && exit 1; fi
+        - name: Run Unit Tests
+          run: |
+            build/bin/all-tests --gtest_output=xml:build/
