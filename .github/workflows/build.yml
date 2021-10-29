@@ -38,11 +38,11 @@
           run: |
             docker-compose down
             docker-compose up -d && sleep 5s
-        - name: Check Docker Status
-          run: |
-            status=$(docker ps --all --filter name=orthanc-server --format '{{.Status}}')
-            echo Orthanc Docker Container: $status
-            if echo $status | grep Up &>/dev/null; then :; else docker logs orthanc-server && exit 1; fi
+#        - name: Check Docker Status
+#          run: |
+#            status=$(docker ps --all --filter name=orthanc-server --format '{{.Status}}')
+#            echo Orthanc Docker Container: $status
+#            if echo $status | grep Up &>/dev/null; then :; else docker logs orthanc-server && exit 1; fi
         - name: Run Unit Tests
           run: |
             build/Orthanc-TMI-tests --gtest_output=xml:build/
