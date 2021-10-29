@@ -9,7 +9,7 @@ namespace globals {
 
 // prototypes
 int32_t FilterCallback(const OrthancPluginDicomInstance* instance);
-OrthancPluginDicomInstance* Anonymize(const OrthancPluginDicomInstance* instance);
+OrthancPluginDicomInstance* Anonymize(const OrthancPluginDicomInstance* readonly_instance);
 
 // plugin foundation
 extern "C" {
@@ -45,17 +45,17 @@ extern "C" {
     }
 }
 
+using namespace globals;
+
 int32_t FilterCallback(const OrthancPluginDicomInstance* instance){
     // todo: possibly copy instance data to new buffer to control life span, then anonymize as a job instead of in this callstack
     auto new_instance = Anonymize(instance);
     return 0; /*{0: discard, 1: store, -1: error}*/
 }
-
 //#include <cstdlib>
-OrthancPluginDicomInstance* Anonymize(const OrthancPluginDicomInstance* instance){
-    using namespace globals;
-    const void* data = OrthancPluginGetInstanceData(context, instance);
-    int64_t size = OrthancPluginGetInstanceSize(context, instance);
+OrthancPluginDicomInstance* Anonymize(const OrthancPluginDicomInstance* readonly_instance){
+    const void* data = OrthancPluginGetInstanceData(context, readonly_instance);
+    int64_t size = OrthancPluginGetInstanceSize(context, readonly_instance);
     const char* readable_buffer = (const char*)data;
     //    for(int64_t i = 0; i < size; ++i){
     //        printf("%c", readable_buffer[i]);
