@@ -13,7 +13,6 @@ namespace globals {
 
 // prototypes
 int32_t FilterCallback(const OrthancPluginDicomInstance* instance);
-const OrthancPluginDicomInstance* Anonymize(const OrthancPluginDicomInstance* readonly_instance);
 void PopulateFilterList();
 const char* ParseTag(const char* buffer, nlm::json config);
 
@@ -64,7 +63,8 @@ void PopulateFilterList(){
 
 int32_t FilterCallback(const OrthancPluginDicomInstance* instance){
     // todo: possibly copy instance data to new buffer to control life span, then anonymize as a job instead of in this callstack
-    auto new_instance = Anonymize(instance);
+    DicomFilter parser(instance);
+    auto new_instance = parser.GetFilteredInstance();
     if (!new_instance) {
         return -1;
     }
@@ -72,9 +72,4 @@ int32_t FilterCallback(const OrthancPluginDicomInstance* instance){
         return 1;
     }
     return 0; /*{0: discard, 1: store, -1: error}*/
-}
-
-const OrthancPluginDicomInstance* Anonymize(const OrthancPluginDicomInstance* readonly_instance){
-    DicomFilter parser(readonly_instance);
-    return parser.GetFilteredInstance();
 }
