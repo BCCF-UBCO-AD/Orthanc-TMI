@@ -150,9 +150,10 @@ void Foo(int foo_bar){
 |------|---------|
 | master | stable branch |
 | develop | development branch for **merging** new libraries/features/etc. |
-| documents | documentation branch for independent updating of documents |
-| readme | readme update branch for standalone updates to the readme file |
-| libraries | library integration branch for getting new libraries up and running
+| documents | documentation branch for independent clerical work |
+| libraries | library integration branch for getting new libraries up and running |
+| ci | continuous integration branch for independent updating of ci configs |
+| samples | for independent updating of dicom files, should be converted into a submodule |
 
 
 ### Branching
@@ -178,7 +179,7 @@ As a general guide to naming branches:
 | `hotfix-` | single commit fixes | no |
 | `patch-` | fixes for tracked issues | no |
 | `fix-` | other fixes | no |
-
+| `*` | some special branch with an ongoing purpose | no |
 ## The Darkest Time Line
 
 ## Testing
