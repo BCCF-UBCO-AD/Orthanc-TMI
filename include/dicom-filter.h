@@ -1,6 +1,7 @@
 #pragma once
 #include "core.h"
 
+// todo: rename? eg. TagFilter? *Parser?
 class DicomFilter{
 private:
     const OrthancPluginDicomInstance* original_instance;
