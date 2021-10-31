@@ -13,11 +13,11 @@ const OrthancPluginDicomInstance* DicomFilter::GetFilteredInstance(){
     size_t preamble = 128;
     size_t prefix = 4;
     if(size <= preamble + prefix){
-        // todo: throw error, or something
+        // todo: throw error, or log error, or something
     }
     if(std::string_view(readable_buffer+preamble,prefix) != "DICM"){
         // apparently not a DICOM file... so...
-        // todo: throw error, or something
+        // todo: throw error, or log error, or something
     }
     // move the read head to where the tag data begins
     readable_buffer = readable_buffer+preamble+prefix;
