@@ -127,7 +127,7 @@ private:
     void helper(std::unordered_map<size_t, std::vector<std::vector<iterator_type_with_a_long_name>> the_thing, int x){}
     void helper2(std::unordered_map<size_t, std::vector<std::vector<iterator_type_with_a_long_name>> the_thing,
                  std::unordered_map<size_t, std::vector<std::vector<iterator_type_with_a_long_name>> the_thing2){}
-    void helper2(int x, /* when the signature surpasses, newline each arg */
+    void helper3(int x, /* when the signature surpasses, newline each arg */
                  int y,
                  int z,
                  std::unordered_map<size_t, std::vector<std::vector<size_t>> the_thing, 
@@ -136,9 +136,11 @@ protected:
     void protected_special_helper(){}
 public:
     bool public_flag = false;
+    //Our methods should also be PascalCase, might revisit this later and switch to Camel
     void Bar(){}
 };
 
+//Our functions should also be PascalCase, might revisit this later and switch to Camel
 void Foo(int foo_bar){
 }
 ```
