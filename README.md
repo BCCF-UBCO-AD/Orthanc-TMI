@@ -180,12 +180,8 @@ As a general guide to naming branches:
 | `patch-` | fixes for tracked issues | no |
 | `fix-` | other fixes | no |
 | `*` | some special branch with an ongoing purpose | no |
-## The Darkest Time Line
 
 ## Testing
   - Google_Test Framework for unit Testing. [Here](https://github.com/google/googletest.git)
-  - Circle CI or similar for continuous integration.
-  - Circle CI with GitHub to test  pull requests to main and develop branches
-
-# Notes:
-- https://book.orthanc-server.com/users/docker.html#usage-with-plugins-enabled
+  - Github Actions for continuous integration.
+  - Github Actions to test pull requests to master and develop branches
