@@ -43,5 +43,6 @@ const OrthancPluginDicomInstance* DicomFilter::GetFilteredInstance(){
     size_t new_size = size - 0;
     const char* buffer = new char[new_size];
     // todo: copy non-filtered data to new buffer
+    // todo: test if CreateDicomInstance triggers a new filter callback
     return OrthancPluginCreateDicomInstance(globals::context, buffer, new_size);
 }
