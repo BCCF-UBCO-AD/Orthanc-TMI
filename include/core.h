@@ -4,7 +4,7 @@
 
 #ifndef IMPLEMENTS_GLOBALS
 namespace globals {
-    extern OrthancPluginContext *context = nullptr;
+    extern OrthancPluginContext* context;
     extern std::unordered_set<uint32_t> filter_list;
 }
 #endif
