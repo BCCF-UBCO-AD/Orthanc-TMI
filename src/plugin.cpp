@@ -55,6 +55,7 @@ using namespace globals;
 
 void PopulateFilterList(){
     nlm::json config(OrthancPluginGetConfiguration(context));
+    // todo: write a type safe loop, this thing will probably crash at runtime, since the tags won't be stored as integers
     for(uint32_t tag : config["filtered-tags"]){
         // todo: implement me, tags will be stored as strings they need to be converted (probably)
         filter_list.emplace(tag);
