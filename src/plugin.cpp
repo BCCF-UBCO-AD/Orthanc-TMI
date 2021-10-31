@@ -2,6 +2,7 @@
 #include "configuration.h"
 #include "core.h"
 #include "dicom-filter.h"
+#include "db-interface.h"
 
 #include <nlohmann/json.hpp>
 
@@ -13,7 +14,7 @@ namespace globals {
 
 // prototypes
 int32_t FilterCallback(const OrthancPluginDicomInstance* instance);
-void PopulateFilterList();
+void PopulateFilterList(nlm::json config);
 const char* ParseTag(const char* buffer, nlm::json config);
 
 // plugin foundation
@@ -32,7 +33,12 @@ extern "C" {
             OrthancPluginLogError(context, info);
             return -1;
         }
-        PopulateFilterList();
+        nlm::json config(OrthancPluginGetConfiguration(context));
+        // todo 1: test that this password getting line works
+        // todo 2: test what happens when the json doesn't have the necessary fields
+        auto password = config["PostgreSQL"]["Password"].get<std::string>();
+        DBInterface::connect(password.c_str());
+        PopulateFilterList(config);
         OrthancPluginRegisterIncomingDicomInstanceFilter(context, FilterCallback);
 
         return 0;
@@ -53,8 +59,8 @@ extern "C" {
 
 using namespace globals;
 
-void PopulateFilterList(){
-    nlm::json config(OrthancPluginGetConfiguration(context));
+void PopulateFilterList(nlm::json config) {
+
     for(uint32_t tag : config["filtered-tags"]){
         // todo: implement me, tags will be stored as strings they need to be converted (probably)
         filter_list.emplace(tag);
