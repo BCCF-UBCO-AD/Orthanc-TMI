@@ -14,7 +14,6 @@ namespace globals {
 // prototypes
 int32_t FilterCallback(const OrthancPluginDicomInstance* instance);
 void PopulateFilterList();
-const char* ParseTag(const char* buffer, nlm::json config);
 
 // plugin foundation
 extern "C" {
@@ -33,9 +32,7 @@ extern "C" {
             return -1;
         }
         PopulateFilterList();
-        OrthancPluginRegisterIncomingDicomInstanceFilter(context, FilterCallback);
-
-        return 0;
+        return OrthancPluginRegisterIncomingDicomInstanceFilter(context, FilterCallback);
     }
     
     void OrthancPluginFinalize(){
