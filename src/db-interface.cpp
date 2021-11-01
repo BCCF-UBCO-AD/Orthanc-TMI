@@ -9,8 +9,10 @@ void DBInterface::connect(const char* password) {
         sprintf(buffer,"postgresql://postgres:%s@localhost:5432", password);
         con = pqxx::connection(buffer);
     } catch (pqxx::broken_connection const &e) {
+        // connection checks itself for is_open(), this is thrown if the return was false
         std::cerr << "Connection Error: " << e.what() << std::endl;
     } catch (std::exception const &e) {
+        // other exceptions can be thrown from ctor
         std::cerr << "Error: " << e.what() << std::endl;
     }
 }
