@@ -1,15 +1,17 @@
+#include "iostream"
 #include "db-interface.h"
+#include "pqxx/except.hxx"
 
 void DBInterface::connect(const char* password) {
-    if(!con.is_open()){
+
+    try{
         char buffer[256];
         sprintf(buffer,"postgresql://postgres:%s@localhost:5432", password);
         con = pqxx::connection(buffer);
-        if(!con.is_open()){
-            // todo: error
-        }
-    } else {
-        // todo: error
+    } catch (pqxx::broken_connection const &e) {
+        std::cerr << "Connection Error: " << e.what() << std::endl;
+    } catch (std::exception const &e) {
+        std::cerr << "Error: " << e.what() << std::endl;
     }
 }
 
