@@ -67,8 +67,11 @@ const OrthancPluginDicomInstance* DicomFilter::GetFilteredInstance(){
         new_size += pair.second - pair.first;
     }
     const char* buffer = new char[new_size];
+    size_t buffer_head = 0;
     for(auto pair : keep_list){
-        memcpy((void*)buffer, (void*)(readable_buffer+pair.first), pair.second-pair.first);
+        size_t copy_size = pair.second-pair.first;
+        memcpy((void*)(buffer+buffer_head), (void*)(readable_buffer+pair.first), copy_size);
+        buffer_head += copy_size;
     }
     // todo: test if CreateDicomInstance triggers a new filter callback
     return OrthancPluginCreateDicomInstance(globals::context, buffer, new_size);
