@@ -1,11 +1,20 @@
 #include "dicom-filter.h"
 #include <string>
+#incldue <cstring>
+#include <sstream>
+#include <vector>
 
 DicomFilter::DicomFilter(const OrthancPluginDicomInstance* readonly_instance){
     original_instance = readonly_instance;
     data = OrthancPluginGetInstanceData(globals::context, readonly_instance);
     size = OrthancPluginGetInstanceSize(globals::context, readonly_instance);
 }
+
+//std::string DecToHex(uint16_t value) {
+//    std::stringstream stream;
+//    stream << std::hex << value;
+//    return std::string(stream.str());
+//}
 
 const OrthancPluginDicomInstance* DicomFilter::GetFilteredInstance(){
     using globals::filter_list;
@@ -25,6 +34,7 @@ const OrthancPluginDicomInstance* DicomFilter::GetFilteredInstance(){
     // move the read head to where the tag data begins
     readable_buffer = readable_buffer+preamble+prefix;
     size_t remainder = size-(preamble+prefix);
+    std::vector<std::pair<size_t,size_t>> keep_list;
     bool filtered = false;
     char msg_buffer[256] = {0};
     for(size_t i = 0; i < remainder; ++i){
@@ -41,25 +51,25 @@ const OrthancPluginDicomInstance* DicomFilter::GetFilteredInstance(){
             value_length = *(uint16_t*)(readable_buffer+i+6); // 2 bytes
             bytes += 2;
         }
+        size_t length = bytes + value_length;
         if(filter_list.contains(tag)){
             filtered = true;
-            // todo: implement (track skipped data sections)
+        } else {
+            keep_list.emplace_back(i, i + length);
         }
-        i += bytes + value_length;
+        i += length;
     }
-    /* todo:
-     *  construct filtered data buffer
-     *  option 1: track the filtered tags, use tracking data to copy into a perfectly sized buffer
-     *  option 2: copy data into 'size' sized buffer while reading, don't copy filtered tags
-     * Option 1 is probably the way to go
-     */
     if(!filtered){
         return original_instance;
     }
-    // todo: calculate size
-    size_t new_size = size - 0;
+    size_t new_size = 0;
+    for(auto pair : keep_list){
+        new_size += pair.second - pair.first;
+    }
     const char* buffer = new char[new_size];
-    // todo: copy non-filtered data to new buffer
+    for(auto pair : keep_list){
+        memcpy((void*)buffer, (void*)(readable_buffer+pair.first), pair.second-pair.first);
+    }
     // todo: test if CreateDicomInstance triggers a new filter callback
     return OrthancPluginCreateDicomInstance(globals::context, buffer, new_size);
 }
