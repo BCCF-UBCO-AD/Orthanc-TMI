@@ -22,9 +22,12 @@
     "IndexConnectionsCount" : 1        // New in release 4.0
   },
   "Dicom-Filter" : {
+    "UseWhitelist": false,
     "tags" : [
-      "0002,0000",
-      "00020000"
+      "0010,0010",
+      "0010,0020",
+      "0010,0030",
+      "0010,0040"
     ]
   },
 
