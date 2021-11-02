@@ -66,7 +66,7 @@ uint16_t HexToDec(std::string hex) {
 void PopulateFilterList(){
     nlm::json config(OrthancPluginGetConfiguration(context));
     // todo: write a type safe loop, this thing will probably crash at runtime, since the tags won't be stored as integers
-    for(auto iter : config["Dicom-Filter"]["tags"]){
+    for(const auto &iter : config["Dicom-Filter"]["tags"]){
         auto tag = iter.get<std::string>();
         // todo: implement me, tags will be stored as strings they need to be converted (probably)
         uint32_t tag_code = *(uint32_t*)(tag.c_str());
