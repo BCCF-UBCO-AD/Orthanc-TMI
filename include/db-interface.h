@@ -6,6 +6,6 @@ class DBInterface { // not an 'interface'
 private:
     static pqxx::connection con;
 public:
-    static void connect(const char* password);
+    static void connect(std::string password);
     static void disconnect();
 };

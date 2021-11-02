@@ -1,10 +1,11 @@
 #define IMPLEMENTS_GLOBALS
 #include "configuration.h"
 #include "core.h"
+#include "nlohmann/json.hpp"
+#include <iostream>
+
 #include "dicom-filter.h"
 #include "db-interface.h"
-
-#include <nlohmann/json.hpp>
 
 namespace nlm = nlohmann;
 namespace globals {
@@ -36,8 +37,18 @@ extern "C" {
         nlm::json config(OrthancPluginGetConfiguration(context));
         // todo 1: test that this password getting line works
         // todo 2: test what happens when the json doesn't have the necessary fields
-        auto password = config["PostgreSQL"]["Password"].get<std::string>();
-        DBInterface::connect(password.c_str());
+        try{
+            DBInterface::connect(config["PostgreSQL"]["Password"].get<std::string>());
+        } catch (pqxx::broken_connection const &e) {
+            // connection checks itself for is_open(), this is thrown if the return was false
+            std::cerr << "Connection Error: " << e.what() << std::endl;
+            return -1;
+        } catch (std::exception const &e) {
+            // other exceptions can be thrown from ctor
+            std::cerr << "Error: " << e.what() << std::endl;
+            return -1;
+        }
+
         PopulateFilterList(config);
         OrthancPluginRegisterIncomingDicomInstanceFilter(context, FilterCallback);
 
