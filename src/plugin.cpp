@@ -50,6 +50,19 @@ extern "C" {
 
 using namespace globals;
 
+uint16_t HexToDec(std::string hex) {
+    uint16_t temp;
+    uint16_t result;
+    std::stringstream ss;
+    ss << std::hex << hex.substr(0, 2);
+    ss >> temp;
+    ss.clear();
+    ss << std::hex << hex.substr(2, 2);
+    ss >> result;
+    result |= (temp << 8);
+    return result;
+}
+
 void PopulateFilterList(){
     nlm::json config(OrthancPluginGetConfiguration(context));
     // todo: write a type safe loop, this thing will probably crash at runtime, since the tags won't be stored as integers
