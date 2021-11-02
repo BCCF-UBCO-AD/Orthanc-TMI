@@ -1,7 +1,6 @@
 #include "dicom-filter.h"
 #include <string>
-#incldue <cstring>
-#include <sstream>
+#include <cstring>
 #include <vector>
 
 DicomFilter::DicomFilter(const OrthancPluginDicomInstance* readonly_instance){
