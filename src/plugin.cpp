@@ -53,9 +53,14 @@ using namespace globals;
 void PopulateFilterList(){
     nlm::json config(OrthancPluginGetConfiguration(context));
     // todo: write a type safe loop, this thing will probably crash at runtime, since the tags won't be stored as integers
-    for(uint32_t tag : config["filtered-tags"]){
+    for(auto iter : config["Dicom-Filter"]["tags"]){
+        auto tag = iter.get<std::string>();
         // todo: implement me, tags will be stored as strings they need to be converted (probably)
-        filter_list.emplace(tag);
+        uint32_t tag_code = *(uint32_t*)(tag.c_str());
+        char msg_buffer[256] = {0};
+        sprintf(msg_buffer, "%d\n", tag_code);
+        OrthancPluginLogInfo(context, msg_buffer);
+        filter_list.emplace(tag_code);
     }
 }
 

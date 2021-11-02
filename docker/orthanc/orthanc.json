@@ -21,6 +21,12 @@
     "ConnectionRetryInterval" : 5,     // New in release 3.0
     "IndexConnectionsCount" : 1        // New in release 4.0
   },
+  "Dicom-Filter" : {
+    "tags" : [
+      "0002,0000",
+      "00020000"
+    ]
+  },
 
   // Path to the directory that holds the heavyweight files (i.e. the
   // raw DICOM instances). Backslashes must be either escaped by
