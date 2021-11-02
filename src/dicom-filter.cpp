@@ -15,7 +15,7 @@ DicomFilter::DicomFilter(const OrthancPluginDicomInstance* readonly_instance){
 //    return std::string(stream.str());
 //}
 
-const OrthancPluginDicomInstance* DicomFilter::GetFilteredInstance(){
+OrthancPluginDicomInstance* DicomFilter::GetFilteredInstance(){
     using globals::filter_list;
     const char* readable_buffer = (const char*)data;
     size_t preamble = 128;
@@ -59,7 +59,8 @@ const OrthancPluginDicomInstance* DicomFilter::GetFilteredInstance(){
         i += length;
     }
     if(!filtered){
-        return original_instance;
+        // todo: figure out an elegant way to deal with this edge case (probably gonna involve not returning a ptr at all)
+        return (OrthancPluginDicomInstance*)original_instance;
     }
     size_t new_size = 0;
     for(auto pair : keep_list){

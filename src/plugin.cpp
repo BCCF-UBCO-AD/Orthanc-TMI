@@ -84,5 +84,6 @@ int32_t FilterCallback(const OrthancPluginDicomInstance* instance){
     if (new_instance == instance) {
         return 1;
     }
+    OrthancPluginFreeDicomInstance(globals::context, new_instance);
     return 0; /*{0: discard, 1: store, -1: error}*/
 }

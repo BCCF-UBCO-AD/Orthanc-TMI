@@ -10,5 +10,5 @@ private:
 protected:
 public:
     DicomFilter(const OrthancPluginDicomInstance* readonly_instance);
-    const OrthancPluginDicomInstance* GetFilteredInstance();
+    OrthancPluginDicomInstance* GetFilteredInstance();
 };
