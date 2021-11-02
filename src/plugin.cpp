@@ -68,7 +68,7 @@ void PopulateFilterList(){
         tag.append(temp);
         uint32_t tag_code = HexToDec(tag);
         char msg_buffer[256] = {0};
-        sprintf(msg_buffer, "%d\n", tag_code);
+        sprintf(msg_buffer, "filter registered tag code: %d\n", tag_code);
         OrthancPluginLogInfo(context, msg_buffer);
         filter_list.emplace(tag_code);
     }
