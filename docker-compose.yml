@@ -17,7 +17,7 @@ services:
       - postgres-network
 
   orthanc:
-    image: jodogne/orthanc-plugins:latest
+    image: brianzhouzc/orthanc-plugins-tmi:latest
     container_name: orthanc-server
     command: /run/secrets/  # Path to the configuration files (stored as secrets)
     depends_on:
