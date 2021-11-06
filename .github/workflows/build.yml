@@ -36,6 +36,7 @@
             ninja -C build all-tests
         - name: Launch Docker
           run: |
+            cd .github
             docker-compose down
             docker-compose up -d && sleep 5s
         - name: Check Docker Status
