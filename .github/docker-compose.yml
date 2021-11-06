@@ -1,0 +1,55 @@
+version: '3.1'
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    restart: always
+    ports:
+      - 5432:5432
+    volumes:
+      #  WARNING: FOR WSL USE THE FOLLOWING LINE INSTEAD:
+      #- ~/docker/postgres/data:/var/lib/postgresql/data
+      - ./docker/postgres/data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql # Create database for Orthanc
+    environment:
+      POSTGRES_PASSWORD: example
+    networks:
+      - postgres-network
+
+  orthanc:
+    image: brianzhouzc/orthanc-plugins-tmi:latest
+    container_name: orthanc-server
+    command: /run/secrets/  # Path to the configuration files (stored as secrets)
+    depends_on:
+      - postgres
+    ports:
+      - 4242:4242
+      - 8042:8042
+    volumes:
+      #  WARNING: FOR WSL USE THE FOLLOWING LINE INSTEAD:
+      #- ~/docker/orthanc/db:/var/lib/orthanc/db
+      #- ./docker/orthanc/db:/var/lib/orthanc/db
+      - ./docker/orthanc/plugins:/usr/share/orthanc/plugins
+    secrets:
+      - orthanc.json
+    environment:
+      - ORTHANC_NAME=TMI
+    networks:
+      - postgres-network
+
+  adminer:
+    image: adminer:latest
+    container_name: adminer
+    restart: always
+    ports:
+      - 8080:8080
+    networks:
+      - postgres-network
+
+networks:
+  postgres-network:
+    driver: bridge
+
+secrets:
+  orthanc.json:
+    file: ./docker/orthanc/orthanc.json
