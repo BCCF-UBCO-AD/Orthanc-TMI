@@ -76,8 +76,21 @@ To test locally you'll need to launch docker with..
 ```bash
 $ sudo docker-compose up
 ```
+This will launch 3 docker containers with images from Docker Hub:
+ - `orthanc-server`: Custom image based on Archlinux with Orthanc server, all official plugins as well as dependencies needed for our plugin
+ - `postgresql`: Official PostgreSQL docker image. Database.
+ - `adminer`: Official Adminer docker image, use to manage PostgreSQL database.
+ 
 Then you can proceed to test whatever in whatever way. The docker server reads a copy of the plugin binary from `docker/plugins/` (cmake configures the copy operation).
 
+#### Build Docker Image
+To build the custom docker image instead of pulling from Docker Hub:
+```bash
+cd ./docker
+docker image build .
+```
+Then update `docker-compose.yml` with the new image ID.
+ 
 #### Windows Subsystem for Linux
 When working in WSL, permissions may be an issue for docker mounting the persistent PostgreSQL data. By default Windows' file systems will be mounted under ``/mnt`` for WSL. To avoid permission issues with mounting docker's `/var/lib/postgresql/data` you'll need to change the volume for Postgres to any location that's native to your linux distribution.
 
