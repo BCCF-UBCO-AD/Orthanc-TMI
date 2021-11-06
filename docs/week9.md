@@ -15,9 +15,10 @@
 - Magnetic resonance imaging (MRI)
 
 ## Professor Group Meeting
+- Discussed about how to approach peer testing
 
 ## Individual tasks
-- Josh:
-- Brian:
+- Josh: feat-filter branch
+- Brian: Built a custom docker image with dependencies for testing.
 - Iwan: Worked on feat-filter branch with Josh
 - Raouf:
