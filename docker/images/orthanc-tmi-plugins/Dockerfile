@@ -1,17 +1,14 @@
-FROM archlinux:latest
+FROM brianzhouzc/orthanc-tmi:latest
 
 MAINTAINER Brian Zhou <brianzhouzc@gmail.com>
 LABEL Description="Orthanc, free DICOM server, with plugins and other dependencies" Vendor="Orthanc-TMI"
 
 WORKDIR /root/
 
-ADD ./setup-environment.sh ./setup-environment.sh
-RUN bash ./setup-environment.sh
-
 ADD ./download-plugins.sh ./download-plugins.sh
 RUN bash ./download-plugins.sh
 
-RUN rm ./setup-environment.sh ./download-plugins.sh
+RUN rm ./download-plugins.sh
 
 VOLUME [ "/var/lib/orthanc/db" ]
 EXPOSE 4242

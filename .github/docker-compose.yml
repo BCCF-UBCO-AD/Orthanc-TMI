@@ -17,7 +17,7 @@ services:
       - postgres-network
 
   orthanc:
-    image: brianzhouzc/orthanc-plugins-tmi:latest
+    image: brianzhouzc/orthanc-tmi:latest
     container_name: orthanc-server
     command: /run/secrets/  # Path to the configuration files (stored as secrets)
     depends_on:
@@ -28,7 +28,7 @@ services:
     volumes:
       #  WARNING: FOR WSL USE THE FOLLOWING LINE INSTEAD:
       #- ~/docker/orthanc/db:/var/lib/orthanc/db
-      #- ./docker/orthanc/db:/var/lib/orthanc/db
+      - ../docker/orthanc/db:/var/lib/orthanc/db
       - ../docker/orthanc/plugins:/usr/share/orthanc/plugins
     secrets:
       - orthanc.json

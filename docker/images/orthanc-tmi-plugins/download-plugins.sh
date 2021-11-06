@@ -32,13 +32,13 @@ wget ${URL}/plugin-postgresql/${VERSION_POSTGRESQL}/UnitTests -O - > UnitTests-P
 wget ${URL}/plugin-postgresql/${VERSION_POSTGRESQL}/libOrthancPostgreSQLIndex.so
 wget ${URL}/plugin-postgresql/${VERSION_POSTGRESQL}/libOrthancPostgreSQLStorage.so
 
-wget ${URL}/plugin-mysql/${VERSION_MYSQL}/UnitTests -O - > UnitTests-MySQL
-wget ${URL}/plugin-mysql/${VERSION_MYSQL}/libOrthancMySQLIndex.so
-wget ${URL}/plugin-mysql/${VERSION_MYSQL}/libOrthancMySQLStorage.so
+# wget ${URL}/plugin-mysql/${VERSION_MYSQL}/UnitTests -O - > UnitTests-MySQL
+# wget ${URL}/plugin-mysql/${VERSION_MYSQL}/libOrthancMySQLIndex.so
+# wget ${URL}/plugin-mysql/${VERSION_MYSQL}/libOrthancMySQLStorage.so
 
-wget ${URL}/plugin-odbc/${VERSION_ODBC}/UnitTests -O - > UnitTests-Odbc
-wget ${URL}/plugin-odbc/${VERSION_ODBC}/libOrthancOdbcIndex.so
-wget ${URL}/plugin-odbc/${VERSION_ODBC}/libOrthancOdbcStorage.so
+# wget ${URL}/plugin-odbc/${VERSION_ODBC}/UnitTests -O - > UnitTests-Odbc
+# wget ${URL}/plugin-odbc/${VERSION_ODBC}/libOrthancOdbcIndex.so
+# wget ${URL}/plugin-odbc/${VERSION_ODBC}/libOrthancOdbcStorage.so
 
 wget ${URL}/plugin-transfers/${VERSION_TRANSFERS}/UnitTests -O - > UnitTests-Transfers
 wget ${URL}/plugin-transfers/${VERSION_TRANSFERS}/libOrthancTransfers.so
@@ -66,8 +66,8 @@ chmod +x ./OrthancWSIDicomToTiff
 chmod +x ./OrthancWSIDicomizer
 chmod +x ./UnitTests-DicomWeb
 chmod +x ./UnitTests-PostgreSQL
-chmod +x ./UnitTests-MySQL
-chmod +x ./UnitTests-Odbc
+# chmod +x ./UnitTests-MySQL
+# chmod +x ./UnitTests-Odbc
 chmod +x ./UnitTests-Transfers
 chmod +x ./UnitTests-WebViewer
 chmod +x ./UnitTests-Indexer
@@ -88,8 +88,8 @@ cd
 rm -rf ./UnitTests
 rm -rf ./UnitTests-DicomWeb
 rm -rf ./UnitTests-PostgreSQL
-rm -rf ./UnitTests-MySQL
-rm -rf ./UnitTests-Odbc
+# rm -rf ./UnitTests-MySQL
+# rm -rf ./UnitTests-Odbc
 rm -rf ./UnitTests-Transfers
 rm -rf ./UnitTests-WebViewer
 rm -rf ./UnitTests-Indexer
@@ -100,10 +100,10 @@ mv ./OrthancWSIDicomizer               /usr/local/bin/
 mv ./libOrthancDicomWeb.so             /usr/local/share/orthanc/plugins/
 mv ./libOrthancPostgreSQLIndex.so      /usr/local/share/orthanc/plugins/
 mv ./libOrthancPostgreSQLStorage.so    /usr/local/share/orthanc/plugins/
-mv ./libOrthancMySQLIndex.so           /usr/local/share/orthanc/plugins/
-mv ./libOrthancMySQLStorage.so         /usr/local/share/orthanc/plugins/
-mv ./libOrthancOdbcIndex.so            /usr/local/share/orthanc/plugins/
-mv ./libOrthancOdbcStorage.so          /usr/local/share/orthanc/plugins/
+# mv ./libOrthancMySQLIndex.so           /usr/local/share/orthanc/plugins/
+# mv ./libOrthancMySQLStorage.so         /usr/local/share/orthanc/plugins/
+# mv ./libOrthancOdbcIndex.so            /usr/local/share/orthanc/plugins/
+# mv ./libOrthancOdbcStorage.so          /usr/local/share/orthanc/plugins/
 mv ./libOrthancTransfers.so            /usr/local/share/orthanc/plugins/
 mv ./libOrthancWSI.so                  /usr/local/share/orthanc/plugins/
 mv ./libOrthancWebViewer.so            /usr/local/share/orthanc/plugins/
