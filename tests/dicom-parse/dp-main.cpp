@@ -12,7 +12,7 @@ extern void parse_dicom(const char* hex_buffer, const char* buffer, size_t size)
 
 int main(int argc, char **argv) {
     std::cout << fs::canonical(".") << std::endl;
-    fs::path rel_dicom(fs::canonical("./samples/0002.DCM"));
+    fs::path rel_dicom(fs::canonical("../../samples/0002.DCM"));
     std::ostringstream buf;
     std::ifstream file(rel_dicom);
     std::cout << rel_dicom << std::endl;

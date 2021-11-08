@@ -12,14 +12,15 @@ void parse_dicom(const char* hex_buffer, const char* buffer, size_t size) {
     size_t prefix = 4;
     printf("check size\n");
     assert(size > preamble + prefix);
-    std::cout << std::string(std::string_view(buffer+preamble,prefix)) << std::endl;
     printf("check DICM\n");
+    std::cout << std::string(std::string_view(buffer+preamble,prefix)) << std::endl;
     assert(std::string_view(buffer+preamble,prefix) == "DICM");
     // move the read head to where the tag data begins
     //buffer = buffer+preamble+prefix;
     printf("read tags\n");
     for(size_t i = preamble+prefix; i < size;){
         DicomElement element(buffer, i, hex_buffer);
+        //printf("parse_dicom: bytes: %zu (%zu)\n", element.bytes, element.idx);
         i = element.GetNextIndex();
     }
 }
