@@ -19,7 +19,7 @@ void parse_dicom(const char* hex_buffer, const char* buffer, size_t size) {
     //buffer = buffer+preamble+prefix;
     printf("read tags\n");
     for(size_t i = preamble+prefix; i < size;){
-        DicomElement element(buffer, i);
+        DicomElement element(buffer, i, hex_buffer);
         i = element.GetNextIndex();
     }
 }

@@ -17,23 +17,19 @@ public:
 
     DicomElement(const char* buffer, uint64_t index, const char* hex_buffer = nullptr) : buffer(buffer), idx(index){
 #ifdef DEBUG_
+        printf("[%s](%s,%s)->(%s)\n",
+               VR.c_str(),
+               HexGroup().c_str(),
+               HexElement().c_str(),
+               HexTag().c_str());
+        printf(" idx: %zu, size: %zu, bytes: %zu, length: %zu\n",idx,size,bytes,length);
         std::string value;
+        uint32_t len = length == -1 ? 1 : length;
         if(VR == "UL") {
             value = std::to_string(*(uint32_t*)(buffer+idx+bytes));
         } else if (hex_buffer) {
-            value = std::string((std::string_view(hex_buffer+(2*idx)+(2*bytes),2*length)));
+            value = std::string((std::string_view(hex_buffer+(2*idx)+(2*bytes),12)));
         }
-
-        printf("(%s)->(%s,%s) [%s] - value length: %d - (header: %zu Bytes; size: %zu Bytes)(index=%zu->%zu)\n",
-               HexTag().c_str(),
-               HexGroup().c_str(),
-               HexElement().c_str(),
-               VR.c_str(),
-               length,
-               bytes,
-               size,
-               idx,
-               GetNextIndex());
         printf("  %s\n", value.c_str());
 #endif
     }
@@ -67,12 +63,11 @@ protected:
 #endif
             //todo: search for delimiter
             DicomElement element(buffer,idx+bytes);
-            size_t bytes = element.size - element.length;
 #ifdef DEBUG_
-            printf("calc size: %zu", bytes + element.size);
+            printf("calc size: %zu\n", bytes + element.size);
             printf("(%s)=>%d [%s] - value length: %d - (header: %zu Bytes; size: %zu)(index=%zu->%zu)\n", element.HexTag().c_str(), element.tag, element.VR.c_str(), element.length, bytes, element.size, element.idx, element.GetNextIndex());
 #endif
-            return length + element.size;
+            return element.size + bytes;
         }
         return length + bytes;
     }
