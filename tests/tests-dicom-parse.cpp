@@ -2,11 +2,12 @@
 #undef DEBUG_
 #include <dicom-element.h>
 #include <filesystem>
+#include <functional>
 #include <fstream>
 
 namespace fs = std::filesystem;
 
-bool parse_file(fs::path dicom);
+bool parse_file(fs::path dicom, std::function<void(bool)> gassert);
 extern char* hexbuf_to_bytebuf(std::string hex);
 extern char* bytebuf_to_hexbuf(std::string bytes);
 extern void parse_dicom(const char* hex_buffer, const char* buffer, size_t size);
@@ -28,18 +29,22 @@ TEST(dicom_parsing, dicom_parse) {
     // recurse sample directory, parse every file as a dicom
     fs::recursive_directory_iterator recursive_iter(samples);
     for(auto &entry : recursive_iter){
-        if(!fs::is_directory(entry.path())){
-            auto dicom = entry.path();
-            ASSERT_TRUE(parse_file(dicom))
+        auto &path = entry.path();
+        if(!fs::is_directory(path)){
+            if(path.extension().string() == ".DCM"){
+                auto dicom = path;
+                std::function<void(bool)> gassert = [&](bool v){ASSERT_TRUE(v);};
+                std::cout << "Parse " << dicom << std::endl;
+                ASSERT_TRUE(parse_file(dicom, gassert));
+            }
         }
     }
 }
-bool parse_file(fs::path dicom) {
+bool parse_file(fs::path dicom, std::function<void(bool)> gassert) {
     // print file path, open ifstream, shove into osstream
-    std::cout << dicom;
     std::ostringstream buf;
     std::ifstream file(dicom);
-    ASSERT_TRUE(file.is_open());
+    gassert(file.is_open());
     buf << file.rdbuf();
 
     // convert binary sstream into char* buffer
@@ -53,8 +58,8 @@ bool parse_file(fs::path dicom) {
     // parse buffer
     size_t preamble = 128;
     size_t prefix = 4;
-    ASSERT_TRUE(size > preamble + prefix);
-    ASSERT_TRUE(std::string_view(buffer+preamble,prefix) == "DICM");
+    gassert(size > preamble + prefix);
+    gassert(std::string_view(buffer+preamble,prefix) == "DICM");
     size_t i = 0;
     // header is OK, parse data elements
     for(i = preamble+prefix; i < size;){
@@ -63,7 +68,7 @@ bool parse_file(fs::path dicom) {
         i = element.GetNextIndex();
     }
     // did our parser read 100.0% precisely?
-    ASSERT_TRUE(i == size);
+    gassert(i == size);
     delete[] hex_buffer;
     delete[] buffer;
     return i == size;
