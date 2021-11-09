@@ -1,4 +1,5 @@
 #include "dicom-filter.h"
+#include "dicom-element.h"
 #include <string>
 #include <cstring>
 #include <vector>
@@ -16,6 +17,7 @@ DicomFilter::DicomFilter(const OrthancPluginDicomInstance* readonly_instance){
 //}
 
 OrthancPluginDicomInstance* DicomFilter::GetFilteredInstance(){
+    OrthancPluginLogError(globals::context, "Parse dicom data");
     using globals::filter_list;
     const char* readable_buffer = (const char*)data;
     size_t preamble = 128;
@@ -36,30 +38,32 @@ OrthancPluginDicomInstance* DicomFilter::GetFilteredInstance(){
     std::vector<std::pair<size_t,size_t>> keep_list;
     bool filtered = false;
     char msg_buffer[256] = {0};
-    for(size_t i = 0; i < remainder; ++i){
-        size_t bytes = 6;
-        uint32_t tag = *(uint32_t*)(readable_buffer+i);
-        std::string VR(std::string_view(readable_buffer+i+4,2));
-        uint32_t value_length;
-        if(VR == "OB" || VR == "OW" || VR == "SQ" || VR == "UN"){
-            // VR's which indicate a type 1 header (https://www.leadtools.com/help/sdk/v21/dicom/api/overview-data-element-structure.html)
-            value_length = *(uint32_t*)(readable_buffer+i+8); // 4 bytes
-            bytes += 6;
-        } else {
-            // all other non-private data elements
-            value_length = *(uint16_t*)(readable_buffer+i+6); // 2 bytes
-            bytes += 2;
-        }
-        size_t length = bytes + value_length;
-        if(filter_list.contains(tag)){
+    for(size_t i = 0; i < remainder;){
+        DicomElement element(readable_buffer,i);
+        sprintf(msg_buffer,"[%s] (%s,%s)->(%s)\n idx: %zu, next: %zu, size: %zu, bytes: %zu, length: %d",
+                element.VR.c_str(),
+                element.HexGroup().c_str(),
+                element.HexElement().c_str(),
+                element.HexTag().c_str(),
+                element.idx,
+                element.GetNextIndex(),
+                element.size,
+                element.bytes,
+                (int)element.length);
+        OrthancPluginLogInfo(globals::context, msg_buffer);
+        size_t j = element.GetNextIndex();
+        if(filter_list.contains(element.tag)){
+            sprintf(msg_buffer, "filtering tag: %s,%s", element.HexGroup().c_str(), element.HexElement().c_str());
+            OrthancPluginLogError(globals::context, msg_buffer);
             filtered = true;
         } else {
-            keep_list.emplace_back(i, i + length);
+            keep_list.emplace_back(i, j);
         }
-        i += length;
+        i = j;
     }
     if(!filtered){
         // todo: figure out an elegant way to deal with this edge case (probably gonna involve not returning a ptr at all)
+        OrthancPluginLogError(globals::context, "Filter: nothing to do");
         return (OrthancPluginDicomInstance*)original_instance;
     }
     size_t new_size = 0;
@@ -68,11 +72,13 @@ OrthancPluginDicomInstance* DicomFilter::GetFilteredInstance(){
     }
     const char* buffer = new char[new_size];
     size_t buffer_head = 0;
+    OrthancPluginLogError(globals::context, "Filter: compile new dicom");
     for(auto pair : keep_list){
         size_t copy_size = pair.second-pair.first;
         memcpy((void*)(buffer+buffer_head), (void*)(readable_buffer+pair.first), copy_size);
         buffer_head += copy_size;
     }
     // todo: test if CreateDicomInstance triggers a new filter callback
+    OrthancPluginLogError(globals::context, "Filter: saving filtered dicom");
     return OrthancPluginCreateDicomInstance(globals::context, buffer, new_size);
 }
