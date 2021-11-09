@@ -9,15 +9,15 @@ services:
     volumes:
       #  WARNING: FOR WSL USE THE FOLLOWING LINE INSTEAD:
       #- ~/docker/postgres/data:/var/lib/postgresql/data
-      - ./docker/postgres/data:/var/lib/postgresql/data
-      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql # Create database for Orthanc
+      - ../docker/postgres/data:/var/lib/postgresql/data
+      - ../docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql # Create database for Orthanc
     environment:
       POSTGRES_PASSWORD: example
     networks:
       - postgres-network
 
   orthanc:
-    image: brianzhouzc/orthanc-tmi-plugins:latest
+    image: brianzhouzc/orthanc-tmi:latest
     container_name: orthanc-server
     command: /run/secrets/  # Path to the configuration files (stored as secrets)
     depends_on:
@@ -28,8 +28,8 @@ services:
     volumes:
       #  WARNING: FOR WSL USE THE FOLLOWING LINE INSTEAD:
       #- ~/docker/orthanc/db:/var/lib/orthanc/db
-      - ./docker/orthanc/db:/var/lib/orthanc/db
-      - ./docker/orthanc/plugins:/usr/share/orthanc/plugins
+      - ../docker/orthanc/db:/var/lib/orthanc/db
+      - ../docker/orthanc/plugins:/usr/share/orthanc/plugins
     secrets:
       - orthanc.json
     environment:
@@ -52,4 +52,4 @@ networks:
 
 secrets:
   orthanc.json:
-    file: ./docker/orthanc/orthanc.json
+    file: ../docker/orthanc/orthanc.json

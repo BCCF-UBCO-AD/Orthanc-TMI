@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_SHARED_LIBRARY_PREFIX_CXX "")
 set(BSL ${BUILD_SHARED_LIBS})
 
 # project variables
@@ -31,6 +30,7 @@ target_link_libraries(${TEST_TARGET} PUBLIC gtest pqxx)
 add_test(NAME ${TEST_TARGET} COMMAND ${TEST_TARGET})
 
 # plugin target
+set(CMAKE_SHARED_LIBRARY_PREFIX_CXX "")
 add_library(${PLUGIN_TARGET} SHARED ${PLUGIN_SOURCES})
 target_link_libraries(${PLUGIN_TARGET} pqxx)
 add_custom_command(
