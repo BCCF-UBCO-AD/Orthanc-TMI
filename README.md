@@ -4,9 +4,10 @@
  - [Getting Started](#getting-started)
    - [Clone](#clone)
      - [Dependencies](#dependencies)
-       - [Submodules](#submodules)
-       - [Tools](#tools)
-   - [Build](#build)
+     - [Submodules](#submodules)
+   - [Building](#building)
+     - [Tools](#tools)
+     - [Build](#build)
    - [Docker](#docker)
      - [Build Image](#build-image)
      - [WSL](#windows-subsystem-for-linux)
@@ -35,7 +36,7 @@ First and foremost this project [creates an Orthanc plugin](https://book.orthanc
 
 This repo has a copy of that file under [include/orthanc/](include/orthanc/)
 
-##### Submodules
+#### Submodules
 The submodules you need to initialize.
 | Library | Purpose | URI |
 |---------|---------|-----|
@@ -43,8 +44,11 @@ The submodules you need to initialize.
 | [nlohmann/json](lib) | json API | <ul><li>[external repo](https://github.com/nlohmann/json.git) <li>[docs - integration](https://github.com/nlohmann/json#integration) <li>[docs - API](https://nlohmann.github.io/json/api/basic_json/) |
 | [googletest](lib) | unit testing | <ul><li>[external repo](https://github.com/google/googletest.git) |
 
-##### Tools
-Refer to your system package manager.
+### Building
+The project is configured to build a plugin (dll/so) (target `'data-anonymizer'`) binary, then copy it to `docker/plugins` where the orthanc docker server can read it.
+
+#### Tools
+Some tools will be needed. Please refer to your system package manager, or each tool's website, in order to install.
 * GCC - compiler
 * Cmake compatible build system (eg. GNU Make, Ninja)
 * Cmake 3.20 - configures build system
@@ -52,8 +56,8 @@ Refer to your system package manager.
 * Github Actions - remote testing
 * CLion (recommended)
 
-### Build
-The cmake configuration will ensure the plugin binary is copied to `docker/plugins` where the docker server can read it.
+#### Build
+You'll need some tools, but below is all you'll need to do to build everything.
 ```bash
 mkdir build
 cd build
