@@ -2,8 +2,6 @@
 #include <dicom-tag.h>
 #include <sstream>
 
-int DicomElement::recursion_counter = 0;
-
 uint32_t DicomElement::CalcLength() {
     require_length = VR == "UT";
     has_reserved = require_length || VR == "OB" || VR == "SQ" || VR == "OW" || VR == "UN";

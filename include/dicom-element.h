@@ -7,7 +7,6 @@ extern std::string DecToHex(uint64_t value, uint8_t bytes = 1);
 extern uint32_t HexToDec(std::string hex);
 
 class DicomElement {
-    static int recursion_counter;
 public:
     const char *const buffer;
     const char *const hex_buffer;
@@ -31,8 +30,8 @@ public:
                HexGroup().c_str(),
                HexElement().c_str(),
                HexTag().c_str());
-        printf(" recursion: %d, idx: %zu, next: %zu, size: %zu, bytes: %zu, length: %d\n",
-               recursion_counter,idx,GetNextIndex(),size,bytes,(int)length);
+        printf(" idx: %zu, next: %zu, size: %zu, bytes: %zu, length: %d\n",
+               idx,GetNextIndex(),size,bytes,(int)length);
         std::string value;
 
         if(VR == "UL") {
