@@ -60,14 +60,14 @@ void PopulateFilterList(){
         uint32_t tag_code = HexToDec(tag);
         char msg_buffer[256] = {0};
         sprintf(msg_buffer, "filter registered tag code: %d", tag_code);
-        OrthancPluginLogError(context, msg_buffer);
+        OrthancPluginLogWarning(context, msg_buffer);
         filter_list.emplace(tag_code);
     }
 }
 
 int32_t FilterCallback(const OrthancPluginDicomInstance* instance){
     // todo: possibly copy instance data to new buffer to control life span, then anonymize as a job instead of in this callstack
-    OrthancPluginLogError(globals::context, "Filter: receiving dicom");
+    OrthancPluginLogWarning(globals::context, "Filter: receiving dicom");
     DicomFilter parser(instance);
     auto new_instance = parser.GetFilteredInstance();
     if (!new_instance) {
@@ -76,7 +76,7 @@ int32_t FilterCallback(const OrthancPluginDicomInstance* instance){
     if (new_instance == instance) {
         return 1;
     }
-    OrthancPluginLogError(globals::context, "Filter: cleanup");
+    OrthancPluginLogInfo(globals::context, "Filter: cleanup");
     OrthancPluginFreeDicomInstance(globals::context, new_instance);
     return 0; /*{0: discard, 1: store, -1: error}*/
 }
