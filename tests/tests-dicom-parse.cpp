@@ -11,9 +11,10 @@ extern void parse_dicom(const char* hex_buffer, const char* buffer, size_t size)
 extern uint32_t read_tag_code(std::string hex);
 
 TEST(dicom_parsing, dicom_parse) {
-    fs::path rel_dicom("../../samples/0002.DCM");
+    fs::path rel_dicom("./samples/0002.DCM");
     std::ostringstream buf;
     std::ifstream file(rel_dicom);
+    ASSERT_TRUE(file.is_open());
     buf << file.rdbuf();
     std::string bufstr(buf.str());
     size_t size = bufstr.size();
