@@ -8,6 +8,7 @@
        - [Tools](#tools)
    - [Build](#build)
    - [Docker](#docker)
+     - [Build Image](#build-image)
      - [WSL](#windows-subsystem-for-linux)
  - [Contributing](#contributing)
    - [Style Guide](#style-guide)
@@ -85,7 +86,7 @@ This will launch 3 docker containers with images from Docker Hub:
  
 Then you can proceed to test whatever in whatever way. The docker server reads a copy of the plugin binary from `docker/plugins/` (cmake configures the copy operation).
 
-#### Build Docker Image
+#### Build Image
 To build the custom docker image instead of pulling from Docker Hub:
 ```bash
 cd ./docker
