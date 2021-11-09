@@ -3,10 +3,24 @@
 #include <dicom-tag.h>
 
 #include <string>
+// convert decimal to hex, and pad the string to size `2*bytes`
 extern std::string DecToHex(uint64_t value, uint8_t bytes = 1);
-extern uint32_t HexToDec(std::string hex);
+// convert up to 8 bytes of hex to decimal
+extern uint64_t HexToDec(std::string hex);
 
+/* class: DicomElement
+ *  Takes an index and data buffer to a DICOM file.
+ *  Using the buffer and index, it locates DICOM data element information.
+ *  This information locates the next DICOM data element index in the buffer.
+ *
+ *  Provides methods to:
+ *   - calculate the next element's index
+ *   - get hex for group id
+ *   - get hex for element id
+ *   - get hex for entire tag (group+element)
+ */
 class DicomElement {
+    // below DicomElement locates and aliases data within the dicom's data buffer, then calculates appropriate length/size values
 public:
     const char *const buffer;
     const char *const hex_buffer;
@@ -23,6 +37,7 @@ public:
             : buffer(buffer),
               hex_buffer(hex_buffer),
               idx(index) {
+// This preprocessor allows printing DataElement debug information as part of construction
 #ifdef DEBUG_
         uint32_t len = length == -1 ? 0 : length;
         printf("[%s](%s,%s)->(%s)\n",

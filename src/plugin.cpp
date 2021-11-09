@@ -53,30 +53,40 @@ using namespace globals;
 extern uint32_t HexToDec(std::string hex);
 void PopulateFilterList(){
     nlm::json config = nlm::json::parse(OrthancPluginGetConfiguration(context));
+    // iterate the Dicom-Filter configuration tags array
     for (const auto &iter: config["Dicom-Filter"]["tags"]) {
+        // todo: check that the string has 9 characters; true: do below, false: implement full group filters (eg. "0002,*", "0002")
+        // get tag string, convert to decimal
         auto tag = iter.get<std::string>();
         tag.append(tag.substr(0, 4));
         tag.erase(0, 5);
         uint32_t tag_code = HexToDec(tag);
+        // register tag
+        filter_list.emplace(tag_code);
+        // log the tags registered
         char msg_buffer[256] = {0};
         sprintf(msg_buffer, "filter registered tag code: %d", tag_code);
         OrthancPluginLogWarning(context, msg_buffer);
-        filter_list.emplace(tag_code);
     }
 }
 
 int32_t FilterCallback(const OrthancPluginDicomInstance* instance){
     // todo: possibly copy instance data to new buffer to control life span, then anonymize as a job instead of in this callstack
     OrthancPluginLogWarning(globals::context, "Filter: receiving dicom");
+    // filter dicom data
     DicomFilter parser(instance);
     auto new_instance = parser.GetFilteredInstance();
     if (!new_instance) {
+        // DicomFilter encountered an error when parsing
         return -1;
     }
     if (new_instance == instance) {
+        // no filtering is necessary, just save
         return 1;
     }
+    // DicomInstance had data removed
     OrthancPluginLogInfo(globals::context, "Filter: cleanup");
     OrthancPluginFreeDicomInstance(globals::context, new_instance);
+    // todo: save dicom instance to disk
     return 0; /*{0: discard, 1: store, -1: error}*/
 }
