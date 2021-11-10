@@ -1,11 +1,9 @@
 #define IMPLEMENTS_GLOBALS
 #include "configuration.h"
 #include "core.h"
-#include "nlohmann/json.hpp"
-#include <iostream>
-
 #include "dicom-filter.h"
-#include "db-interface.h"
+
+#include <nlohmann/json.hpp>
 
 namespace nlm = nlohmann;
 namespace globals {
@@ -15,8 +13,7 @@ namespace globals {
 
 // prototypes
 int32_t FilterCallback(const OrthancPluginDicomInstance* instance);
-void PopulateFilterList(nlm::json config);
-const char* ParseTag(const char* buffer, nlm::json config);
+void PopulateFilterList();
 
 // plugin foundation
 extern "C" {
@@ -34,25 +31,8 @@ extern "C" {
             OrthancPluginLogError(context, info);
             return -1;
         }
-        nlm::json config(OrthancPluginGetConfiguration(context));
-        // todo 1: test that this password getting line works
-        // todo 2: test what happens when the json doesn't have the necessary fields
-        try{
-            DBInterface::connect(config["PostgreSQL"]["Password"].get<std::string>());
-        } catch (pqxx::broken_connection const &e) {
-            // connection checks itself for is_open(), this is thrown if the return was false
-            std::cerr << "Connection Error: " << e.what() << std::endl;
-            return -1;
-        } catch (std::exception const &e) {
-            // other exceptions can be thrown from ctor
-            std::cerr << "Error: " << e.what() << std::endl;
-            return -1;
-        }
-
-        PopulateFilterList(config);
-        OrthancPluginRegisterIncomingDicomInstanceFilter(context, FilterCallback);
-
-        return 0;
+        PopulateFilterList();
+        return OrthancPluginRegisterIncomingDicomInstanceFilter(context, FilterCallback);
     }
     
     void OrthancPluginFinalize(){
@@ -70,23 +50,43 @@ extern "C" {
 
 using namespace globals;
 
-void PopulateFilterList(nlm::json config) {
-    // todo: write a type safe loop, this thing will probably crash at runtime, since the tags won't be stored as integers
-    for(uint32_t tag : config["filtered-tags"]){
-        // todo: implement me, tags will be stored as strings they need to be converted (probably)
-        filter_list.emplace(tag);
+extern uint32_t HexToDec(std::string hex);
+void PopulateFilterList(){
+    nlm::json config = nlm::json::parse(OrthancPluginGetConfiguration(context));
+    // iterate the Dicom-Filter configuration tags array
+    for (const auto &iter: config["Dicom-Filter"]["tags"]) {
+        // todo: check that the string has 9 characters; true: do below, false: implement full group filters (eg. "0002,*", "0002")
+        // get tag string, convert to decimal
+        auto tag = iter.get<std::string>();
+        tag.append(tag.substr(0, 4));
+        tag.erase(0, 5);
+        uint32_t tag_code = HexToDec(tag);
+        // register tag
+        filter_list.emplace(tag_code);
+        // log the tags registered
+        char msg_buffer[256] = {0};
+        sprintf(msg_buffer, "filter registered tag code: %d", tag_code);
+        OrthancPluginLogWarning(context, msg_buffer);
     }
 }
 
 int32_t FilterCallback(const OrthancPluginDicomInstance* instance){
     // todo: possibly copy instance data to new buffer to control life span, then anonymize as a job instead of in this callstack
+    OrthancPluginLogWarning(globals::context, "Filter: receiving dicom");
+    // filter dicom data
     DicomFilter parser(instance);
     auto new_instance = parser.GetFilteredInstance();
     if (!new_instance) {
+        // DicomFilter encountered an error when parsing
         return -1;
     }
     if (new_instance == instance) {
+        // no filtering is necessary, just save
         return 1;
     }
+    // DicomInstance had data removed
+    OrthancPluginLogInfo(globals::context, "Filter: cleanup");
+    OrthancPluginFreeDicomInstance(globals::context, new_instance);
+    // todo: save dicom instance to disk
     return 0; /*{0: discard, 1: store, -1: error}*/
 }
