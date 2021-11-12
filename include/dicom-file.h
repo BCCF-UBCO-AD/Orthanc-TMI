@@ -13,6 +13,7 @@ private:
 protected:
     void parse_file();
 public:
+    DicomFile(){}
     DicomFile(const OrthancPluginDicomInstance* instance);
     DicomFile(const void* data, size_t size);
     std::tuple<void*,size_t> ApplyFilter(TagFilter filter);
