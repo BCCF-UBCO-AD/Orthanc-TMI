@@ -1,14 +1,14 @@
 #define IMPLEMENTS_GLOBALS
-#include "configuration.h"
-#include "core.h"
-#include "dicom-filter.h"
+#include <configuration.h>
+#include <core.h>
+#include <dicom-file.h>
 
 #include <nlohmann/json.hpp>
 
 namespace nlm = nlohmann;
 namespace globals {
     OrthancPluginContext *context = nullptr;
-    std::unordered_set<uint32_t> filter_list;
+    TagFilter filter_list;
 }
 
 // prototypes
@@ -74,19 +74,15 @@ int32_t FilterCallback(const OrthancPluginDicomInstance* instance){
     // todo: possibly copy instance data to new buffer to control life span, then anonymize as a job instead of in this callstack
     OrthancPluginLogWarning(globals::context, "Filter: receiving dicom");
     // filter dicom data
-    DicomFilter parser(instance);
-    auto new_instance = parser.GetFilteredInstance();
-    if (!new_instance) {
-        // DicomFilter encountered an error when parsing
+    DicomFile dicom(instance);
+    if(!dicom.IsValid()){
         return -1;
     }
-    if (new_instance == instance) {
-        // no filtering is necessary, just save
+    auto filtered = dicom.ApplyFilter(globals::filter_list);
+    if (!std::get<0>(filtered)) {
         return 1;
     }
-    // DicomInstance had data removed
-    OrthancPluginLogInfo(globals::context, "Filter: cleanup");
-    OrthancPluginFreeDicomInstance(globals::context, new_instance);
+
     // todo: save dicom instance to disk
     return 0; /*{0: discard, 1: store, -1: error}*/
 }
