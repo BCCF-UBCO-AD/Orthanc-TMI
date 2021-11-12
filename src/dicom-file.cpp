@@ -59,7 +59,7 @@ void DicomFile::parse_file() {
     is_valid = i == size;
 }
 
-std::tuple<void*,size_t> DicomFile::ApplyFilter(TagFilter filter) {
+std::tuple<char*,size_t> DicomFile::ApplyFilter(TagFilter filter) {
     char* buffer = nullptr;
     size_t new_size = 0;
     if(is_valid) {
