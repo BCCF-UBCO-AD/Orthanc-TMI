@@ -15,6 +15,6 @@ protected:
 public:
     DicomFile(const OrthancPluginDicomInstance* instance);
     DicomFile(const void* data, size_t size);
-    void* ApplyFilter(TagFilter filter);
+    std::tuple<void*,size_t> ApplyFilter(TagFilter filter);
     bool IsValid() const { return is_valid; }
 };
