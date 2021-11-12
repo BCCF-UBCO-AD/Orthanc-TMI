@@ -12,6 +12,10 @@ namespace globals {
 }
 
 // prototypes
+extern OrthancPluginErrorCode StorageCreateCallback(const char *uuid, const void *content, int64_t size, OrthancPluginContentType type);
+extern OrthancPluginErrorCode StorageReadWholeCallback(OrthancPluginMemoryBuffer64 *target, const char *uuid, OrthancPluginContentType type);
+extern OrthancPluginErrorCode StorageReadRangeCallback(OrthancPluginMemoryBuffer64 *target, const char *uuid, OrthancPluginContentType type, uint64_t rangeStart);
+extern OrthancPluginErrorCode StorageRemoveCallback(const char *uuid, OrthancPluginContentType type);
 int32_t FilterCallback(const OrthancPluginDicomInstance* instance);
 void PopulateFilterList();
 
@@ -32,6 +36,8 @@ extern "C" {
             return -1;
         }
         PopulateFilterList();
+        OrthancPluginRegisterStorageArea2(context, StorageCreateCallback, StorageReadWholeCallback,
+                                          StorageReadRangeCallback, StorageRemoveCallback);
         return OrthancPluginRegisterIncomingDicomInstanceFilter(context, FilterCallback);
     }
     
