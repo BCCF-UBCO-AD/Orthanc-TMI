@@ -35,7 +35,8 @@ void DicomFile::parse_file() {
         return;
     }
     // parse dicom data elements
-    for(size_t i = preamble+prefix; i < size;){
+    size_t i;
+    for(i = preamble+prefix; i < size;){
         // parse next element
         DicomElement element(readable_buffer,i);
         // print element info
@@ -55,6 +56,7 @@ void DicomFile::parse_file() {
         elements.emplace(element.tag, std::make_pair(i,j));
         i = j;
     }
+    is_valid = i == size;
 }
 
 std::tuple<void*,size_t> DicomFile::ApplyFilter(TagFilter filter) {
