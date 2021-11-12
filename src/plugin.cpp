@@ -6,9 +6,11 @@
 #include <nlohmann/json.hpp>
 
 namespace nlm = nlohmann;
+namespace fs = std::filesystem;
 namespace globals {
     OrthancPluginContext *context = nullptr;
     TagFilter filter_list;
+    std::string storage_location;
 }
 
 // prototypes
@@ -17,7 +19,7 @@ extern OrthancPluginErrorCode StorageReadWholeCallback(OrthancPluginMemoryBuffer
 extern OrthancPluginErrorCode StorageReadRangeCallback(OrthancPluginMemoryBuffer64 *target, const char *uuid, OrthancPluginContentType type, uint64_t rangeStart);
 extern OrthancPluginErrorCode StorageRemoveCallback(const char *uuid, OrthancPluginContentType type);
 int32_t FilterCallback(const OrthancPluginDicomInstance* instance);
-void PopulateFilterList();
+void PopulateFilterList(const nlm::json &config);
 
 // plugin foundation
 extern "C" {
@@ -35,7 +37,15 @@ extern "C" {
             OrthancPluginLogError(context, info);
             return -1;
         }
-        PopulateFilterList();
+        const nlm::json config = nlm::json::parse(OrthancPluginGetConfiguration(context));
+        if(config["StorageDirectory"].is_string()) {
+            globals::storage_location = config["StorageDirectory"].get<std::string>();
+            fs::create_directories(globals::storage_location);
+        } else {
+            OrthancPluginLogError(context, "Configuration json does not contain a StorageDirectory field.");
+            return -1;
+        }
+        PopulateFilterList(config);
         OrthancPluginRegisterStorageArea2(context, StorageCreateCallback, StorageReadWholeCallback,
                                           StorageReadRangeCallback, StorageRemoveCallback);
         return OrthancPluginRegisterIncomingDicomInstanceFilter(context, FilterCallback);
@@ -57,8 +67,7 @@ extern "C" {
 using namespace globals;
 
 extern uint32_t HexToDec(std::string hex);
-void PopulateFilterList(){
-    nlm::json config = nlm::json::parse(OrthancPluginGetConfiguration(context));
+void PopulateFilterList(const nlm::json &config){
     // iterate the Dicom-Filter configuration tags array
     for (const auto &iter: config["Dicom-Filter"]["tags"]) {
         // todo: check that the string has 9 characters; true: do below, false: implement full group filters (eg. "0002,*", "0002")

@@ -1,6 +1,7 @@
 #pragma once
 #include <orthanc/OrthancCPlugin.h>
 #include <unordered_set>
+#include <string>
 
 using TagFilter = std::unordered_set<uint32_t>;
 
@@ -8,5 +9,6 @@ using TagFilter = std::unordered_set<uint32_t>;
 namespace globals {
     extern OrthancPluginContext* context;
     extern TagFilter filter_list;
+    extern std::string storage_location;
 }
 #endif
