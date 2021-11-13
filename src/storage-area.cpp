@@ -25,16 +25,19 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
         fs::path origin(storage_root.string() + "/by-uuid/");
         fs::create_directories(origin);
         // todo: add uuid directory portion
-        std::fstream file(origin.append(uuid));
-
+        std::fstream file(origin.append(uuid), std::ios::binary | std::ios::out);
+        file.write(content,size);
+        file.close();
         // create hard links
-//        fs::path dob(storage_root.string() + "/by-dob/");
-//        fs::create_directories(dob);
-//        fs::path dob_link(dob.append(uuid));
-//
-//        fs::path pid(storage_root.string() + "/by-patient-id/");
-//        fs::create_directories(pid);
-//        fs::path pid_link(pid.append(uuid));
+        // todo: get DOB
+        fs::path dob(storage_root.string() + "/by-dob/");
+        fs::create_directories(dob);
+        fs::path dob_link(dob.append(uuid));
+
+        // todo: get patient id
+        fs::path pid(storage_root.string() + "/by-patient-id/");
+        fs::create_directories(pid);
+        fs::path pid_link(pid.append(uuid));
         if(cleanup){
             delete[] content;
         }
