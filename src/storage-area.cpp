@@ -22,22 +22,35 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
             cleanup = true;
         }
         // write to disk
-        fs::path origin(storage_root.string() + "/by-uuid/");
-        fs::create_directories(origin);
+        fs::path master_path = fs::path(storage_root).append("/by-uuid/").append(uuid);
+        fs::create_directories(master_path);
         // todo: add uuid directory portion
-        std::fstream file(origin.append(uuid), std::ios::binary | std::ios::out);
+        std::fstream file(master_path, std::ios::binary | std::ios::out);
         file.write(content,size);
         file.close();
-        // create hard links
-        // todo: get DOB
-        fs::path dob(storage_root.string() + "/by-dob/");
-        fs::create_directories(dob);
-        fs::path dob_link(dob.append(uuid));
+        // set file permissions
+        // todo: permission debug info?
+        fs::file_status master_status = fs::status(master_path);
+        master_status.permissions(globals::file_permissions);
 
-        // todo: get patient id
-        fs::path pid(storage_root.string() + "/by-patient-id/");
-        fs::create_directories(pid);
-        fs::path pid_link(pid.append(uuid));
+        // create hard links
+        auto hardlink_to = [&](std::string group, std::string folder) {
+            fs::path link = fs::path(storage_root)
+                    .append(group)
+                    .append(folder)
+                    .append(uuid);
+            fs::create_directories(link);
+            fs::create_hard_link(master_path, link);
+            fs::permissions(link, globals::file_permissions);
+        };
+        // todo: integrate json settings to enable/disable individual hard links
+        // todo: replace placeholders
+        std::string DOB_placeholder;
+        std::string PID_placeholder;
+        std::string SD_placeholder;
+        hardlink_to("/by-dob/", DOB_placeholder);
+        hardlink_to("/by-patient-id/", PID_placeholder);
+        hardlink_to("/by-study-date/", SD_placeholder);
         if(cleanup){
             delete[] content;
         }
