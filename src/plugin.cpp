@@ -11,6 +11,8 @@ namespace globals {
     OrthancPluginContext *context = nullptr;
     TagFilter filter_list;
     std::string storage_location;
+    fs::perms dir_permissions = fs::perms::owner_all | fs::perms::group_all | fs::perms::others_read | fs::perms::sticky_bit;
+    fs::perms file_permissions = fs::perms::owner_all | fs::perms::group_all | fs::perms::others_read;
 }
 
 // prototypes
@@ -41,6 +43,7 @@ extern "C" {
         if(config["StorageDirectory"].is_string()) {
             globals::storage_location = config["StorageDirectory"].get<std::string>();
             fs::create_directories(globals::storage_location);
+            fs::permissions(globals::storage_location, globals::dir_permissions);
         } else {
             OrthancPluginLogError(context, "Configuration json does not contain a StorageDirectory field.");
             return -1;
