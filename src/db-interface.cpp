@@ -14,5 +14,5 @@ void DBInterface::disconnect() {
 }
 
 void DBInterface::HandlePHI(const DicomFile &dicom) {
-    
+
 }
