@@ -12,3 +12,7 @@ void DBInterface::disconnect() {
         con.close();
     }
 }
+
+void DBInterface::HandlePHI(const DicomFile &dicom) {
+    
+}
