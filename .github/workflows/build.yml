@@ -3,6 +3,7 @@
       branches:
         - master
         - develop
+        - feat-filter
 
   env:
     BUILD_TYPE: Debug
@@ -26,7 +27,7 @@
               ninja-build \
               cmake \
               libpq5 \
-              libpq-dev            
+              libpq-dev
         - name: Clone Orthanc-TMI
           uses: actions/checkout@v2
           with:
