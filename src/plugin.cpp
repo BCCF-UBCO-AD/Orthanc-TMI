@@ -1,19 +1,27 @@
 #define IMPLEMENTS_GLOBALS
-#include "configuration.h"
-#include "core.h"
-#include "dicom-filter.h"
+#include <configuration.h>
+#include <core.h>
+#include <dicom-file.h>
 
 #include <nlohmann/json.hpp>
 
 namespace nlm = nlohmann;
+namespace fs = std::filesystem;
 namespace globals {
     OrthancPluginContext *context = nullptr;
-    std::unordered_set<uint32_t> filter_list;
+    TagFilter filter_list;
+    std::string storage_location;
+    fs::perms dir_permissions = fs::perms::owner_all | fs::perms::group_all | fs::perms::others_read | fs::perms::sticky_bit;
+    fs::perms file_permissions = fs::perms::owner_all | fs::perms::group_all | fs::perms::others_read;
 }
 
 // prototypes
+extern OrthancPluginErrorCode StorageCreateCallback(const char *uuid, const void *content, int64_t size, OrthancPluginContentType type);
+extern OrthancPluginErrorCode StorageReadWholeCallback(OrthancPluginMemoryBuffer64 *target, const char *uuid, OrthancPluginContentType type);
+extern OrthancPluginErrorCode StorageReadRangeCallback(OrthancPluginMemoryBuffer64 *target, const char *uuid, OrthancPluginContentType type, uint64_t rangeStart);
+extern OrthancPluginErrorCode StorageRemoveCallback(const char *uuid, OrthancPluginContentType type);
 int32_t FilterCallback(const OrthancPluginDicomInstance* instance);
-void PopulateFilterList();
+void PopulateFilterList(const nlm::json &config);
 
 // plugin foundation
 extern "C" {
@@ -31,7 +39,18 @@ extern "C" {
             OrthancPluginLogError(context, info);
             return -1;
         }
-        PopulateFilterList();
+        const nlm::json config = nlm::json::parse(OrthancPluginGetConfiguration(context));
+        if(config["StorageDirectory"].is_string()) {
+            globals::storage_location = config["StorageDirectory"].get<std::string>();
+            fs::create_directories(globals::storage_location);
+            fs::permissions(globals::storage_location, globals::dir_permissions);
+        } else {
+            OrthancPluginLogError(context, "Configuration json does not contain a StorageDirectory field.");
+            return -1;
+        }
+        PopulateFilterList(config);
+        OrthancPluginRegisterStorageArea2(context, StorageCreateCallback, StorageReadWholeCallback,
+                                          StorageReadRangeCallback, StorageRemoveCallback);
         return OrthancPluginRegisterIncomingDicomInstanceFilter(context, FilterCallback);
     }
     
@@ -51,8 +70,7 @@ extern "C" {
 using namespace globals;
 
 extern uint32_t HexToDec(std::string hex);
-void PopulateFilterList(){
-    nlm::json config = nlm::json::parse(OrthancPluginGetConfiguration(context));
+void PopulateFilterList(const nlm::json &config){
     // iterate the Dicom-Filter configuration tags array
     for (const auto &iter: config["Dicom-Filter"]["tags"]) {
         // todo: check that the string has 9 characters; true: do below, false: implement full group filters (eg. "0002,*", "0002")
@@ -74,19 +92,15 @@ int32_t FilterCallback(const OrthancPluginDicomInstance* instance){
     // todo: possibly copy instance data to new buffer to control life span, then anonymize as a job instead of in this callstack
     OrthancPluginLogWarning(globals::context, "Filter: receiving dicom");
     // filter dicom data
-    DicomFilter parser(instance);
-    auto new_instance = parser.GetFilteredInstance();
-    if (!new_instance) {
-        // DicomFilter encountered an error when parsing
+    DicomFile dicom(instance);
+    if(!dicom.IsValid()){
         return -1;
     }
-    if (new_instance == instance) {
-        // no filtering is necessary, just save
+    auto filtered = dicom.ApplyFilter(globals::filter_list);
+    if (!std::get<0>(filtered)) {
         return 1;
     }
-    // DicomInstance had data removed
-    OrthancPluginLogInfo(globals::context, "Filter: cleanup");
-    OrthancPluginFreeDicomInstance(globals::context, new_instance);
+
     // todo: save dicom instance to disk
     return 0; /*{0: discard, 1: store, -1: error}*/
 }
