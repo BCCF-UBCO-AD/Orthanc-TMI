@@ -56,9 +56,8 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
         if(cleanup){
             delete[] content;
         }
-    } else {
-        return OrthancPluginErrorCode_BadFileFormat;
     }
+    return OrthancPluginErrorCode_BadFileFormat;
 }
 
 OrthancPluginErrorCode StorageCreateCallback(const char *uuid,
