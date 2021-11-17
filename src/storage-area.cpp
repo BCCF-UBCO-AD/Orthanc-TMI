@@ -65,25 +65,23 @@ OrthancPluginErrorCode StorageCreateCallback(const char *uuid,
                                              const void *content,
                                              int64_t size,
                                              OrthancPluginContentType type) {
-    DicomFile dicom;
-    bool cleanup = false;
     switch(type){
-        case OrthancPluginContentType_Dicom:
         case OrthancPluginContentType_Unknown:
-            dicom = DicomFile(content,size);
-            break;
+            //todo: write plain jane fstream write?
+            return OrthancPluginErrorCode_CannotWriteFile;
+        case OrthancPluginContentType_Dicom:
+            return WriteDicomFile(DicomFile(content,size), uuid);
         case OrthancPluginContentType_DicomAsJson:
-            //todo: implement DicomFile json constructor
+            //todo: implement DicomFile json parser? or write a json file to disk?
             break;
         case OrthancPluginContentType_DicomUntilPixelData:
-            // todo: will the plugin need to handle this?
+            // todo: will the plugin need to handle this? what does it look like and its use case?
             break;
         case _OrthancPluginContentType_INTERNAL:
-            // todo: anything?
+            // todo: anything? what even is this?
             break;
     }
-    WriteDicomFile(dicom, uuid);
-    return OrthancPluginErrorCode_BadFileFormat;
+    return OrthancPluginErrorCode_EmptyRequest;
 }
 
 OrthancPluginErrorCode StorageReadWholeCallback(OrthancPluginMemoryBuffer64 *target,
