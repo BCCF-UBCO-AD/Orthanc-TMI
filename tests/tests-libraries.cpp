@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
 #include <pqxx/pqxx>
+#include <db-interface.h>
 
 //appears to be the form of a basic unit test
 // https://github.com/google/googletest/blob/master/googletest/samples/sample1_unittest.cc
@@ -60,7 +61,8 @@ TEST(libraries, pqxx_test){
     //  postgresql://user:secret@localhost
     //  postgresql://other@localhost/otherdb?connect_timeout=10&application_name=myapp
     //  postgresql://host1:123,host2:456/somedb?target_session_attrs=any&application_name=myapp
-    pqxx::connection c("postgresql://postgres:example@localhost:5432");
-    pqxx::work w(c);
-    ASSERT_TRUE(c.is_open());
+    // pqxx::connection c("postgresql://postgres:example@localhost:5432");
+    // pqxx::work w(c);
+    DBInterface::connect("postgresql://postgres:example@localhost:5432");
+    ASSERT_TRUE(DBInterface::is_open());
 }
