@@ -9,5 +9,6 @@ private:
 public:
     static void connect(std::string password);
     static void disconnect();
+    static bool is_open() { return con.is_open(); }
     static void HandlePHI(const DicomFile &dicom);
 };
