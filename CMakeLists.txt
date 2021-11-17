@@ -23,9 +23,9 @@ message("Common test sources: ${TEST_SOURCES}")
 message("Dicom-Parse test sources: ${TEST_DP_SOURCES}")
 
 
-add_subdirectory(extern/googletest)
+add_subdirectory(extern/googletest EXCLUDE_FROM_ALL)
 set(BUILD_SHARED_LIBS ON)
-add_subdirectory(extern/libpqxx)
+add_subdirectory(extern/libpqxx EXCLUDE_FROM_ALL)
 set(BUILD_SHARED_LIBS ${BSL})
 
 # include directories
@@ -36,12 +36,13 @@ include_directories(extern/nlohmann-json/single_include/)
 add_executable(${TEST_TARGET} tests/main.cpp ${TEST_SOURCES} ${PLUGIN_SOURCES})
 add_executable(${TEST_DP_TARGET} tests/dicom-parse/dp-main.cpp ${TEST_DP_SOURCES} ${PLUGIN_SOURCES})
 target_link_libraries(${TEST_TARGET} PUBLIC gtest pqxx)
+target_link_libraries(${TEST_DP_TARGET} PUBLIC pqxx)
 add_test(NAME ${TEST_TARGET} COMMAND ${TEST_TARGET})
 
 # plugin target
 set(CMAKE_SHARED_LIBRARY_PREFIX_CXX "")
 add_library(${PLUGIN_TARGET} SHARED ${PLUGIN_SOURCES})
-target_link_libraries(${PLUGIN_TARGET} pqxx)
+target_link_libraries(${PLUGIN_TARGET} PUBLIC pqxx)
 add_custom_command(
         TARGET ${PLUGIN_TARGET} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
