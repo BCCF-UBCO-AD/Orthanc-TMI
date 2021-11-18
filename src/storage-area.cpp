@@ -7,7 +7,7 @@
 namespace fs = std::filesystem;
 
 OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
-    static fs::path storage_root(globals::storage_location);
+    const fs::path storage_root(globals::storage_location);
     char* content = nullptr;
     size_t size = 0;
     bool cleanup = false;
@@ -68,68 +68,45 @@ OrthancPluginErrorCode StorageCreateCallback(const char *uuid,
                                              const void *content,
                                              int64_t size,
                                              OrthancPluginContentType type) {
-    static fs::path storage_root(globals::storage_location);
-    fs::path master_path;
-    std::fstream file;
+    const fs::path storage_root(globals::storage_location);
+    fs::path path;
     switch(type) {
         case OrthancPluginContentType_Dicom:
             return WriteDicomFile(DicomFile(content, size), uuid);
         case OrthancPluginContentType_DicomAsJson:
             //todo: implement DicomFile json parser? or write a json file to disk?
-            master_path = fs::path(storage_root)
+            path = fs::path(storage_root)
                     .append("/json/")
                     .append(uuid)
                     .append(".json");
-            file.open(master_path, std::ios::out | std::ios::binary);
-            if (file.is_open()) {
-                file.write((const char *) content, size);
-                file.close();
-            }
-            return file.good() ?
-                   OrthancPluginErrorCode_Success :
-                   OrthancPluginErrorCode_CannotWriteFile;
+            break;
         case OrthancPluginContentType_DicomUntilPixelData:
             // todo: will the plugin need to handle this? what does it look like and its use case?
-            master_path = fs::path(storage_root)
+            path = fs::path(storage_root)
                     .append("/no-pixel/")
                     .append(uuid)
                     .append(".DCM");
-            file.open(master_path, std::ios::out | std::ios::binary);
-            if (file.is_open()) {
-                file.write((const char *) content, size);
-                file.close();
-            }
-            return file.good() ?
-                   OrthancPluginErrorCode_Success :
-                   OrthancPluginErrorCode_CannotWriteFile;
+            break;
         case _OrthancPluginContentType_INTERNAL:
             // todo: anything? what even is this?
-            master_path = fs::path(storage_root)
+            path = fs::path(storage_root)
                     .append("/internal/")
                     .append(uuid);
-            file.open(master_path, std::ios::out | std::ios::binary);
-            if (file.is_open()) {
-                file.write((const char *) content, size);
-                file.close();
-            }
-            return file.good() ?
-                   OrthancPluginErrorCode_Success :
-                   OrthancPluginErrorCode_CannotWriteFile;
+            break;
         case OrthancPluginContentType_Unknown:
             //todo: write plain jane fstream write?
-            master_path = fs::path(storage_root)
+            path = fs::path(storage_root)
                     .append("/unknown-files/")
                     .append(uuid);
-            file.open(master_path, std::ios::out | std::ios::binary);
-            if (file.is_open()) {
-                file.write((const char *) content, size);
-                file.close();
-            }
-            return file.good() ?
-                   OrthancPluginErrorCode_Success :
-                   OrthancPluginErrorCode_CannotWriteFile;
+            break;
     }
-    return OrthancPluginErrorCode_EmptyRequest;
+    std::fstream file(path, std::ios::out | std::ios::binary);
+    if (file.is_open()) {
+        file.write((const char *) content, size);
+        file.close();
+    }
+    return file.good() ? OrthancPluginErrorCode_Success :
+           OrthancPluginErrorCode_CannotWriteFile;
 }
 
 OrthancPluginErrorCode StorageReadWholeCallback(OrthancPluginMemoryBuffer64 *target,
