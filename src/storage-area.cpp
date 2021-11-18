@@ -24,7 +24,10 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
             cleanup = true;
         }
         // write to disk
-        fs::path master_path = fs::path(storage_root).append("/by-uuid/").append(uuid);
+        fs::path master_path = fs::path(storage_root)
+                .append("/by-uuid/")
+                .append(uuid)
+                .append(".DCM");
         fs::create_directories(master_path);
         // todo: add uuid directory portion
         std::fstream file(master_path, std::ios::binary | std::ios::out);
@@ -40,7 +43,8 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
             fs::path link = fs::path(storage_root)
                     .append(group)
                     .append(folder)
-                    .append(uuid);
+                    .append(uuid)
+                    .append(".DCM");
             fs::create_directories(link);
             fs::create_hard_link(master_path, link);
             fs::permissions(link, globals::file_permissions);
@@ -64,21 +68,66 @@ OrthancPluginErrorCode StorageCreateCallback(const char *uuid,
                                              const void *content,
                                              int64_t size,
                                              OrthancPluginContentType type) {
-    switch(type){
-        case OrthancPluginContentType_Unknown:
-            //todo: write plain jane fstream write?
-            return OrthancPluginErrorCode_CannotWriteFile;
+    static fs::path storage_root(globals::storage_location);
+    fs::path master_path;
+    std::fstream file;
+    switch(type) {
         case OrthancPluginContentType_Dicom:
-            return WriteDicomFile(DicomFile(content,size), uuid);
+            return WriteDicomFile(DicomFile(content, size), uuid);
         case OrthancPluginContentType_DicomAsJson:
             //todo: implement DicomFile json parser? or write a json file to disk?
-            break;
+            master_path = fs::path(storage_root)
+                    .append("/json/")
+                    .append(uuid)
+                    .append(".json");
+            file.open(master_path, std::ios::out | std::ios::binary);
+            if (file.is_open()) {
+                file.write((const char *) content, size);
+                file.close();
+            }
+            return file.good() ?
+                   OrthancPluginErrorCode_Success :
+                   OrthancPluginErrorCode_CannotWriteFile;
         case OrthancPluginContentType_DicomUntilPixelData:
             // todo: will the plugin need to handle this? what does it look like and its use case?
-            break;
+            master_path = fs::path(storage_root)
+                    .append("/no-pixel/")
+                    .append(uuid)
+                    .append(".DCM");
+            file.open(master_path, std::ios::out | std::ios::binary);
+            if (file.is_open()) {
+                file.write((const char *) content, size);
+                file.close();
+            }
+            return file.good() ?
+                   OrthancPluginErrorCode_Success :
+                   OrthancPluginErrorCode_CannotWriteFile;
         case _OrthancPluginContentType_INTERNAL:
             // todo: anything? what even is this?
-            break;
+            master_path = fs::path(storage_root)
+                    .append("/internal/")
+                    .append(uuid);
+            file.open(master_path, std::ios::out | std::ios::binary);
+            if (file.is_open()) {
+                file.write((const char *) content, size);
+                file.close();
+            }
+            return file.good() ?
+                   OrthancPluginErrorCode_Success :
+                   OrthancPluginErrorCode_CannotWriteFile;
+        case OrthancPluginContentType_Unknown:
+            //todo: write plain jane fstream write?
+            master_path = fs::path(storage_root)
+                    .append("/unknown-files/")
+                    .append(uuid);
+            file.open(master_path, std::ios::out | std::ios::binary);
+            if (file.is_open()) {
+                file.write((const char *) content, size);
+                file.close();
+            }
+            return file.good() ?
+                   OrthancPluginErrorCode_Success :
+                   OrthancPluginErrorCode_CannotWriteFile;
     }
     return OrthancPluginErrorCode_EmptyRequest;
 }
