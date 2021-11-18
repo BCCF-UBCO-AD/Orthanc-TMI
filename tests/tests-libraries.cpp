@@ -61,8 +61,8 @@ TEST(libraries, pqxx_test){
     //  postgresql://user:secret@localhost
     //  postgresql://other@localhost/otherdb?connect_timeout=10&application_name=myapp
     //  postgresql://host1:123,host2:456/somedb?target_session_attrs=any&application_name=myapp
-    // pqxx::connection c("postgresql://postgres:example@localhost:5432");
-    // pqxx::work w(c);
-    DBInterface::connect("postgresql://postgres:example@localhost:5432");
+    //pqxx::connection c("postgresql://postgres:example@localhost:5432");
+    //pqxx::work w(c);
+    DBInterface::connect("example");
     ASSERT_TRUE(DBInterface::is_open());
 }
