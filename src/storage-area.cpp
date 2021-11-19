@@ -24,12 +24,12 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
             cleanup = true;
         }
         // write to disk
+        // todo: add uuid directory portion
         fs::path master_path = fs::path(storage_root)
                 .append("/by-uuid/")
                 .append(uuid)
                 .append(".DCM");
         fs::create_directories(master_path);
-        // todo: add uuid directory portion
         std::fstream file(master_path, std::ios::binary | std::ios::out);
         file.write(content,size);
         file.close();
@@ -70,7 +70,7 @@ OrthancPluginErrorCode StorageCreateCallback(const char *uuid,
                                              OrthancPluginContentType type) {
     const fs::path storage_root(globals::storage_location);
     fs::path path;
-    switch(type) {
+    switch (type) {
         case OrthancPluginContentType_Dicom:
             return WriteDicomFile(DicomFile(content, size), uuid);
         case OrthancPluginContentType_DicomAsJson:
@@ -103,23 +103,116 @@ OrthancPluginErrorCode StorageCreateCallback(const char *uuid,
     std::fstream file(path, std::ios::out | std::ios::binary);
     if (file.is_open()) {
         file.write((const char *) content, size);
-        file.close();
+        if (file.good()) {
+            file.close();
+            return OrthancPluginErrorCode_Success;
+        }
+        OrthancPluginLogWarning(globals::context, "StorageCreateCallback: but write out appears bad");
     }
-    return file.good() ? OrthancPluginErrorCode_Success :
-           OrthancPluginErrorCode_CannotWriteFile;
+    return OrthancPluginErrorCode_FileStorageCannotWrite;
 }
 
 OrthancPluginErrorCode StorageReadWholeCallback(OrthancPluginMemoryBuffer64 *target,
                                                 const char *uuid,
                                                 OrthancPluginContentType type) {
-    return OrthancPluginErrorCode_BadFileFormat;
+    const fs::path storage_root(globals::storage_location);
+    fs::path path;
+    switch(type){
+        case OrthancPluginContentType_Dicom:
+            path = fs::path(storage_root)
+                    .append("/by-uuid/")
+                    .append(uuid)
+                    .append(".DCM");
+            break;
+        case OrthancPluginContentType_DicomAsJson:
+            path = fs::path(storage_root)
+                    .append("/json/")
+                    .append(uuid)
+                    .append(".json");
+            break;
+        case OrthancPluginContentType_DicomUntilPixelData:
+            path = fs::path(storage_root)
+                    .append("/no-pixel/")
+                    .append(uuid)
+                    .append(".DCM");
+            break;
+        case _OrthancPluginContentType_INTERNAL:
+            path = fs::path(storage_root)
+                    .append("/internal/")
+                    .append(uuid);
+            break;
+        case OrthancPluginContentType_Unknown:
+            path = fs::path(storage_root)
+                    .append("/unknown-files/")
+                    .append(uuid);
+            break;
+    }
+    // todo: is the buffer ready? without this call..
+    OrthancPluginCreateMemoryBuffer64(globals::context, target, fs::file_size(path));
+    std::fstream file(path, std::ios::in | std::ios::binary);
+    if(file.is_open()){
+        file.read((char*)target->data, target->size);
+        if(file.good()){
+            file.close();
+            return OrthancPluginErrorCode_Success;
+        }
+        OrthancPluginLogWarning(globals::context, "StorageReadWholeCallback: opened file, but couldn't read it");
+        return OrthancPluginErrorCode_StorageAreaPlugin;
+    }
+    return OrthancPluginErrorCode_InexistentFile;
 }
 
 OrthancPluginErrorCode StorageReadRangeCallback(OrthancPluginMemoryBuffer64 *target,
                                                 const char *uuid,
                                                 OrthancPluginContentType type,
                                                 uint64_t rangeStart) {
-    return OrthancPluginErrorCode_BadFileFormat;
+    const fs::path storage_root(globals::storage_location);
+    fs::path path;
+    switch(type){
+        case OrthancPluginContentType_Dicom:
+            path = fs::path(storage_root)
+                    .append("/by-uuid/")
+                    .append(uuid)
+                    .append(".DCM");
+            break;
+        case OrthancPluginContentType_DicomAsJson:
+            path = fs::path(storage_root)
+                    .append("/json/")
+                    .append(uuid)
+                    .append(".json");
+            break;
+        case OrthancPluginContentType_DicomUntilPixelData:
+            path = fs::path(storage_root)
+                    .append("/no-pixel/")
+                    .append(uuid)
+                    .append(".DCM");
+            break;
+        case _OrthancPluginContentType_INTERNAL:
+            path = fs::path(storage_root)
+                    .append("/internal/")
+                    .append(uuid);
+            break;
+        case OrthancPluginContentType_Unknown:
+            path = fs::path(storage_root)
+                    .append("/unknown-files/")
+                    .append(uuid);
+            break;
+    }
+    // todo: is the buffer ready? without this call..
+    OrthancPluginCreateMemoryBuffer64(globals::context, target, fs::file_size(path));
+    std::fstream file(path, std::ios::in | std::ios::binary);
+    if(file.is_open()){
+        /*
+        file.read((char*)target->data, target->size);
+        if(file.good()){
+            file.close();
+            return OrthancPluginErrorCode_Success;
+        }
+        OrthancPluginLogWarning(globals::context, "StorageReadWholeCallback: opened file, but couldn't read it");
+        return OrthancPluginErrorCode_StorageAreaPlugin;
+        /**/
+    }
+    return OrthancPluginErrorCode_InexistentFile;
 }
 
 OrthancPluginErrorCode StorageRemoveCallback(const char *uuid, OrthancPluginContentType type) {
