@@ -10,7 +10,6 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
     const fs::path storage_root(globals::storage_location);
     std::unique_ptr<char[]> content = nullptr;
     size_t size = 0;
-    bool cleanup = false;
     if(dicom.IsValid()) {
         DBInterface::HandlePHI(dicom);
         auto filtered = dicom.ApplyFilter(globals::filter_list);
@@ -21,7 +20,6 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
                 // todo: probably a better error code
                 return OrthancPluginErrorCode_EmptyRequest;
             }
-            cleanup = true;
         }
         // write to disk
         // todo: add uuid directory portion
@@ -57,9 +55,6 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
         hardlink_to("/by-dob/", DOB_placeholder);
         hardlink_to("/by-patient-id/", PID_placeholder);
         hardlink_to("/by-study-date/", SD_placeholder);
-        if(cleanup){
-            delete[] content;
-        }
     }
     return OrthancPluginErrorCode_BadFileFormat;
 }
