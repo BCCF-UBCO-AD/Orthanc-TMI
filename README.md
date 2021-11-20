@@ -1,14 +1,15 @@
 # Orthanc-TMI
 
 ### Table of Contents
-
- - [Dependencies](#dependencies)
-   - [Tools](#tools)
-   - [Submodules](#submodules)
  - [Getting Started](#getting-started)
    - [Clone](#clone)
-   - [Build](#build)
+     - [Dependencies](#dependencies)
+     - [Submodules](#submodules)
+   - [Building](#building)
+     - [Tools](#tools)
+     - [Build](#build)
    - [Docker](#docker)
+     - [Build Image](#build-image)
      - [WSL](#windows-subsystem-for-linux)
  - [Contributing](#contributing)
    - [Style Guide](#style-guide)
@@ -17,24 +18,6 @@
  - [Testing](#testing)
 
 This software has been developed as a plugin to run on Orthanc DICOM servers.
-## Dependencies
-First and foremost this project [creates an Orthanc plugin](https://book.orthanc-server.com/developers/creating-plugins.html#structure-of-the-plugins), so the Orthanc [plugin SDK](https://sdk.orthanc-server.com/index.html) is required. Which is available as [OrthancCPlugin.h](https://hg.orthanc-server.com/orthanc/file/Orthanc-1.9.7/OrthancServer/Plugins/Include/orthanc/OrthancCPlugin.h)
-#### Tools
-* GCC - compiler
-* Cmake compatible build system (eg. GNU Make, Ninja)
-* Cmake 3.20 - configures build system
-* Docker - local testing ([docker image](https://hub.docker.com/r/jodogne/orthanc-plugins))
-* Github Actions - remote testing
-* CLion (recommended)
-
-#### Submodules
-| Library | Purpose | URI |
-|---------|---------|-----|
-| [libpq](lib) | PostgreSQL API | <ul><li>[external repo](https://github.com/postgres/postgres.git) <li>[docs - configure/build/install](https://www.postgresql.org/docs/14/install-procedure.html) |
-| [libpqxx](lib) | libpq wrapper | <ul><li>[external repo](https://github.com/jtv/libpqxx.git) <li>[docs - API](https://libpqxx.readthedocs.io/en/stable/a01382.html) |
-| [nlohmann/json](lib) | json API | <ul><li>[external repo](https://github.com/nlohmann/json.git) <li>[docs - integration](https://github.com/nlohmann/json#integration) <li>[docs - API](https://nlohmann.github.io/json/api/basic_json/) |
-| [googletest](lib) | unit testing | <ul><li>[external repo](https://github.com/google/googletest.git) |
-
 ## Getting Started
 ### Clone
 Don't forget to populate submodules.
@@ -48,9 +31,33 @@ git checkout develop
 git submodule init
 git submodule update
 ```
+#### Dependencies
+First and foremost this project [creates an Orthanc plugin](https://book.orthanc-server.com/developers/creating-plugins.html#structure-of-the-plugins), so the Orthanc [plugin SDK](https://sdk.orthanc-server.com/index.html) is required. Which is available as [OrthancCPlugin.h](https://hg.orthanc-server.com/orthanc/file/Orthanc-1.9.7/OrthancServer/Plugins/Include/orthanc/OrthancCPlugin.h)
 
-### Build
-The cmake configuration will ensure the plugin binary is copied to `docker/plugins` where the docker server can read it.
+This repo has a copy of that file under [include/orthanc/](include/orthanc/)
+
+#### Submodules
+The submodules you need to initialize.
+| Library | Purpose | URI |
+|---------|---------|-----|
+| [libpqxx](lib) | libpq wrapper | <ul><li>[external repo](https://github.com/jtv/libpqxx.git) <li>[docs - API](https://libpqxx.readthedocs.io/en/stable/a01382.html) |
+| [nlohmann/json](lib) | json API | <ul><li>[external repo](https://github.com/nlohmann/json.git) <li>[docs - integration](https://github.com/nlohmann/json#integration) <li>[docs - API](https://nlohmann.github.io/json/api/basic_json/) |
+| [googletest](lib) | unit testing | <ul><li>[external repo](https://github.com/google/googletest.git) |
+
+### Building
+The project is configured to build a plugin (dll/so) (target `'data-anonymizer'`) binary, then copy it to `docker/plugins` where the orthanc docker server can read it.
+
+#### Tools
+Some tools will be needed. Please refer to your system package manager, or each tool's website, in order to install.
+* GCC - compiler
+* Cmake compatible build system (eg. GNU Make, Ninja)
+* Cmake 3.20 - configures build system
+* Docker - local testing ([docker image](https://hub.docker.com/r/jodogne/orthanc-plugins))
+* Github Actions - remote testing
+* CLion (recommended)
+
+#### Build
+You'll need some tools, but below is all you'll need to do to build everything.
 ```bash
 mkdir build
 cd build
@@ -83,7 +90,7 @@ This will launch 3 docker containers with images from Docker Hub:
  
 Then you can proceed to test whatever in whatever way. The docker server reads a copy of the plugin binary from `docker/plugins/` (cmake configures the copy operation).
 
-#### Build Docker Image
+#### Build Image
 To build the custom docker image instead of pulling from Docker Hub:
 ```bash
 cd ./docker
