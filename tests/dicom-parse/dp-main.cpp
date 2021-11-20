@@ -7,24 +7,23 @@
 
 namespace fs = std::filesystem;
 
-extern char* bytebuf_to_hexbuf(std::string bytes);
+extern std::unique_ptr<char[]> bytebuf_to_hexbuf(std::string bytes);
 void parse_dicom(const char* hex_buffer, const char* buffer, size_t size);
 //uint32_t read_tag_code(std::string hex);
 
 int main(int argc, char **argv) {
     std::cout << fs::canonical(".") << std::endl;
-    fs::path rel_dicom(fs::canonical("../../samples/0002.DCM"));
-    std::ostringstream buf;
-    std::ifstream file(rel_dicom);
-    std::cout << rel_dicom << std::endl;
-    buf << file.rdbuf();
-    std::string bufstr(buf.str());
-    char* hex_buffer = bytebuf_to_hexbuf(bufstr);
-    char* buffer = new char[bufstr.size()];
-    memcpy(buffer,bufstr.c_str(),bufstr.size());
-    parse_dicom(hex_buffer, buffer, bufstr.size());
-    delete[] hex_buffer;
-    delete[] buffer;
+
+    fs::path path(fs::canonical("../../samples/0002.DCM"));
+    std::cout << path << std::endl;
+
+    std::ifstream file(path);
+    size_t size = fs::file_size(path);
+    auto buffer = std::unique_ptr<char[]>(new char[size]);
+    file.read(buffer.get(),size);
+    file.close();
+    auto hex_buffer = bytebuf_to_hexbuf(buffer.get());
+    parse_dicom(hex_buffer.get(), buffer.get(), size);
     return 0;
 }
 

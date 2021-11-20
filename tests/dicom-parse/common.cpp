@@ -2,13 +2,13 @@
 #include <sstream>
 #include <iostream>
 #include <vector>
+#include <memory>
 
-char* hexbuf_to_bytebuf(std::string hex){
+std::unique_ptr<char[]> hexbuf_to_bytebuf(std::string hex){
     std::stringstream ss;
     //std::string hex = dicom_file_excerpt;
     std::vector<char> hexCh;
     unsigned int temp;
-    int integer_value;
     int offset = 0;
     while (offset < hex.length()) {
         ss.clear();
@@ -24,10 +24,10 @@ char* hexbuf_to_bytebuf(std::string hex){
         // printf("%c",c);
     }
     std::cout << "size: " << offset-1 << " bytes" << std::endl;
-    return buffer;
+    return std::unique_ptr<char[]>(buffer);
 }
 
-char* bytebuf_to_hexbuf(std::string bytes){
+std::unique_ptr<char[]> bytebuf_to_hexbuf(std::string bytes){
     std::stringstream hexbuf;
     for(char &c : bytes){
         hexbuf << DecToHex(c);
@@ -35,7 +35,7 @@ char* bytebuf_to_hexbuf(std::string bytes){
     std::string hex(hexbuf.str());
     char* buffer = new char[hex.size()];
     memcpy(buffer,hex.c_str(),hex.size());
-    return buffer;
+    return std::unique_ptr<char[]>(buffer);
 }
 
 uint32_t shift(uint8_t value, uint8_t shift_amount){
