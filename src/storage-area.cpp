@@ -8,15 +8,15 @@ namespace fs = std::filesystem;
 
 OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
     const fs::path storage_root(globals::storage_location);
-    char* content = nullptr;
+    std::unique_ptr<char[]> content = nullptr;
     size_t size = 0;
     bool cleanup = false;
     if(dicom.IsValid()) {
         DBInterface::HandlePHI(dicom);
         auto filtered = dicom.ApplyFilter(globals::filter_list);
         if (std::get<0>(filtered)) {
-            content = std::get<0>(filtered);
-            size = std::get<1>(filtered);
+            content = std::move(std::get<1>(filtered));
+            size = std::get<2>(filtered);
             if(size == 0){
                 // todo: probably a better error code
                 return OrthancPluginErrorCode_EmptyRequest;
@@ -31,7 +31,7 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
                 .append(".DCM");
         fs::create_directories(master_path);
         std::fstream file(master_path, std::ios::binary | std::ios::out);
-        file.write(content,size);
+        file.write(content.get(),size);
         file.close();
         // set file permissions
         // todo: permission debug info?
