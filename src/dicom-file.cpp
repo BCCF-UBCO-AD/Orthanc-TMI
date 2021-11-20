@@ -59,9 +59,10 @@ void DicomFile::parse_file() {
     is_valid = i == size;
 }
 
-std::tuple<std::unique_ptr<char[]>,size_t> DicomFile::ApplyFilter(TagFilter filter) {
+std::tuple<nlm::json,std::unique_ptr<char[]>,size_t> DicomFile::ApplyFilter(TagFilter filter) {
     size_t new_size = 0;
     std::unique_ptr<char[]> buffer = nullptr;
+    nlm::json discarded;
     if(is_valid) {
         std::vector<Range> discard_list;
         for (auto &tag: filter) {
@@ -69,10 +70,11 @@ std::tuple<std::unique_ptr<char[]>,size_t> DicomFile::ApplyFilter(TagFilter filt
             if (iter != elements.end()) {
                 const auto &element = iter->second;
                 discard_list.push_back(element);
+                discarded[tag] = std::string(std::string_view((const char*)data+element.first, element.second-element.first));
             }
         }
         if (discard_list.empty()) {
-            return std::make_tuple(std::move(buffer),new_size);
+            return std::make_tuple(discarded,std::move(buffer),new_size);
         }
         // invert discard_list into keep_list
         size_t i = 0;
@@ -94,5 +96,5 @@ std::tuple<std::unique_ptr<char[]>,size_t> DicomFile::ApplyFilter(TagFilter filt
             i += copy_size;
         }
     }
-    return std::make_tuple(std::move(buffer),new_size);
+    return std::make_tuple(discarded,std::move(buffer),new_size);
 }

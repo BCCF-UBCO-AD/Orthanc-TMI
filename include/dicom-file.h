@@ -2,7 +2,9 @@
 #include <core.h>
 #include <unordered_map>
 #include <memory>
+#include <nlohmann/json.hpp>
 
+namespace nlm = nlohmann;
 
 class DicomFile{
     using Range = std::pair<size_t,size_t>;
@@ -17,6 +19,6 @@ protected:
 public:
     DicomFile(const OrthancPluginDicomInstance* instance);
     DicomFile(const void* data, size_t size);
-    std::tuple<std::unique_ptr<char[]>,size_t> ApplyFilter(TagFilter filter);
+    std::tuple<nlm::json,std::unique_ptr<char[]>,size_t> ApplyFilter(TagFilter filter);
     bool IsValid() const { return is_valid; }
 };
