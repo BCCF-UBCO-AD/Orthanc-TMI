@@ -85,10 +85,10 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
         master_status.permissions(globals::file_permissions);
 
         // create hard links
-        auto hardlink_to = [&](std::string group, std::string folder) {
+        auto hardlink_to = [&](std::string groupby, std::string group) {
             fs::path link = fs::path(storage_root)
+                    .append(groupby)
                     .append(group)
-                    .append(folder)
                     .append(uuid)
                     .append(".DCM");
             fs::create_directories(link);
