@@ -49,6 +49,10 @@ extern OrthancPluginErrorCode StorageRemoveCallback(const char *uuid, OrthancPlu
 
 // plugin foundation
 extern "C" {
+    void OrthancPluginFinalize(){}
+    const char* OrthancPluginGetName(){ return ORTHANC_PLUGIN_NAME; }
+    const char* OrthancPluginGetVersion(){ return ORTHANC_PLUGIN_VERSION; }
+
     int32_t OrthancPluginInitialize(OrthancPluginContext* context){
         globals::context = context;
         /* Check the version of the Orthanc core */
@@ -77,17 +81,5 @@ extern "C" {
                                           StorageReadRangeCallback, StorageRemoveCallback);
         //OrthancPluginRegisterIncomingDicomInstanceFilter(context, FilterCallback);
         return 0;
-    }
-    
-    void OrthancPluginFinalize(){
-
-    }
-
-    const char* OrthancPluginGetName(){
-        return ORTHANC_PLUGIN_NAME;
-    }
-    
-    const char* OrthancPluginGetVersion(){
-        return ORTHANC_PLUGIN_VERSION;
     }
 }
