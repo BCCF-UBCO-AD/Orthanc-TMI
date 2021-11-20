@@ -60,6 +60,7 @@ void DicomFile::parse_file() {
 }
 
 std::tuple<nlm::json,std::unique_ptr<char[]>,size_t> DicomFile::ApplyFilter(TagFilter filter) {
+    // todo: implement DOB truncation, and any other special edge cases
     size_t new_size = 0;
     std::unique_ptr<char[]> buffer = nullptr;
     nlm::json discarded;
