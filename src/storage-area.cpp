@@ -6,6 +6,41 @@
 
 namespace fs = std::filesystem;
 
+const fs::path GetPath(OrthancPluginContentType type, const char* uuid){
+    const fs::path storage_root(globals::storage_location);
+    fs::path path;
+    switch(type){
+        case OrthancPluginContentType_Dicom:
+            path = fs::path(storage_root)
+                    .append("/by-uuid/")
+                    .append(uuid)
+                    .append(".DCM");
+            break;
+        case OrthancPluginContentType_DicomAsJson:
+            path = fs::path(storage_root)
+                    .append("/json/")
+                    .append(uuid)
+                    .append(".json");
+            break;
+        case OrthancPluginContentType_DicomUntilPixelData:
+            path = fs::path(storage_root)
+                    .append("/no-pixel/")
+                    .append(uuid)
+                    .append(".DCM");
+            break;
+        case _OrthancPluginContentType_INTERNAL:
+            path = fs::path(storage_root)
+                    .append("/internal/")
+                    .append(uuid);
+            break;
+        case OrthancPluginContentType_Unknown:
+            path = fs::path(storage_root)
+                    .append("/unknown-files/")
+                    .append(uuid);
+            break;
+    }
+}
+
 OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
     const fs::path storage_root(globals::storage_location);
     std::unique_ptr<char[]> content = nullptr;
@@ -69,31 +104,10 @@ OrthancPluginErrorCode StorageCreateCallback(const char *uuid,
         case OrthancPluginContentType_Dicom:
             return WriteDicomFile(DicomFile(content, size), uuid);
         case OrthancPluginContentType_DicomAsJson:
-            //todo: implement DicomFile json parser? or write a json file to disk?
-            path = fs::path(storage_root)
-                    .append("/json/")
-                    .append(uuid)
-                    .append(".json");
-            break;
         case OrthancPluginContentType_DicomUntilPixelData:
-            // todo: will the plugin need to handle this? what does it look like and its use case?
-            path = fs::path(storage_root)
-                    .append("/no-pixel/")
-                    .append(uuid)
-                    .append(".DCM");
-            break;
         case _OrthancPluginContentType_INTERNAL:
-            // todo: anything? what even is this?
-            path = fs::path(storage_root)
-                    .append("/internal/")
-                    .append(uuid);
-            break;
         case OrthancPluginContentType_Unknown:
-            //todo: write plain jane fstream write?
-            path = fs::path(storage_root)
-                    .append("/unknown-files/")
-                    .append(uuid);
-            break;
+            path = GetPath(type,uuid);
     }
     std::fstream file(path, std::ios::out | std::ios::binary);
     if (file.is_open()) {
@@ -110,38 +124,7 @@ OrthancPluginErrorCode StorageCreateCallback(const char *uuid,
 OrthancPluginErrorCode StorageReadWholeCallback(OrthancPluginMemoryBuffer64 *target,
                                                 const char *uuid,
                                                 OrthancPluginContentType type) {
-    const fs::path storage_root(globals::storage_location);
-    fs::path path;
-    switch(type){
-        case OrthancPluginContentType_Dicom:
-            path = fs::path(storage_root)
-                    .append("/by-uuid/")
-                    .append(uuid)
-                    .append(".DCM");
-            break;
-        case OrthancPluginContentType_DicomAsJson:
-            path = fs::path(storage_root)
-                    .append("/json/")
-                    .append(uuid)
-                    .append(".json");
-            break;
-        case OrthancPluginContentType_DicomUntilPixelData:
-            path = fs::path(storage_root)
-                    .append("/no-pixel/")
-                    .append(uuid)
-                    .append(".DCM");
-            break;
-        case _OrthancPluginContentType_INTERNAL:
-            path = fs::path(storage_root)
-                    .append("/internal/")
-                    .append(uuid);
-            break;
-        case OrthancPluginContentType_Unknown:
-            path = fs::path(storage_root)
-                    .append("/unknown-files/")
-                    .append(uuid);
-            break;
-    }
+    auto path = GetPath(type,uuid);
     // todo: is the buffer ready? without this call..
     OrthancPluginCreateMemoryBuffer64(globals::context, target, fs::file_size(path));
     std::fstream file(path, std::ios::in | std::ios::binary);
@@ -161,38 +144,7 @@ OrthancPluginErrorCode StorageReadRangeCallback(OrthancPluginMemoryBuffer64 *tar
                                                 const char *uuid,
                                                 OrthancPluginContentType type,
                                                 uint64_t rangeStart) {
-    const fs::path storage_root(globals::storage_location);
-    fs::path path;
-    switch(type){
-        case OrthancPluginContentType_Dicom:
-            path = fs::path(storage_root)
-                    .append("/by-uuid/")
-                    .append(uuid)
-                    .append(".DCM");
-            break;
-        case OrthancPluginContentType_DicomAsJson:
-            path = fs::path(storage_root)
-                    .append("/json/")
-                    .append(uuid)
-                    .append(".json");
-            break;
-        case OrthancPluginContentType_DicomUntilPixelData:
-            path = fs::path(storage_root)
-                    .append("/no-pixel/")
-                    .append(uuid)
-                    .append(".DCM");
-            break;
-        case _OrthancPluginContentType_INTERNAL:
-            path = fs::path(storage_root)
-                    .append("/internal/")
-                    .append(uuid);
-            break;
-        case OrthancPluginContentType_Unknown:
-            path = fs::path(storage_root)
-                    .append("/unknown-files/")
-                    .append(uuid);
-            break;
-    }
+    auto path = GetPath(type,uuid);
     // todo: is the buffer ready? without this call..
     OrthancPluginCreateMemoryBuffer64(globals::context, target, fs::file_size(path));
     std::fstream file(path, std::ios::in | std::ios::binary);
@@ -211,5 +163,6 @@ OrthancPluginErrorCode StorageReadRangeCallback(OrthancPluginMemoryBuffer64 *tar
 }
 
 OrthancPluginErrorCode StorageRemoveCallback(const char *uuid, OrthancPluginContentType type) {
+
     return OrthancPluginErrorCode_InexistentFile;
 }
