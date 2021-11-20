@@ -99,7 +99,6 @@ OrthancPluginErrorCode StorageCreateCallback(const char *uuid,
                                              const void *content,
                                              int64_t size,
                                              OrthancPluginContentType type) {
-    const fs::path storage_root(globals::storage_location);
     fs::path path;
     switch (type) {
         case OrthancPluginContentType_Dicom:
