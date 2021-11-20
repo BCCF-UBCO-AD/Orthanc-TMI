@@ -20,17 +20,17 @@ void DicomFile::parse_file() {
     const char* readable_buffer = (const char*)data;
     size_t preamble = 128;
     size_t prefix = 4;
-    OrthancPluginLogWarning(globals::context, "Filter: Parsing dicom data");
+    if(globals::context) OrthancPluginLogWarning(globals::context, "Filter: Parsing dicom data");
     // there is no valid header if the file size is smaller than 132 bytes
     if(size <= preamble + prefix){
-        OrthancPluginLogError(globals::context, "DicomFile does not have a valid size");
+        if(globals::context) OrthancPluginLogError(globals::context, "DicomFile does not have a valid size");
         is_valid = false;
         return;
     }
     // the DICOM file header must end with DICM
     if(std::string_view(readable_buffer+preamble,prefix) != "DICM"){
         // apparently not a DICOM file... so...
-        OrthancPluginLogError(globals::context, "DicomFile does not match a valid DICOM format");
+        if(globals::context) OrthancPluginLogError(globals::context, "DicomFile does not match a valid DICOM format");
         is_valid = false;
         return;
     }
@@ -50,7 +50,7 @@ void DicomFile::parse_file() {
                 element.size,
                 element.bytes,
                 (int)element.length);
-        OrthancPluginLogInfo(globals::context, msg_buffer);
+        if(globals::context) OrthancPluginLogInfo(globals::context, msg_buffer);
         // save element range
         size_t j = element.GetNextIndex();
         elements.emplace(element.tag, std::make_pair(i,j));
