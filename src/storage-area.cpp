@@ -91,6 +91,7 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
         hardlink_to("/by-dob/", DOB_placeholder);
         hardlink_to("/by-patient-id/", PID_placeholder);
         hardlink_to("/by-study-date/", SD_placeholder);
+        return OrthancPluginErrorCode_Success;
     }
     return OrthancPluginErrorCode_BadFileFormat;
 }
@@ -149,15 +150,9 @@ OrthancPluginErrorCode StorageReadRangeCallback(OrthancPluginMemoryBuffer64 *tar
     OrthancPluginCreateMemoryBuffer64(globals::context, target, fs::file_size(path));
     std::fstream file(path, std::ios::in | std::ios::binary);
     if(file.is_open()){
-        /*
+        file.seekg(rangeStart);
         file.read((char*)target->data, target->size);
-        if(file.good()){
-            file.close();
-            return OrthancPluginErrorCode_Success;
-        }
-        OrthancPluginLogWarning(globals::context, "StorageReadWholeCallback: opened file, but couldn't read it");
-        return OrthancPluginErrorCode_StorageAreaPlugin;
-        /**/
+        return OrthancPluginErrorCode_Success;
     }
     return OrthancPluginErrorCode_InexistentFile;
 }
@@ -167,24 +162,29 @@ OrthancPluginErrorCode StorageRemoveCallback(const char *uuid, OrthancPluginCont
         case OrthancPluginContentType_Dicom:
             // todo: rewrite
             const fs::path storage_root(globals::storage_location);
-            auto path_to = [&](std::string group, std::string folder) {
-                return fs::path(storage_root)
+            auto remove = [&](std::string group, std::string folder) {
+                fs::path path = fs::path(storage_root)
                         .append(group)
                         .append(folder)
                         .append(uuid)
                         .append(".DCM");
+                if(fs::exists(path)){
+                    fs::remove(path);
+                }
             };
             // todo: replace placeholders
             std::string DOB_placeholder;
             std::string PID_placeholder;
             std::string SD_placeholder;
-            fs::remove(path_to("/by-dob/", DOB_placeholder));
-            fs::remove(path_to("/by-patient-id/", PID_placeholder));
-            fs::remove(path_to("/by-study-date/", SD_placeholder));
+            remove("/by-dob/", DOB_placeholder);
+            remove("/by-patient-id/", PID_placeholder);
+            remove("/by-study-date/", SD_placeholder);
             break;
     }
     auto path = GetPath(type,uuid);
-    fs::remove(path);
+    if(fs::exists(path)) {
+        fs::remove(path);
+    }
 
-    return OrthancPluginErrorCode_InexistentFile;
+    return OrthancPluginErrorCode_Success;
 }
