@@ -1,7 +1,7 @@
 #define IMPLEMENTS_GLOBALS
 #include <configuration.h>
 #include <core.h>
-#include <dicom-file.h>
+#include <dicom-tag.h>
 
 #include <nlohmann/json.hpp>
 
@@ -15,13 +15,37 @@ namespace globals {
     fs::perms file_permissions = fs::perms::owner_all | fs::perms::group_all | fs::perms::others_read;
 }
 
-// prototypes
-extern OrthancPluginErrorCode StorageCreateCallback(const char *uuid, const void *content, int64_t size, OrthancPluginContentType type);
-extern OrthancPluginErrorCode StorageReadWholeCallback(OrthancPluginMemoryBuffer64 *target, const char *uuid, OrthancPluginContentType type);
-extern OrthancPluginErrorCode StorageReadRangeCallback(OrthancPluginMemoryBuffer64 *target, const char *uuid, OrthancPluginContentType type, uint64_t rangeStart);
+void PopulateFilterList(const nlm::json &config){
+    // iterate the Dicom-Filter configuration tags array
+    for (const auto &iter: config["Dicom-Filter"]["tags"]) {
+        // todo: check that the string has 9 characters; true: do below, false: implement full group filters (eg. "0002,*", "0002")
+        // get tag string, convert to decimal
+        auto tag = iter.get<std::string>();
+        tag.append(tag.substr(0, 4));
+        tag.erase(0, 5);
+        uint32_t tag_code = HexToDec(tag);
+        // register tag
+        globals::filter_list.emplace(tag_code);
+        // log the tags registered
+        char msg_buffer[256] = {0};
+        sprintf(msg_buffer, "filter registered tag code: %d", tag_code);
+        OrthancPluginLogWarning(globals::context, msg_buffer);
+    }
+}
+
+// storage callback prototypes
+extern OrthancPluginErrorCode StorageCreateCallback(const char *uuid,
+                                                    const void *content,
+                                                    int64_t size,
+                                                    OrthancPluginContentType type);
+extern OrthancPluginErrorCode StorageReadWholeCallback(OrthancPluginMemoryBuffer64 *target,
+                                                       const char *uuid,
+                                                       OrthancPluginContentType type);
+extern OrthancPluginErrorCode StorageReadRangeCallback(OrthancPluginMemoryBuffer64 *target,
+                                                       const char *uuid,
+                                                       OrthancPluginContentType type,
+                                                       uint64_t rangeStart);
 extern OrthancPluginErrorCode StorageRemoveCallback(const char *uuid, OrthancPluginContentType type);
-int32_t FilterCallback(const OrthancPluginDicomInstance* instance);
-void PopulateFilterList(const nlm::json &config);
 
 // plugin foundation
 extern "C" {
@@ -51,7 +75,8 @@ extern "C" {
         PopulateFilterList(config);
         OrthancPluginRegisterStorageArea2(context, StorageCreateCallback, StorageReadWholeCallback,
                                           StorageReadRangeCallback, StorageRemoveCallback);
-        return OrthancPluginRegisterIncomingDicomInstanceFilter(context, FilterCallback);
+        //OrthancPluginRegisterIncomingDicomInstanceFilter(context, FilterCallback);
+        return 0;
     }
     
     void OrthancPluginFinalize(){
@@ -65,42 +90,4 @@ extern "C" {
     const char* OrthancPluginGetVersion(){
         return ORTHANC_PLUGIN_VERSION;
     }
-}
-
-using namespace globals;
-
-extern uint32_t HexToDec(std::string hex);
-void PopulateFilterList(const nlm::json &config){
-    // iterate the Dicom-Filter configuration tags array
-    for (const auto &iter: config["Dicom-Filter"]["tags"]) {
-        // todo: check that the string has 9 characters; true: do below, false: implement full group filters (eg. "0002,*", "0002")
-        // get tag string, convert to decimal
-        auto tag = iter.get<std::string>();
-        tag.append(tag.substr(0, 4));
-        tag.erase(0, 5);
-        uint32_t tag_code = HexToDec(tag);
-        // register tag
-        filter_list.emplace(tag_code);
-        // log the tags registered
-        char msg_buffer[256] = {0};
-        sprintf(msg_buffer, "filter registered tag code: %d", tag_code);
-        OrthancPluginLogWarning(context, msg_buffer);
-    }
-}
-
-int32_t FilterCallback(const OrthancPluginDicomInstance* instance){
-    // todo: possibly copy instance data to new buffer to control life span, then anonymize as a job instead of in this callstack
-    OrthancPluginLogWarning(globals::context, "Filter: receiving dicom");
-    // filter dicom data
-    DicomFile dicom(instance);
-    if(!dicom.IsValid()){
-        return -1;
-    }
-    auto filtered = dicom.ApplyFilter(globals::filter_list);
-    if (!std::get<0>(filtered)) {
-        return 1;
-    }
-
-    // todo: save dicom instance to disk
-    return 0; /*{0: discard, 1: store, -1: error}*/
 }
