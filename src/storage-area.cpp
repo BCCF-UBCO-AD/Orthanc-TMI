@@ -9,33 +9,45 @@ namespace fs = std::filesystem;
 const fs::path GetPath(OrthancPluginContentType type, const char* uuid){
     const fs::path storage_root(globals::storage_location);
     fs::path path;
+    std::string b1 = std::string(std::string_view(uuid,3)) + "/";
+    std::string b2 = std::string(std::string_view(uuid+3,2)) + "/";
     switch(type){
         case OrthancPluginContentType_Dicom:
             path = fs::path(storage_root)
                     .append("/by-uuid/")
+                    .append(b1)
+                    .append(b2)
                     .append(uuid)
                     .append(".DCM");
             break;
         case OrthancPluginContentType_DicomAsJson:
             path = fs::path(storage_root)
                     .append("/json/")
+                    .append(b1)
+                    .append(b2)
                     .append(uuid)
                     .append(".json");
             break;
         case OrthancPluginContentType_DicomUntilPixelData:
             path = fs::path(storage_root)
                     .append("/no-pixel/")
+                    .append(b1)
+                    .append(b2)
                     .append(uuid)
                     .append(".DCM");
             break;
         case _OrthancPluginContentType_INTERNAL:
             path = fs::path(storage_root)
                     .append("/internal/")
+                    .append(b1)
+                    .append(b2)
                     .append(uuid);
             break;
         case OrthancPluginContentType_Unknown:
             path = fs::path(storage_root)
                     .append("/unknown-files/")
+                    .append(b1)
+                    .append(b2)
                     .append(uuid);
             break;
     }
