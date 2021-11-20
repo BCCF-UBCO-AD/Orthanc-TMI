@@ -39,6 +39,7 @@ const fs::path GetPath(OrthancPluginContentType type, const char* uuid){
                     .append(uuid);
             break;
     }
+    return path;
 }
 
 OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
@@ -163,6 +164,28 @@ OrthancPluginErrorCode StorageReadRangeCallback(OrthancPluginMemoryBuffer64 *tar
 }
 
 OrthancPluginErrorCode StorageRemoveCallback(const char *uuid, OrthancPluginContentType type) {
+    switch(type){
+        case OrthancPluginContentType_Dicom:
+            // todo: rewrite
+            const fs::path storage_root(globals::storage_location);
+            auto path_to = [&](std::string group, std::string folder) {
+                return fs::path(storage_root)
+                        .append(group)
+                        .append(folder)
+                        .append(uuid)
+                        .append(".DCM");
+            };
+            // todo: replace placeholders
+            std::string DOB_placeholder;
+            std::string PID_placeholder;
+            std::string SD_placeholder;
+            fs::remove(path_to("/by-dob/", DOB_placeholder));
+            fs::remove(path_to("/by-patient-id/", PID_placeholder));
+            fs::remove(path_to("/by-study-date/", SD_placeholder));
+            break;
+    }
+    auto path = GetPath(type,uuid);
+    fs::remove(path);
 
     return OrthancPluginErrorCode_InexistentFile;
 }
