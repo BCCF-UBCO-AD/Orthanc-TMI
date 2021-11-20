@@ -1,14 +1,15 @@
 # Orthanc-TMI
 
 ### Table of Contents
-
- - [Dependencies](#dependencies)
-   - [Tools](#tools)
-   - [Submodules](#submodules)
  - [Getting Started](#getting-started)
    - [Clone](#clone)
-   - [Build](#build)
+     - [Dependencies](#dependencies)
+     - [Submodules](#submodules)
+   - [Building](#building)
+     - [Tools](#tools)
+     - [Build](#build)
    - [Docker](#docker)
+     - [Build Image](#build-image)
      - [WSL](#windows-subsystem-for-linux)
  - [Contributing](#contributing)
    - [Style Guide](#style-guide)
@@ -17,24 +18,6 @@
  - [Testing](#testing)
 
 This software has been developed as a plugin to run on Orthanc DICOM servers.
-## Dependencies
-First and foremost this project [creates an Orthanc plugin](https://book.orthanc-server.com/developers/creating-plugins.html#structure-of-the-plugins), so the Orthanc [plugin SDK](https://sdk.orthanc-server.com/index.html) is required. Which is available as [OrthancCPlugin.h](https://hg.orthanc-server.com/orthanc/file/Orthanc-1.9.7/OrthancServer/Plugins/Include/orthanc/OrthancCPlugin.h)
-#### Tools
-* GCC - compiler
-* Cmake compatible build system (eg. GNU Make, Ninja)
-* Cmake 3.20 - configures build system
-* Docker - local testing ([docker image](https://hub.docker.com/r/jodogne/orthanc-plugins))
-* Github Actions - remote testing
-* CLion (recommended)
-
-#### Submodules
-| Library | Purpose | URI |
-|---------|---------|-----|
-| [libpq](lib) | PostgreSQL API | <ul><li>[external repo](https://github.com/postgres/postgres.git) <li>[docs - configure/build/install](https://www.postgresql.org/docs/14/install-procedure.html) |
-| [libpqxx](lib) | libpq wrapper | <ul><li>[external repo](https://github.com/jtv/libpqxx.git) <li>[docs - API](https://libpqxx.readthedocs.io/en/stable/a01382.html) |
-| [nlohmann/json](lib) | json API | <ul><li>[external repo](https://github.com/nlohmann/json.git) <li>[docs - integration](https://github.com/nlohmann/json#integration) <li>[docs - API](https://nlohmann.github.io/json/api/basic_json/) |
-| [googletest](lib) | unit testing | <ul><li>[external repo](https://github.com/google/googletest.git) |
-
 ## Getting Started
 ### Clone
 Don't forget to populate submodules.
@@ -48,9 +31,33 @@ git checkout develop
 git submodule init
 git submodule update
 ```
+#### Dependencies
+First and foremost this project [creates an Orthanc plugin](https://book.orthanc-server.com/developers/creating-plugins.html#structure-of-the-plugins), so the Orthanc [plugin SDK](https://sdk.orthanc-server.com/index.html) is required. Which is available as [OrthancCPlugin.h](https://hg.orthanc-server.com/orthanc/file/Orthanc-1.9.7/OrthancServer/Plugins/Include/orthanc/OrthancCPlugin.h)
 
-### Build
-The cmake configuration will ensure the plugin binary is copied to `docker/plugins` where the docker server can read it.
+This repo has a copy of that file under [include/orthanc/](include/orthanc/)
+
+#### Submodules
+The submodules you need to initialize.
+| Library | Purpose | URI |
+|---------|---------|-----|
+| [libpqxx](lib) | libpq wrapper | <ul><li>[external repo](https://github.com/jtv/libpqxx.git) <li>[docs - API](https://libpqxx.readthedocs.io/en/stable/a01382.html) |
+| [nlohmann/json](lib) | json API | <ul><li>[external repo](https://github.com/nlohmann/json.git) <li>[docs - integration](https://github.com/nlohmann/json#integration) <li>[docs - API](https://nlohmann.github.io/json/api/basic_json/) |
+| [googletest](lib) | unit testing | <ul><li>[external repo](https://github.com/google/googletest.git) |
+
+### Building
+The project is configured to build a plugin (dll/so) (target `'data-anonymizer'`) binary, then copy it to `docker/plugins` where the orthanc docker server can read it.
+
+#### Tools
+Some tools will be needed. Please refer to your system package manager, or each tool's website, in order to install.
+* GCC - compiler
+* Cmake compatible build system (eg. GNU Make, Ninja)
+* Cmake 3.20 - configures build system
+* Docker - local testing ([docker image](https://hub.docker.com/r/jodogne/orthanc-plugins))
+* Github Actions - remote testing
+* CLion (recommended)
+
+#### Build
+You'll need some tools, but below is all you'll need to do to build everything.
 ```bash
 mkdir build
 cd build
@@ -83,7 +90,7 @@ This will launch 3 docker containers with images from Docker Hub:
  
 Then you can proceed to test whatever in whatever way. The docker server reads a copy of the plugin binary from `docker/plugins/` (cmake configures the copy operation).
 
-#### Build Docker Image
+#### Build Image
 To build the custom docker image instead of pulling from Docker Hub:
 ```bash
 cd ./docker
@@ -140,7 +147,7 @@ private:
     void helper(std::unordered_map<size_t, std::vector<std::vector<iterator_type_with_a_long_name>> the_thing, int x){}
     void helper2(std::unordered_map<size_t, std::vector<std::vector<iterator_type_with_a_long_name>> the_thing,
                  std::unordered_map<size_t, std::vector<std::vector<iterator_type_with_a_long_name>> the_thing2){}
-    void helper2(int x, /* when the signature surpasses, newline each arg */
+    void helper3(int x, /* when the signature surpasses, newline each arg */
                  int y,
                  int z,
                  std::unordered_map<size_t, std::vector<std::vector<size_t>> the_thing, 
@@ -149,9 +156,11 @@ protected:
     void protected_special_helper(){}
 public:
     bool public_flag = false;
+    //Our methods should also be PascalCase, might revisit this later and switch to Camel
     void Bar(){}
 };
 
+//Our functions should also be PascalCase, might revisit this later and switch to Camel
 void Foo(int foo_bar){
 }
 ```
@@ -161,9 +170,10 @@ void Foo(int foo_bar){
 |------|---------|
 | master | stable branch |
 | develop | development branch for **merging** new libraries/features/etc. |
-| documents | documentation branch for independent updating of documents |
-| readme | readme update branch for standalone updates to the readme file |
-| libraries | library integration branch for getting new libraries up and running
+| documents | documentation branch for independent clerical work |
+| libraries | library integration branch for getting new libraries up and running |
+| ci | continuous integration branch for independent updating of ci configs |
+| samples | for independent updating of dicom files, should be converted into a submodule |
 
 
 ### Branching
@@ -189,13 +199,9 @@ As a general guide to naming branches:
 | `hotfix-` | single commit fixes | no |
 | `patch-` | fixes for tracked issues | no |
 | `fix-` | other fixes | no |
-
-## The Darkest Time Line
+| `*` | some special branch with an ongoing purpose | no |
 
 ## Testing
   - Google_Test Framework for unit Testing. [Here](https://github.com/google/googletest.git)
-  - Circle CI or similar for continuous integration.
-  - Circle CI with GitHub to test  pull requests to main and develop branches
-
-# Notes:
-- https://book.orthanc-server.com/users/docker.html#usage-with-plugins-enabled
+  - Github Actions for continuous integration.
+  - Github Actions to test pull requests to master and develop branches

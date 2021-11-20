@@ -20,17 +20,17 @@ void DicomFile::parse_file() {
     const char* readable_buffer = (const char*)data;
     size_t preamble = 128;
     size_t prefix = 4;
-    OrthancPluginLogWarning(globals::context, "Filter: Parsing dicom data");
+    if(globals::context) OrthancPluginLogWarning(globals::context, "Filter: Parsing dicom data");
     // there is no valid header if the file size is smaller than 132 bytes
     if(size <= preamble + prefix){
-        OrthancPluginLogError(globals::context, "DicomFile does not have a valid size");
+        if(globals::context) OrthancPluginLogError(globals::context, "DicomFile does not have a valid size");
         is_valid = false;
         return;
     }
     // the DICOM file header must end with DICM
     if(std::string_view(readable_buffer+preamble,prefix) != "DICM"){
         // apparently not a DICOM file... so...
-        OrthancPluginLogError(globals::context, "DicomFile does not match a valid DICOM format");
+        if(globals::context) OrthancPluginLogError(globals::context, "DicomFile does not match a valid DICOM format");
         is_valid = false;
         return;
     }
@@ -50,7 +50,7 @@ void DicomFile::parse_file() {
                 element.size,
                 element.bytes,
                 (int)element.length);
-        OrthancPluginLogInfo(globals::context, msg_buffer);
+        if(globals::context) OrthancPluginLogInfo(globals::context, msg_buffer);
         // save element range
         size_t j = element.GetNextIndex();
         elements.emplace(element.tag, std::make_pair(i,j));
@@ -59,9 +59,9 @@ void DicomFile::parse_file() {
     is_valid = i == size;
 }
 
-std::tuple<char*,size_t> DicomFile::ApplyFilter(TagFilter filter) {
-    char* buffer = nullptr;
+std::tuple<std::unique_ptr<char[]>,size_t> DicomFile::ApplyFilter(TagFilter filter) {
     size_t new_size = 0;
+    std::unique_ptr<char[]> buffer = nullptr;
     if(is_valid) {
         std::vector<Range> discard_list;
         for (auto &tag: filter) {
@@ -72,7 +72,7 @@ std::tuple<char*,size_t> DicomFile::ApplyFilter(TagFilter filter) {
             }
         }
         if (discard_list.empty()) {
-            return std::make_tuple(buffer,new_size);
+            return std::make_tuple(std::move(buffer),new_size);
         }
         // invert discard_list into keep_list
         size_t i = 0;
@@ -86,13 +86,13 @@ std::tuple<char*,size_t> DicomFile::ApplyFilter(TagFilter filter) {
         new_size += size - i;
         // compile filtered buffer
         i = 0;
-        buffer = new char[new_size];
+        std::unique_ptr<char[]> buffer(new char[new_size]);
         OrthancPluginLogWarning(globals::context, "Filter: compile new dicom buffer");
         for (auto pair: keep_list) {
             size_t copy_size = pair.second - pair.first;
-            memcpy((void *) (buffer + i), (void *) ((char *) data + pair.first), copy_size);
+            memcpy((void *) (buffer.get() + i), (void *) ((char *) data + pair.first), copy_size);
             i += copy_size;
         }
     }
-    return std::make_tuple(buffer,new_size);
+    return std::make_tuple(std::move(buffer),new_size);
 }
