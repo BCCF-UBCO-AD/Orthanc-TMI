@@ -61,6 +61,7 @@ void DicomFile::parse_file() {
 
 std::tuple<std::unique_ptr<char[]>,size_t> DicomFile::ApplyFilter(TagFilter filter) {
     size_t new_size = 0;
+    std::unique_ptr<char[]> buffer = nullptr;
     if(is_valid) {
         std::vector<Range> discard_list;
         for (auto &tag: filter) {
