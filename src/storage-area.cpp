@@ -70,11 +70,7 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
             }
         }
         // write to disk
-        // todo: add uuid directory portion
-        fs::path master_path = fs::path(storage_root)
-                .append("/by-uuid/")
-                .append(uuid)
-                .append(".DCM");
+        fs::path master_path = GetPath(OrthancPluginContentType_Dicom, uuid);
         fs::create_directories(master_path);
         std::fstream file(master_path, std::ios::binary | std::ios::out);
         file.write(content.get(),size);
