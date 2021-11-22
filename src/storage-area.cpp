@@ -60,8 +60,8 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
     size_t size = 0;
     if(dicom.IsValid()) {
         DBInterface::HandlePHI(dicom);
-        auto filtered = dicom.ApplyFilter(globals::filter_list);
-        if (std::get<0>(filtered)) {
+        auto filtered = dicom.ApplyFilter(DicomFilter::ParseConfig(globals::config));
+        if (std::get<1>(filtered)) {
             content = std::move(std::get<1>(filtered));
             size = std::get<2>(filtered);
             if(size == 0){
