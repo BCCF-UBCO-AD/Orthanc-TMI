@@ -23,8 +23,8 @@ public:
     const uint16_t &group = *(uint16_t *) (buffer + idx);
     const uint16_t &element = *(uint16_t *) (buffer + idx + 2);;
     const std::string VR = std::string(std::string_view(buffer + idx + 4, 2));
-    const uint32_t length = CalcLength();
-    const uint64_t size = CalcSize();
+    const uint32_t value_length = CalcValueLength();
+    const uint64_t size = CalcElementSize();
     size_t bytes;
 
     DicomElement(const char *buffer, uint64_t index, const char *hex_buffer = nullptr)
@@ -61,6 +61,6 @@ protected:
     bool require_length = false;
     bool has_reserved = false;
 
-    uint32_t CalcLength();
-    uint64_t CalcSize();
+    uint32_t CalcValueLength();
+    uint64_t CalcElementSize();
 };

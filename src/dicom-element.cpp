@@ -1,7 +1,7 @@
 #include <dicom-element.h>
 #include <dicom-tag.h>
 
-uint32_t DicomElement::CalcLength() {
+uint32_t DicomElement::CalcValueLength() {
     // length width, and location must be deduced
     // Dicom Element Structure: https://www.leadtools.com/help/sdk/v21/dicom/api/overview-data-element-structure.html#!
     require_length = VR == "UT";
@@ -24,14 +24,14 @@ uint32_t DicomElement::CalcLength() {
     return value;
 }
 
-uint64_t DicomElement::CalcSize() {
+uint64_t DicomElement::CalcElementSize() {
     //runs after CalcLength
-    if (length == -1) {
+    if (value_length == -1) {
         // Dicom Element is only as big as the header
         return bytes;
     }
     // Dicom Element has an explicit value length
-    return length + bytes;
+    return value_length + bytes;
 }
 
 
