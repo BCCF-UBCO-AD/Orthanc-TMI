@@ -15,7 +15,7 @@ DicomFile::DicomFile(const void *data, size_t size) {
     parse_file();
 }
 
-void DicomFile::parse_file() {
+bool DicomFile::parse_file() {
     char msg_buffer[256] = {0};
     const char* readable_buffer = (const char*)data;
     size_t preamble = 128;
@@ -25,14 +25,14 @@ void DicomFile::parse_file() {
     if(size <= preamble + prefix){
         if(globals::context) OrthancPluginLogError(globals::context, "DicomFile does not have a valid size");
         is_valid = false;
-        return;
+        return false;
     }
     // the DICOM file header must end with DICM
     if(std::string_view(readable_buffer+preamble,prefix) != "DICM"){
         // apparently not a DICOM file... so...
         if(globals::context) OrthancPluginLogError(globals::context, "DicomFile does not match a valid DICOM format");
         is_valid = false;
-        return;
+        return false;
     }
     // parse dicom data elements
     size_t i;
@@ -49,7 +49,7 @@ void DicomFile::parse_file() {
                 element.GetNextIndex(),
                 element.size,
                 element.bytes,
-                (int)element.length);
+                (int)element.value_length);
         if(globals::context) OrthancPluginLogInfo(globals::context, msg_buffer);
         // save element range
         size_t j = element.GetNextIndex();
@@ -57,21 +57,28 @@ void DicomFile::parse_file() {
         i = j;
     }
     is_valid = i == size;
+    return is_valid;
 }
 
-std::tuple<nlm::json,std::unique_ptr<char[]>,size_t> DicomFile::ApplyFilter(TagFilter filter) {
+std::tuple<nlm::json,std::unique_ptr<char[]>,size_t> DicomFile::ApplyFilter(const DicomFilter &filter) {
     // todo: implement DOB truncation, and any other special edge cases
     size_t new_size = 0;
     std::unique_ptr<char[]> buffer = nullptr;
     nlm::json discarded;
     if(is_valid) {
         std::vector<Range> discard_list;
-        for (auto &tag: filter) {
-            auto iter = elements.find(tag);
-            if (iter != elements.end()) {
-                const auto &element = iter->second;
-                discard_list.push_back(element);
-                discarded[tag] = std::string(std::string_view((const char*)data+element.first, element.second-element.first));
+        for(auto element : elements){
+            uint64_t tag_code = element.first;
+            if(filter.FilterTag(tag_code)) {
+                const auto &range = element.second;
+                discard_list.push_back(range);
+                discarded[element.first] = std::string(std::string_view((const char*) data + range.first,
+                                                                        range.second - range.first));
+                if(filter.KeepData(tag_code)){
+                    DicomElement element_data((const char*)data, range.first);
+                    // todo: PHI stuff?
+                    element_data.
+                }
             }
         }
         if (discard_list.empty()) {
