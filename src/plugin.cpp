@@ -34,6 +34,7 @@ extern "C" {
             return -1;
         }else{
             OrthancPluginLogError(context, "DBInterface connect success.");
+            DBInterface::create_tables();
         }
 
         /* Check the version of the Orthanc core */
