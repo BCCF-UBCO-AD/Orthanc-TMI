@@ -60,6 +60,7 @@ bool DicomFile::parse_file() {
     return is_valid;
 }
 
+// todo: flip relationship around (ie. DicomFilter::filter(DicomFile))
 std::tuple<nlm::json,std::unique_ptr<char[]>,size_t> DicomFile::ApplyFilter(const DicomFilter &filter) {
     // todo: implement DOB truncation, and any other special edge cases
     size_t new_size = 0;
