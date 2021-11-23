@@ -1,5 +1,6 @@
 #include <core.h>
 #include <dicom-file.h>
+#include <dicom-filter.h>
 #include <db-interface.h>
 #include <filesystem>
 #include <fstream>
@@ -60,10 +61,11 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
     size_t size = 0;
     if(dicom.IsValid()) {
         DBInterface::HandlePHI(dicom);
-        auto filtered = dicom.ApplyFilter(DicomFilter::ParseConfig(globals::config));
-        if (std::get<1>(filtered)) {
-            content = std::move(std::get<1>(filtered));
-            size = std::get<2>(filtered);
+        auto filter = DicomFilter::ParseConfig(globals::config);
+        simple_buffer filtered = filter.ApplyFilter(dicom);
+        if (std::get<0>(filtered)) {
+            content = std::move(std::get<0>(filtered));
+            size = std::get<1>(filtered);
             if(size == 0){
                 // todo: probably a better error code
                 return OrthancPluginErrorCode_EmptyRequest;
