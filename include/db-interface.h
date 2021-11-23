@@ -9,4 +9,5 @@ public:
     static void disconnect();
     static bool is_open();
     static void HandlePHI(const DicomFile &dicom);
+    static void create_tables();
 };
