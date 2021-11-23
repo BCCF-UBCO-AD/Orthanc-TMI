@@ -18,7 +18,9 @@ TEST(dicom_parsing, dicom_parse) {
         // if we're on linux, then get the directory the executable is stored in
         exec_path = exec_path.parent_path();
         // if that directory is the build/bin, then our relative path is ../../samples
-        if(exec_path.string().find("build/bin") != std::string::npos){
+        if(exec_path.string().find("build/debug/bin") != std::string::npos){
+            exec_path = fs::canonical(exec_path.string() + "/../../../");
+        } else if(exec_path.string().find("build/bin") != std::string::npos){
             exec_path = fs::canonical(exec_path.string() + "/../../");
         }
         samples = fs::path(exec_path.string() + "/samples/");
@@ -26,6 +28,7 @@ TEST(dicom_parsing, dicom_parse) {
     // ASSERT_TRUE won't compile in regular functions, so we make a lambda to pass it to other functions
 
     // recurse sample directory, parse every file as a dicom
+    std::cout << "reading from: " << samples << std::endl;
     fs::recursive_directory_iterator recursive_iter(samples);
     for(auto &entry : recursive_iter){
         auto &path = entry.path();
