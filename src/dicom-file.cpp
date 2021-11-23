@@ -15,7 +15,7 @@ DicomFile::DicomFile(const void *data, size_t size) {
     parse_file();
 }
 
-void DicomFile::parse_file() {
+bool DicomFile::parse_file() {
     char msg_buffer[256] = {0};
     const char* readable_buffer = (const char*)data;
     size_t preamble = 128;
@@ -25,14 +25,14 @@ void DicomFile::parse_file() {
     if(size <= preamble + prefix){
         if(globals::context) OrthancPluginLogError(globals::context, "DicomFile does not have a valid size");
         is_valid = false;
-        return;
+        return false;
     }
     // the DICOM file header must end with DICM
     if(std::string_view(readable_buffer+preamble,prefix) != "DICM"){
         // apparently not a DICOM file... so...
         if(globals::context) OrthancPluginLogError(globals::context, "DicomFile does not match a valid DICOM format");
         is_valid = false;
-        return;
+        return false;
     }
     // parse dicom data elements
     size_t i;
@@ -40,7 +40,7 @@ void DicomFile::parse_file() {
         // parse next element
         DicomElement element(readable_buffer,i);
         // print element info
-        sprintf(msg_buffer,"[%s] (%s,%s)->(%s)\n idx: %zu, next: %zu, size: %zu, bytes: %zu, length: %d",
+        sprintf(msg_buffer,"[%s] (%s,%s)->(%s)\n idx: %zu, next: %zu, size: %zu, value offset: %zu, length: %d",
                 element.VR.c_str(),
                 element.HexGroup().c_str(),
                 element.HexElement().c_str(),
@@ -48,8 +48,8 @@ void DicomFile::parse_file() {
                 element.idx,
                 element.GetNextIndex(),
                 element.size,
-                element.bytes,
-                (int)element.length);
+                element.value_offset,
+                (int)element.value_length);
         if(globals::context) OrthancPluginLogInfo(globals::context, msg_buffer);
         // save element range
         size_t j = element.GetNextIndex();
@@ -57,22 +57,34 @@ void DicomFile::parse_file() {
         i = j;
     }
     is_valid = i == size;
+    return is_valid;
 }
 
-std::tuple<std::unique_ptr<char[]>,size_t> DicomFile::ApplyFilter(TagFilter filter) {
+// todo: flip relationship around (ie. DicomFilter::filter(DicomFile))
+std::tuple<nlm::json,std::unique_ptr<char[]>,size_t> DicomFile::ApplyFilter(const DicomFilter &filter) {
+    // todo: implement DOB truncation, and any other special edge cases
     size_t new_size = 0;
     std::unique_ptr<char[]> buffer = nullptr;
+    nlm::json discarded;
     if(is_valid) {
         std::vector<Range> discard_list;
-        for (auto &tag: filter) {
-            auto iter = elements.find(tag);
-            if (iter != elements.end()) {
-                const auto &element = iter->second;
-                discard_list.push_back(element);
+        for(auto element_info : elements) {
+            uint64_t tag_code = element_info.first;
+            if (filter.FilterTag(tag_code)) {
+                const auto &range = element_info.second;
+                discard_list.push_back(range);
+                if (filter.KeepData(tag_code)) {
+                    DicomElement e((const char*)data, range.first);
+                    // todo: PHI stuff?
+                    if(e.value_length != -1) {
+                        std::string value(std::string_view(e.GetValueHead(), e.value_length));
+                        discarded[tag_code] = value;
+                    }
+                }
             }
         }
         if (discard_list.empty()) {
-            return std::make_tuple(std::move(buffer),new_size);
+            return std::make_tuple(discarded,std::move(buffer),new_size);
         }
         // invert discard_list into keep_list
         size_t i = 0;
@@ -94,5 +106,5 @@ std::tuple<std::unique_ptr<char[]>,size_t> DicomFile::ApplyFilter(TagFilter filt
             i += copy_size;
         }
     }
-    return std::make_tuple(std::move(buffer),new_size);
+    return std::make_tuple(discarded,std::move(buffer),new_size);
 }

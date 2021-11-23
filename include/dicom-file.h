@@ -1,22 +1,21 @@
 #pragma once
 #include <core.h>
+#include <dicom-filter.h>
 #include <unordered_map>
-#include <memory>
-
 
 class DicomFile{
     using Range = std::pair<size_t,size_t>;
 private:
     const OrthancPluginDicomInstance* instance = nullptr;
     const void* data;
-    uint64_t size;
-    std::unordered_map<uint32_t, Range> elements;
+    size_t size;
+    std::unordered_map<uint64_t, Range> elements;
     bool is_valid = true;
 protected:
-    void parse_file();
+    bool parse_file();
 public:
     DicomFile(const OrthancPluginDicomInstance* instance);
     DicomFile(const void* data, size_t size);
-    std::tuple<std::unique_ptr<char[]>,size_t> ApplyFilter(TagFilter filter);
+    std::tuple<nlm::json,std::unique_ptr<char[]>,size_t> ApplyFilter(const DicomFilter &filter);
     bool IsValid() const { return is_valid; }
 };
