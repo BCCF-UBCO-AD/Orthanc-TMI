@@ -40,7 +40,7 @@ bool DicomFile::parse_file() {
         // parse next element
         DicomElement element(readable_buffer,i);
         // print element info
-        sprintf(msg_buffer,"[%s] (%s,%s)->(%s)\n idx: %zu, next: %zu, size: %zu, bytes: %zu, length: %d",
+        sprintf(msg_buffer,"[%s] (%s,%s)->(%s)\n idx: %zu, next: %zu, size: %zu, value offset: %zu, length: %d",
                 element.VR.c_str(),
                 element.HexGroup().c_str(),
                 element.HexElement().c_str(),
@@ -48,7 +48,7 @@ bool DicomFile::parse_file() {
                 element.idx,
                 element.GetNextIndex(),
                 element.size,
-                element.bytes,
+                element.value_offset,
                 (int)element.value_length);
         if(globals::context) OrthancPluginLogInfo(globals::context, msg_buffer);
         // save element range
@@ -67,17 +67,18 @@ std::tuple<nlm::json,std::unique_ptr<char[]>,size_t> DicomFile::ApplyFilter(cons
     nlm::json discarded;
     if(is_valid) {
         std::vector<Range> discard_list;
-        for(auto element : elements){
-            uint64_t tag_code = element.first;
-            if(filter.FilterTag(tag_code)) {
-                const auto &range = element.second;
+        for(auto element_info : elements) {
+            uint64_t tag_code = element_info.first;
+            if (filter.FilterTag(tag_code)) {
+                const auto &range = element_info.second;
                 discard_list.push_back(range);
-                discarded[element.first] = std::string(std::string_view((const char*) data + range.first,
-                                                                        range.second - range.first));
-                if(filter.KeepData(tag_code)){
-                    DicomElement element_data((const char*)data, range.first);
+                if (filter.KeepData(tag_code)) {
+                    DicomElement e((const char*)data, range.first);
                     // todo: PHI stuff?
-                    element_data.
+                    if(e.value_length != -1) {
+                        std::string value(std::string_view(e.GetValueHead(), e.value_length));
+                        discarded[tag_code] = value;
+                    }
                 }
             }
         }
