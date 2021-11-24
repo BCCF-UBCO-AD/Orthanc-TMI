@@ -1,6 +1,9 @@
 #include <plugin-configure.h>
 #include <iostream>
 
+nlm::json PluginConfigurer::config;
+DicomFilter PluginConfigurer::filter = DicomFilter::ParseConfig("");
+
 int PluginConfigurer::Initialize() {
     try {
         config = nlm::json::parse(OrthancPluginGetConfiguration(globals::context));
