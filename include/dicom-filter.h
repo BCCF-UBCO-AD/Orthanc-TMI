@@ -12,8 +12,7 @@ private:
 protected:
     DicomFilter(const nlm::json &config);
 public:
+    DicomFilter(const DicomFilter &other);
     static DicomFilter ParseConfig(const nlm::json &config);
     simple_buffer ApplyFilter(DicomFile &file);
-    bool FilterTag(const uint64_t &tag_code) const;
-    bool KeepData(const uint64_t &tag_code) const;
 };

@@ -31,14 +31,12 @@ DicomFilter::DicomFilter(const nlm::json &config) {
         }
     }
 }
+DicomFilter::DicomFilter(const DicomFilter &other) {
+    filter_list = other.filter_list;
+    viPHI_list = other.viPHI_list;
+}
 DicomFilter DicomFilter::ParseConfig(const nlm::json &config) {
     return DicomFilter(config);
-}
-bool DicomFilter::FilterTag(const uint64_t &tag_code) const {
-    return filter_list.contains(tag_code) || filter_list.contains(tag_code&GROUP_MASK);
-}
-bool DicomFilter::KeepData(const uint64_t &tag_code) const {
-    return viPHI_list.contains(tag_code) || viPHI_list.contains(tag_code&GROUP_MASK);
 }
 simple_buffer DicomFilter::ApplyFilter(DicomFile &file) {
     if(!ready) {
