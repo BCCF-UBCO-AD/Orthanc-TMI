@@ -1,6 +1,6 @@
 #include <core.h>
 #include <dicom-file.h>
-#include <dicom-filter.h>
+#include <plugin-configure.h>
 #include <db-interface.h>
 #include <filesystem>
 #include <fstream>
@@ -61,7 +61,7 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
     size_t size = 0;
     if(dicom.IsValid()) {
         DBInterface::HandlePHI(dicom);
-        auto filter = DicomFilter::ParseConfig(globals::config);
+        auto filter = PluginConfigurer::GetDicomFilter();
         simple_buffer filtered = filter.ApplyFilter(dicom);
         if (std::get<0>(filtered)) {
             content = std::move(std::get<0>(filtered));
