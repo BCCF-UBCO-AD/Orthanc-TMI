@@ -10,7 +10,7 @@ private:
     const OrthancPluginDicomInstance* instance = nullptr;
     const void* data;
     size_t size;
-    std::unordered_map<uint64_t, Range> elements;
+    std::vector<std::tuple<uint64_t, Range>> elements;
     bool is_valid = true;
 protected:
     bool parse_file();

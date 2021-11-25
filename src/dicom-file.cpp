@@ -53,7 +53,7 @@ bool DicomFile::parse_file() {
         if(globals::context) OrthancPluginLogInfo(globals::context, msg_buffer);
         // save element range
         size_t j = element.GetNextIndex();
-        elements.emplace(element.tag, std::make_pair(i,j));
+        elements.emplace_back(element.tag, std::make_pair(i,j));
         i = j;
     }
     is_valid = i == size;

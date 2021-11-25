@@ -49,9 +49,9 @@ simple_buffer DicomFilter::ApplyFilter(DicomFile &file) {
         if (file.is_valid) {
             std::vector<Range> discard_list;
             for (auto element_info: file.elements) {
-                uint64_t tag_code = element_info.first;
+                uint64_t tag_code = std::get<0>(element_info);
                 if (filter_list.contains(tag_code)) {
-                    const auto &range = element_info.second;
+                    const auto &range = std::get<1>(element_info);
                     discard_list.push_back(range);
                     if (viPHI_list.contains(tag_code)) {
                         DicomElement e((const char*) file.data, range.first);
