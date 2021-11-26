@@ -11,8 +11,7 @@ DicomFilter::DicomFilter(const nlm::json &config) {
             sprintf(msg_buffer, "filter registered tag code: %ld", code);
             OrthancPluginLogWarning(globals::context, msg_buffer);
         };// log the tags registered
-        for (const auto &iter: config["Dicom-Filter"]["tags"]) {
-            // todo: check that the string has 9 characters; true: do below, false: implement full group filters (eg. "0002,*", "0002")
+        for (const auto &iter: config["Dicom-Filter"]["blacklist"]) {
             // get tag string, convert to decimal
             auto tag_entry = iter.get<std::string>();
             if (tag_entry.length() == 9) {
@@ -20,16 +19,31 @@ DicomFilter::DicomFilter(const nlm::json &config) {
                 tag_entry.append(tag_entry.substr(0, 4));
                 tag_entry.erase(0, 5);
                 uint64_t tag_code = HexToDec(tag_entry);
-                filter_list.emplace(tag_code);
+                blacklist.emplace(tag_code);
                 log(tag_code);
             } else if (tag_entry.length() == 4) {
                 // register group
                 uint64_t group_code = HexToDec(tag_entry);
-                filter_list.emplace(group_code);
+                blacklist.emplace(group_code);
                 log(group_code);
             } else {
                 //bad format, we're gonna fail graciously and let the plugin keep moving
-                OrthancPluginLogWarning(globals::context, "invalid entry in Dicom-Filter tags");
+                OrthancPluginLogWarning(globals::context, "invalid entry in Dicom-Filter blacklist (must be 4 or 8 hex-digits eg. '0017,0010')");
+            }
+        }
+        for (const auto &iter: config["Dicom-Filter"]["whitelist"]) {
+            // get tag string, convert to decimal
+            auto tag_entry = iter.get<std::string>();
+            if (tag_entry.length() == 9) {
+                // register tag
+                tag_entry.append(tag_entry.substr(0, 4));
+                tag_entry.erase(0, 5);
+                uint64_t tag_code = HexToDec(tag_entry);
+                whitelist.emplace(tag_code);
+                log(tag_code);
+            }  else {
+                //bad format, we're gonna fail graciously and let the plugin keep moving
+                OrthancPluginLogWarning(globals::context, "invalid entry in Dicom-Filter whitelist (must be a full tag ie. 'xxxx,xxxx')");
             }
         }
     } catch (const std::exception &e) {
@@ -39,7 +53,8 @@ DicomFilter::DicomFilter(const nlm::json &config) {
     }
 }
 DicomFilter::DicomFilter(const DicomFilter &other) {
-    filter_list = other.filter_list;
+    blacklist = other.blacklist;
+    whitelist = other.whitelist;
     viPHI_list = other.viPHI_list;
 }
 DicomFilter DicomFilter::ParseConfig(const nlm::json &config) {
@@ -55,7 +70,7 @@ simple_buffer DicomFilter::ApplyFilter(DicomFile &file) {
             std::vector<Range> discard_list;
             for (auto element_info: file.elements) {
                 uint64_t tag_code = element_info.first;
-                if (filter_list.contains(tag_code)) {
+                if (!whitelist.contains(tag_code) && blacklist.contains(tag_code)) {
                     const auto &range = element_info.second;
                     discard_list.push_back(range);
                     if (viPHI_list.contains(tag_code)) {
