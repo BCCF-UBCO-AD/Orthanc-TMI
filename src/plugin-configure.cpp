@@ -12,7 +12,7 @@ int PluginConfigurer::Initialize() {
             fs::create_directories(globals::storage_location);
             fs::permissions(globals::storage_location, globals::dir_permissions);
         } else {
-            OrthancPluginLogError(globals::context, "Configuration json does not contain a StorageDirectory field.");
+            if(globals::context) OrthancPluginLogError(globals::context, "Configuration json does not contain a StorageDirectory field.");
             return -1;
         }
         filter = DicomFilter::ParseConfig(config);
