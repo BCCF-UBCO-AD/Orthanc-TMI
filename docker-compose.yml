@@ -30,6 +30,7 @@ services:
       #  WARNING: FOR WSL USE THE FOLLOWING LINE INSTEAD:
       #- ~/docker/orthanc/db:/var/lib/orthanc/db
       - ./docker/orthanc/db:/var/lib/orthanc/db
+      - ./docker/orthanc/storage:/var/lib/orthanc/dicom
       - ./docker/orthanc/plugins:/usr/share/orthanc/plugins
     secrets:
       - orthanc.json
