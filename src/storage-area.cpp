@@ -57,6 +57,9 @@ const fs::path GetPath(OrthancPluginContentType type, const char* uuid){
 }
 
 OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
+    char msg[1024] = {0};
+    sprintf(msg, "WriteDicomFile for uuid: %s", uuid);
+    DEBUG_LOG(msg);
     const fs::path storage_root(globals::storage_location);
     std::unique_ptr<char[]> content = nullptr;
     size_t size = 0;
@@ -64,10 +67,12 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
         fs::path master_path = GetPath(OrthancPluginContentType_Dicom, uuid);
         //DBInterface::HandlePHI(dicom);
         auto filter = PluginConfigurer::GetDicomFilter();
+        DEBUG_LOG("Filtering DICOM file");
         simple_buffer filtered = filter.ApplyFilter(dicom);
-        if (std::get<0>(filtered)) {
-            content = std::move(std::get<0>(filtered));
-            size = std::get<1>(filtered);
+        DEBUG_LOG("Filtering complete");
+        content = std::move(std::get<0>(filtered));
+        size = std::get<1>(filtered);
+        if (content) {
             if(size == 0){
                 if(globals::context) OrthancPluginLogError(globals::context, "WriteDicomFile: Request is empty. ApplyFilter returned size zero for the buffer. This message should never display");
                 // todo: probably a better error code
@@ -75,10 +80,14 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
             }
             // write to disk
             fs::create_directories(master_path);
+
+            sprintf(msg,"writing file: %s", master_path.string().c_str());
+            DEBUG_LOG(msg)
             std::fstream file(master_path, std::ios::binary | std::ios::out);
             file.write(content.get(),size);
             file.close();
         } else {
+            DEBUG_LOG("Nothing was filtered");
             dicom.Write(uuid);
         }
         // set file permissions

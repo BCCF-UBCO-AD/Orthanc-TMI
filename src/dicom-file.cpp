@@ -21,17 +21,17 @@ bool DicomFile::parse_file() {
     const char* readable_buffer = (const char*)data;
     size_t preamble = 128;
     size_t prefix = 4;
-    if(globals::context) OrthancPluginLogWarning(globals::context, "Filter: Parsing dicom data");
+    DEBUG_LOG("DicomFile: parsing dicom data");
     // there is no valid header if the file size is smaller than 132 bytes
     if(size <= preamble + prefix){
-        if(globals::context) OrthancPluginLogError(globals::context, "DicomFile does not have a valid size");
+        if(globals::context) OrthancPluginLogError(globals::context, "DicomFile does not have a valid size, cannot continue parsing");
         is_valid = false;
         return false;
     }
     // the DICOM file header must end with DICM
     if(std::string_view(readable_buffer+preamble,prefix) != "DICM"){
         // apparently not a DICOM file... so...
-        if(globals::context) OrthancPluginLogError(globals::context, "DicomFile does not match a valid DICOM format");
+        if(globals::context) OrthancPluginLogError(globals::context, "DicomFile does not match a valid DICOM format, cannot continue parsing");
         is_valid = false;
         return false;
     }
@@ -51,7 +51,7 @@ bool DicomFile::parse_file() {
                 element.size,
                 element.value_offset,
                 (int)element.value_length);
-        if(globals::context) OrthancPluginLogInfo(globals::context, msg_buffer);
+        DEBUG_LOG(msg_buffer);
         // save element range
         size_t j = element.GetNextIndex();
         elements.emplace_back(element.tag, std::make_pair(i,j));
@@ -63,9 +63,13 @@ bool DicomFile::parse_file() {
 
 extern const fs::path GetPath(OrthancPluginContentType type, const char* uuid);
 void DicomFile::Write(const char* uuid) {
+    char msg[256] = {0};
     fs::path master_path = GetPath(OrthancPluginContentType_Dicom, uuid);
     fs::create_directories(master_path);
+    sprintf(msg, "DicomFile: writing to %s", master_path.c_str());
+    DEBUG_LOG(msg);
     std::fstream file(master_path, std::ios::binary | std::ios::out);
     file.write((const char*)data,size);
     file.close();
+    DEBUG_LOG("DicomFile: write complete");
 }
