@@ -26,7 +26,7 @@ TEST(filtering, store_filtered) {
     auto test = [&](const fs::path &path){
         auto size = fs::file_size(path);
         std::unique_ptr<char[]> buffer(new char[size]);
-        std::cout << "Loading " << path << std::endl;
+        std::cout << "Filtering " << path << std::endl;
         std::ifstream file(path);
         ASSERT_TRUE(file.is_open());
         file.read(buffer.get(),size);
