@@ -18,6 +18,7 @@ services:
 
   orthanc:
     image: brianzhouzc/orthanc-tmi-plugins:latest
+    entrypoint: ['Orthanc']#, '--verbose']
     container_name: orthanc-server
     command: /run/secrets/  # Path to the configuration files (stored as secrets)
     depends_on:
