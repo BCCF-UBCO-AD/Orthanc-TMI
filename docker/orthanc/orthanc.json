@@ -14,6 +14,9 @@
     "ConnectionRetryInterval": 5,
     "IndexConnectionsCount": 2
   },
+  "Dicom-DateTruncation": {
+    "dateformat": ["YYYY","MM","DD"]
+  },
   "Dicom-Filter": {
     "UseWhitelist": false,
     "tags": [
