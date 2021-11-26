@@ -11,7 +11,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
 # target names
 set(PLUGIN_TARGET data-anonymizer)
 set(TEST_TARGET all-tests)
-set(TEST_DP_TARGET dicom-parse-test)
+set(TEST_DP_TARGET dp-main)
 
 # dependencies
 file(GLOB_RECURSE PLUGIN_SOURCES LIST_DIRECTORIES false src/*)

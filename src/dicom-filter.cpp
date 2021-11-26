@@ -28,7 +28,7 @@ DicomFilter::DicomFilter(const nlm::json &config) {
                 log(group_code);
             } else {
                 //bad format, we're gonna fail graciously and let the plugin keep moving
-                OrthancPluginLogWarning(globals::context, "invalid entry in Dicom-Filter blacklist (must be 4 or 8 hex-digits eg. '0017,0010')");
+                if(globals::context) OrthancPluginLogWarning(globals::context, "invalid entry in Dicom-Filter blacklist (must be 4 or 8 hex-digits eg. '0017,0010')");
             }
         }
         for (const auto &iter: config["Dicom-Filter"]["whitelist"]) {
@@ -43,7 +43,7 @@ DicomFilter::DicomFilter(const nlm::json &config) {
                 log(tag_code);
             }  else {
                 //bad format, we're gonna fail graciously and let the plugin keep moving
-                OrthancPluginLogWarning(globals::context, "invalid entry in Dicom-Filter whitelist (must be a full tag ie. 'xxxx,xxxx')");
+                if(globals::context) OrthancPluginLogWarning(globals::context, "invalid entry in Dicom-Filter whitelist (must be a full tag ie. 'xxxx,xxxx')");
             }
         }
     } catch (const std::exception &e) {
@@ -99,7 +99,7 @@ simple_buffer DicomFilter::ApplyFilter(DicomFile &file) {
             // compile filtered buffer
             i = 0;
             std::unique_ptr<char[]> buffer(new char[new_size]);
-            OrthancPluginLogWarning(globals::context, "Filter: compile new dicom buffer");
+            if(globals::context) OrthancPluginLogWarning(globals::context, "Filter: compile new dicom buffer");
             for (auto pair: keep_list) {
                 size_t copy_size = pair.second - pair.first;
                 memcpy(buffer.get() + i, ((char*) file.data) + pair.first, copy_size);
