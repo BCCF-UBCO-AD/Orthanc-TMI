@@ -11,6 +11,7 @@ bool isleap(int year);
 string DateTruncation(const nlm::json &config, string value){
     bool leap;
     string year, month, day;
+    // todo: change configuration format to key with tags so that different dates can be truncated easily
     std::vector<string> format = config["DateTruncation"]["dateformat"].get<vector<string>>();
     year = value.substr(0,4);
     month = value.substr(4,2);
