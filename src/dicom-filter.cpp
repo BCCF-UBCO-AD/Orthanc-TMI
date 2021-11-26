@@ -9,7 +9,7 @@ DicomFilter::DicomFilter(const nlm::json &config) {
         auto log = [](uint64_t &code) {
             char msg_buffer[256] = {0};
             sprintf(msg_buffer, "filter registered tag code: %ld", code);
-            OrthancPluginLogWarning(globals::context, msg_buffer);
+            if(globals::context) OrthancPluginLogWarning(globals::context, msg_buffer);
         };// log the tags registered
         for (const auto &iter: config["Dicom-Filter"]["blacklist"]) {
             // get tag string, convert to decimal

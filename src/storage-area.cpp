@@ -69,7 +69,7 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
             content = std::move(std::get<0>(filtered));
             size = std::get<1>(filtered);
             if(size == 0){
-                OrthancPluginLogError(globals::context, "WriteDicomFile: Request is empty. ApplyFilter returned size zero for the buffer. This message should never display");
+                if(globals::context) OrthancPluginLogError(globals::context, "WriteDicomFile: Request is empty. ApplyFilter returned size zero for the buffer. This message should never display");
                 // todo: probably a better error code
                 return OrthancPluginErrorCode_EmptyRequest;
             }
