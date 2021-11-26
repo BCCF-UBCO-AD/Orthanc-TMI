@@ -15,7 +15,6 @@ namespace fs = std::filesystem;
 namespace globals {
     extern OrthancPluginContext* context;
     extern std::string storage_location;
-    extern nlm::json config;
     extern fs::perms dir_permissions;
     extern fs::perms file_permissions;
 }

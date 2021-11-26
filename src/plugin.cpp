@@ -2,12 +2,12 @@
 #include <core.h>
 #include <configuration.h>
 #include <storage-area.h>
+#include <plugin-configure.h>
 
 namespace fs = std::filesystem;
 namespace globals {
     OrthancPluginContext *context = nullptr;
     std::string storage_location;
-    nlm::json config;
     fs::perms dir_permissions = fs::perms::owner_all | fs::perms::group_all | fs::perms::others_read | fs::perms::sticky_bit;
     fs::perms file_permissions = fs::perms::owner_all | fs::perms::group_all | fs::perms::others_read;
 }
@@ -32,13 +32,7 @@ extern "C" {
             OrthancPluginLogError(context, info);
             return -1;
         }
-        globals::config = nlm::json::parse(OrthancPluginGetConfiguration(context));
-        if(globals::config["StorageDirectory"].is_string()) {
-            globals::storage_location = globals::config["StorageDirectory"].get<std::string>();
-            fs::create_directories(globals::storage_location);
-            fs::permissions(globals::storage_location, globals::dir_permissions);
-        } else {
-            OrthancPluginLogError(context, "Configuration json does not contain a StorageDirectory field.");
+        if(PluginConfigurer::Initialize() != 0){
             return -1;
         }
         OrthancPluginRegisterStorageArea2(context, StorageCreateCallback, StorageReadWholeCallback,
