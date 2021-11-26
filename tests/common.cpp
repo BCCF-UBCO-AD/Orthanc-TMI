@@ -28,9 +28,7 @@ void TestWithDicomFiles(std::function<void(const fs::path&)> test){
     for(auto &entry : recursive_iter){
         auto path = entry.path();
         if(!fs::is_directory(path)) {
-            if (path.extension().string() == ".DCM") {
-                test(path);
-            }
+            test(path);
         }
     }
 }
