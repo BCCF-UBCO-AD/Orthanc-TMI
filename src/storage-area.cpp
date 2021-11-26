@@ -15,7 +15,7 @@ const fs::path GetPath(OrthancPluginContentType type, const char* uuid){
     std::string b2 = std::string(std::string_view(uuid+3,2)) + "/";
     switch(type){
         case OrthancPluginContentType_Dicom:
-            path = fs::path(storage_root)
+            path = fs::path(storage_root).string()
                     .append("/by-uuid/")
                     .append(b1)
                     .append(b2)
@@ -23,7 +23,7 @@ const fs::path GetPath(OrthancPluginContentType type, const char* uuid){
                     .append(".DCM");
             break;
         case OrthancPluginContentType_DicomAsJson:
-            path = fs::path(storage_root)
+            path = fs::path(storage_root).string()
                     .append("/json/")
                     .append(b1)
                     .append(b2)
@@ -31,7 +31,7 @@ const fs::path GetPath(OrthancPluginContentType type, const char* uuid){
                     .append(".json");
             break;
         case OrthancPluginContentType_DicomUntilPixelData:
-            path = fs::path(storage_root)
+            path = fs::path(storage_root).string()
                     .append("/no-pixel/")
                     .append(b1)
                     .append(b2)
@@ -39,14 +39,14 @@ const fs::path GetPath(OrthancPluginContentType type, const char* uuid){
                     .append(".DCM");
             break;
         case _OrthancPluginContentType_INTERNAL:
-            path = fs::path(storage_root)
+            path = fs::path(storage_root).string()
                     .append("/internal/")
                     .append(b1)
                     .append(b2)
                     .append(uuid);
             break;
         case OrthancPluginContentType_Unknown:
-            path = fs::path(storage_root)
+            path = fs::path(storage_root).string()
                     .append("/unknown-files/")
                     .append(b1)
                     .append(b2)
@@ -99,16 +99,18 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
         };
         // todo: integrate json settings to enable/disable individual hard links
         // todo: replace placeholders
-        std::string DOB_placeholder;
-        std::string PID_placeholder;
-        std::string SD_placeholder;
-        try {
-            hardlink_to("/by-dob/", DOB_placeholder);
-            hardlink_to("/by-patient-id/", PID_placeholder);
-            hardlink_to("/by-study-date/", SD_placeholder);
-        } catch (const std::exception &e){
-            DEBUG_LOG("We failed to create hard links. They may already exist. OR the placeholders still aren't replaced.")
-            std::cerr << e.what() << std::endl;
+        if(false) {
+            std::string DOB_placeholder;
+            std::string PID_placeholder;
+            std::string SD_placeholder;
+            try {
+                hardlink_to("/by-dob/", DOB_placeholder);
+                hardlink_to("/by-patient-id/", PID_placeholder);
+                hardlink_to("/by-study-date/", SD_placeholder);
+            } catch (const std::exception &e) {
+                DEBUG_LOG("We failed to create hard links. They may already exist. OR the placeholders still aren't replaced.")
+                std::cerr << e.what() << std::endl;
+            }
         }
         DEBUG_LOG("WriteDicomFile: success");
         return OrthancPluginErrorCode_Success;
