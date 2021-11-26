@@ -1,11 +1,13 @@
 #include <gtest/gtest.h>
 #include <date-truncation.h>
 #include <fstream>
+#include "common.h"
 #include "core.h"
 #include "plugin-configure.h"
 
 static nlm::json config;
-static std::ifstream file("../../docker/orthanc/orthanc.json");
+fs::path config_path(GetProjRoot().string() + "/docker/orthanc/orthanc.json");
+static std::ifstream file(config_path);
 
 TEST(datetrunc, trunc_test){
     file >> config;
