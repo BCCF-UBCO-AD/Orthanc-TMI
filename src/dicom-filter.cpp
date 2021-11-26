@@ -64,7 +64,7 @@ simple_buffer DicomFilter::ApplyFilter(DicomFile &file) {
                 }
             }
             if (discard_list.empty()) {
-                std::make_tuple(nullptr,0);
+                return std::make_tuple(nullptr,0);
             }
             // invert discard_list into keep_list
             size_t i = 0;

@@ -60,7 +60,8 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
     std::unique_ptr<char[]> content = nullptr;
     size_t size = 0;
     if(dicom.IsValid()) {
-        DBInterface::HandlePHI(dicom);
+        fs::path master_path = GetPath(OrthancPluginContentType_Dicom, uuid);
+        //DBInterface::HandlePHI(dicom);
         auto filter = DicomFilter::ParseConfig(globals::config);
         simple_buffer filtered = filter.ApplyFilter(dicom);
         if (std::get<0>(filtered)) {
@@ -70,13 +71,14 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
                 // todo: probably a better error code
                 return OrthancPluginErrorCode_EmptyRequest;
             }
+            // write to disk
+            fs::create_directories(master_path);
+            std::fstream file(master_path, std::ios::binary | std::ios::out);
+            file.write(content.get(),size);
+            file.close();
+        } else {
+            dicom.Write(uuid);
         }
-        // write to disk
-        fs::path master_path = GetPath(OrthancPluginContentType_Dicom, uuid);
-        fs::create_directories(master_path);
-        std::fstream file(master_path, std::ios::binary | std::ios::out);
-        file.write(content.get(),size);
-        file.close();
         // set file permissions
         // todo: permission debug info?
         fs::file_status master_status = fs::status(master_path);

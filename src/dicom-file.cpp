@@ -1,6 +1,7 @@
 #include <dicom-file.h>
 #include <dicom-element.h>
 #include <vector>
+#include <fstream>
 
 DicomFile::DicomFile(const OrthancPluginDicomInstance *instance) {
     this->instance = instance;
@@ -58,4 +59,13 @@ bool DicomFile::parse_file() {
     }
     is_valid = i == size;
     return is_valid;
+}
+
+extern const fs::path GetPath(OrthancPluginContentType type, const char* uuid);
+void DicomFile::Write(const char* uuid) {
+    fs::path master_path = GetPath(OrthancPluginContentType_Dicom, uuid);
+    fs::create_directories(master_path);
+    std::fstream file(master_path, std::ios::binary | std::ios::out);
+    file.write((const char*)data,size);
+    file.close();
 }
