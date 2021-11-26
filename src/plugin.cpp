@@ -29,7 +29,7 @@ extern "C" {
                     ORTHANC_PLUGINS_MINIMAL_MINOR_NUMBER,
                     ORTHANC_PLUGINS_MINIMAL_REVISION_NUMBER);
 
-            OrthancPluginLogError(context, info);
+            if(globals::context) OrthancPluginLogError(context, info);
             return -1;
         }
         if(PluginConfigurer::Initialize() != 0){

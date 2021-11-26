@@ -9,7 +9,7 @@ DicomFilter::DicomFilter(const nlm::json &config) {
         auto log = [](uint64_t &code) {
             char msg_buffer[256] = {0};
             sprintf(msg_buffer, "filter registered tag code: %ld", code);
-            OrthancPluginLogWarning(globals::context, msg_buffer);
+            if(globals::context) OrthancPluginLogWarning(globals::context, msg_buffer);
         };// log the tags registered
         for (const auto &iter: config["Dicom-Filter"]["tags"]) {
             // todo: check that the string has 9 characters; true: do below, false: implement full group filters (eg. "0002,*", "0002")
@@ -29,7 +29,7 @@ DicomFilter::DicomFilter(const nlm::json &config) {
                 log(group_code);
             } else {
                 //bad format, we're gonna fail graciously and let the plugin keep moving
-                OrthancPluginLogWarning(globals::context, "invalid entry in Dicom-Filter tags");
+                if(globals::context) OrthancPluginLogWarning(globals::context, "invalid entry in Dicom-Filter tags");
             }
         }
     } catch (const std::exception &e) {
@@ -84,7 +84,7 @@ simple_buffer DicomFilter::ApplyFilter(DicomFile &file) {
             // compile filtered buffer
             i = 0;
             std::unique_ptr<char[]> buffer(new char[new_size]);
-            OrthancPluginLogWarning(globals::context, "Filter: compile new dicom buffer");
+            if(globals::context) OrthancPluginLogWarning(globals::context, "Filter: compile new dicom buffer");
             for (auto pair: keep_list) {
                 size_t copy_size = pair.second - pair.first;
                 memcpy(buffer.get() + i, ((char*) file.data) + pair.first, copy_size);

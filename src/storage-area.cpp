@@ -127,7 +127,7 @@ OrthancPluginErrorCode StorageCreateCallback(const char *uuid,
             file.close();
             return OrthancPluginErrorCode_Success;
         }
-        OrthancPluginLogWarning(globals::context, "StorageCreateCallback: but write out appears bad");
+        if(globals::context) OrthancPluginLogWarning(globals::context, "StorageCreateCallback: but write out appears bad");
     }
     return OrthancPluginErrorCode_FileStorageCannotWrite;
 }
@@ -145,7 +145,7 @@ OrthancPluginErrorCode StorageReadWholeCallback(OrthancPluginMemoryBuffer64 *tar
             file.close();
             return OrthancPluginErrorCode_Success;
         }
-        OrthancPluginLogWarning(globals::context, "StorageReadWholeCallback: opened file, but couldn't read it");
+        if(globals::context) OrthancPluginLogWarning(globals::context, "StorageReadWholeCallback: opened file, but couldn't read it");
         return OrthancPluginErrorCode_StorageAreaPlugin;
     }
     return OrthancPluginErrorCode_InexistentFile;
