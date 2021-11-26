@@ -12,6 +12,6 @@ static std::ifstream file(config_path);
 TEST(datetrunc, trunc_test){
     file >> config;
     std::string value = DateTruncation(config, "19990323");
-    ASSERT_STREQ(value.c_str(), "19990323");
+    ASSERT_STREQ(value.c_str(), "19990410");
 }
 
