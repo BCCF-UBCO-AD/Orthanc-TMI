@@ -3,7 +3,7 @@
 #include <fstream>
 #include "common.h"
 #include "core.h"
-#include "plugin-configure.h"
+
 
 static nlm::json config;
 fs::path config_path(GetProjRoot().string() + "/docker/orthanc/orthanc.json");

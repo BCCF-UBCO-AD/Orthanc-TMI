@@ -1,7 +1,5 @@
 #include <fstream>
-#include <cstdio>
 #include <string>
-#include <vector>
 #include "date-truncation.h"
 #include "nlohmann/json.hpp"
 using namespace std;
@@ -9,25 +7,25 @@ using namespace std;
 int get_days_for_month(int month, int year);
 bool isleap(int year);
 string DateTruncation(const nlm::json &config, string value){
-    bool leap;
     string year, month, day;
     // todo: change configuration format to key with tags so that different dates can be truncated easily
-    std::vector<string> format = config["DateTruncation"]["dateformat"].get<vector<string>>();
+    nlm::json format = config.at("Dicom-DateTruncation").at("dateformat");
+
     year = value.substr(0,4);
     month = value.substr(4,2);
     day = value.substr(6, 2);
 
-    if(!(format[0] == "YYYY")){
-        year = format[0];
+    if(!(format[0].get<string>() == "YYYY")){
+        year = format[0].get<string>();
         value.erase(0, 4);
         value = year + value;
         return value;
     }
-    if (!(format[1] == "MM")){
-        if(!(format[2] == "DD")){
-            month = format[1];
-            if(get_days_for_month(stoi(year),stoi(month)) >= stoi(format[2])){
-                day = format[2];
+    if (!(format[1].get<string>() == "MM")){
+        if(!(format[2].get<string>() == "DD")){
+            month = format[1].get<string>();
+            if(get_days_for_month(stoi(year),stoi(month)) >= stoi(format[2].get<string>())){
+                day = format[2].get<string>();
             }
             else{
                 return value;
@@ -36,14 +34,14 @@ string DateTruncation(const nlm::json &config, string value){
             value = year + month + day;
             return value;
         }
-        month = format[1];
+        month = format[1].get<string>();
         value.erase(0, 6);
         value = year + month + value;
         return value;
     }
-    if(!(format[2] == "DD")){
-        if(get_days_for_month(stoi(month),stoi(year)) >= stoi(format[2])){
-            day = format[2];
+    if(!(format[2].get<string>() == "DD")){
+        if(get_days_for_month(stoi(month),stoi(year)) >= stoi(format[2].get<string>())){
+            day = format[2].get<string>();
         }
         else{
             return value;
