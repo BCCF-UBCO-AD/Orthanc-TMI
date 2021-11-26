@@ -64,15 +64,14 @@ DicomFilter DicomFilter::ParseConfig(const nlm::json &config) {
 }
 simple_buffer DicomFilter::ApplyFilter(DicomFile &file) {
     if(!ready) {
+        DEBUG_LOG("ApplyFilter: !ready");
         ready = true;
         // todo: implement DOB truncation, and any other special edge cases
-        size_t new_size = 0;
-        std::unique_ptr<char[]> buffer = nullptr;
         if (file.is_valid) {
             std::vector<Range> discard_list;
             for (auto element_info: file.elements) {
                 uint64_t tag_code = std::get<0>(element_info);
-                if (!whitelist.contains(tag_code) && blacklist.contains(tag_code)) {
+                if (!whitelist.contains(tag_code) && (blacklist.contains(tag_code) || blacklist.contains(tag_code&GROUP_MASK))) {
                     const auto &range = std::get<1>(element_info);
                     discard_list.push_back(range);
                     if (viPHI_list.contains(tag_code)) {
@@ -86,11 +85,13 @@ simple_buffer DicomFilter::ApplyFilter(DicomFile &file) {
                 }
             }
             if (discard_list.empty()) {
+                DEBUG_LOG("ApplyFilter: discard list is empty");
                 return std::make_tuple(nullptr,0);
             }
             // invert discard_list into keep_list
             size_t i = 0;
             std::vector<Range> keep_list;
+            size_t new_size = 0;
             for (auto pair: discard_list) {
                 keep_list.emplace_back(i, pair.first);
                 i = pair.second;
@@ -103,12 +104,17 @@ simple_buffer DicomFilter::ApplyFilter(DicomFile &file) {
             std::unique_ptr<char[]> buffer(new char[new_size]);
             if(globals::context) OrthancPluginLogWarning(globals::context, "Filter: compile new dicom buffer");
             for (auto pair: keep_list) {
+                char msg[128] = {0};
                 size_t copy_size = pair.second - pair.first;
                 memcpy(buffer.get() + i, ((char*) file.data) + pair.first, copy_size);
+                sprintf(msg, "i: %ld, range.1: %ld, range.2: %ld, copy_size: %ld", i, pair.first, pair.second, copy_size);
+                DEBUG_LOG(msg);
                 i += copy_size;
             }
+            DEBUG_LOG("ApplyFilter: new buffer complete");
             return std::make_tuple(std::move(buffer),new_size);
         }
     }
+    DEBUG_LOG("ApplyFilter: ready");
     return std::make_tuple(nullptr,0);;
 }
