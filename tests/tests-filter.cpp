@@ -7,7 +7,7 @@
 
 extern OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid);
 
-TEST(storing, store_filtered) {
+TEST(filtering, store_filtered) {
     fs::path config_path(GetProjRoot().string() + "/docker/orthanc/orthanc.json");
     nlm::json config;
     std::cout << "Loading config.." << std::endl;
