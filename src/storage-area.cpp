@@ -4,6 +4,7 @@
 #include <db-interface.h>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 
 namespace fs = std::filesystem;
 
@@ -60,28 +61,31 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
     std::unique_ptr<char[]> content = nullptr;
     size_t size = 0;
     if(dicom.IsValid()) {
-        DBInterface::HandlePHI(dicom);
+        fs::path master_path = GetPath(OrthancPluginContentType_Dicom, uuid);
+        //DBInterface::HandlePHI(dicom);
         auto filter = PluginConfigurer::GetDicomFilter();
         simple_buffer filtered = filter.ApplyFilter(dicom);
         if (std::get<0>(filtered)) {
             content = std::move(std::get<0>(filtered));
             size = std::get<1>(filtered);
             if(size == 0){
+                OrthancPluginLogError(globals::context, "WriteDicomFile: Request is empty. ApplyFilter returned size zero for the buffer. This message should never display");
                 // todo: probably a better error code
                 return OrthancPluginErrorCode_EmptyRequest;
             }
+            // write to disk
+            fs::create_directories(master_path);
+            std::fstream file(master_path, std::ios::binary | std::ios::out);
+            file.write(content.get(),size);
+            file.close();
+        } else {
+            dicom.Write(uuid);
         }
-        // write to disk
-        fs::path master_path = GetPath(OrthancPluginContentType_Dicom, uuid);
-        fs::create_directories(master_path);
-        std::fstream file(master_path, std::ios::binary | std::ios::out);
-        file.write(content.get(),size);
-        file.close();
         // set file permissions
         // todo: permission debug info?
         fs::file_status master_status = fs::status(master_path);
         master_status.permissions(globals::file_permissions);
-
+        DEBUG_LOG("WriteDicomFile: permissions set");
         // create hard links
         auto hardlink_to = [&](std::string groupby, std::string group) {
             fs::path link = fs::path(storage_root)
@@ -98,9 +102,15 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
         std::string DOB_placeholder;
         std::string PID_placeholder;
         std::string SD_placeholder;
-        hardlink_to("/by-dob/", DOB_placeholder);
-        hardlink_to("/by-patient-id/", PID_placeholder);
-        hardlink_to("/by-study-date/", SD_placeholder);
+        try {
+            hardlink_to("/by-dob/", DOB_placeholder);
+            hardlink_to("/by-patient-id/", PID_placeholder);
+            hardlink_to("/by-study-date/", SD_placeholder);
+        } catch (const std::exception &e){
+            DEBUG_LOG("We failed to create hard links. They may already exist. OR the placeholders still aren't replaced.")
+            std::cerr << e.what() << std::endl;
+        }
+        DEBUG_LOG("WriteDicomFile: success");
         return OrthancPluginErrorCode_Success;
     }
     return OrthancPluginErrorCode_BadFileFormat;
