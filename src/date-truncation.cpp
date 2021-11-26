@@ -4,6 +4,7 @@
 #include <vector>
 #include "date-truncation.h"
 #include "nlohmann/json.hpp"
+using namespace std;
 
 int get_days_for_month(int month, int year);
 bool isleap(int year);
