@@ -32,9 +32,9 @@ TEST(storing, store_filtered) {
     DicomFilter filter = DicomFilter::ParseConfig(config);
     std::cout << " configured" << std::endl;
     auto test = [&](const fs::path &path){
-        std::cout << "Loading " << path << std::endl;
         auto size = fs::file_size(path);
         char* buffer = new char[size];
+        std::cout << "Loading " << path << std::endl;
         std::ifstream file(path);
         ASSERT_TRUE(file.is_open());
         file.read(buffer,size);
