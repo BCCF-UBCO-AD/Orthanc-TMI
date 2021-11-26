@@ -13,18 +13,10 @@ TEST(filtering, store_filtered) {
     std::cout << "Loading config.." << std::endl;
     if(fs::exists(config_path)) {
         std::ifstream file(config_path);
-        if(file.is_open()) {
-            size_t size = fs::file_size(config_path);
-            ASSERT_TRUE(size != 0);
-            char* buffer = new char[size];
-            file.read(buffer,size);
-            std::cout << " parsing config" << std::endl;
-            config = nlm::json::parse(buffer);
-            delete[] buffer;
-            std::cout << " parsed" << std::endl;
-        } else {
-            ASSERT_TRUE(false);
-        }
+        ASSERT_TRUE(file.is_open());
+        file >> config;
+        ASSERT_TRUE(file.good());
+        file.close();
     } else {
         ASSERT_TRUE(false);
     }
@@ -33,16 +25,15 @@ TEST(filtering, store_filtered) {
     std::cout << " configured" << std::endl;
     auto test = [&](const fs::path &path){
         auto size = fs::file_size(path);
-        char* buffer = new char[size];
+        std::unique_ptr<char[]> buffer(new char[size]);
         std::cout << "Loading " << path << std::endl;
         std::ifstream file(path);
         ASSERT_TRUE(file.is_open());
-        file.read(buffer,size);
+        file.read(buffer.get(),size);
         file.close();
         ASSERT_TRUE(file.good());
-        DicomFile dicom(buffer, size);
+        DicomFile dicom(buffer.get(), size);
         auto filtered = filter.ApplyFilter(dicom);
-        delete[] buffer;
 
         ASSERT_TRUE(fs::exists(path.parent_path().string()));
         fs::path output_path(path.parent_path().string() + "/filtered.dcm");
