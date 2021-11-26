@@ -11,39 +11,41 @@ DicomFilter::DicomFilter(const nlm::json &config) {
             sprintf(msg_buffer, "filter registered tag code: %ld", code);
             if(globals::context) OrthancPluginLogWarning(globals::context, msg_buffer);
         };// log the tags registered
-        for (const auto &iter: config["Dicom-Filter"]["blacklist"]) {
-            // get tag string, convert to decimal
-            auto tag_entry = iter.get<std::string>();
-            if (tag_entry.length() == 9) {
-                // register tag
-                tag_entry.append(tag_entry.substr(0, 4));
-                tag_entry.erase(0, 5);
-                uint64_t tag_code = HexToDec(tag_entry);
-                blacklist.emplace(tag_code);
-                log(tag_code);
-            } else if (tag_entry.length() == 4) {
-                // register group
-                uint64_t group_code = HexToDec(tag_entry);
-                blacklist.emplace(group_code);
-                log(group_code);
-            } else {
-                //bad format, we're gonna fail graciously and let the plugin keep moving
-                if(globals::context) OrthancPluginLogWarning(globals::context, "invalid entry in Dicom-Filter blacklist (must be 4 or 8 hex-digits eg. '0017,0010')");
+        if(config.contains("Dicom-Filter")) {
+            for (const auto &iter: config["Dicom-Filter"]["blacklist"]) {
+                // get tag string, convert to decimal
+                auto tag_entry = iter.get<std::string>();
+                if (tag_entry.length() == 9) {
+                    // register tag
+                    tag_entry.append(tag_entry.substr(0, 4));
+                    tag_entry.erase(0, 5);
+                    uint64_t tag_code = HexToDec(tag_entry);
+                    blacklist.emplace(tag_code);
+                    log(tag_code);
+                } else if (tag_entry.length() == 4) {
+                    // register group
+                    uint64_t group_code = HexToDec(tag_entry);
+                    blacklist.emplace(group_code);
+                    log(group_code);
+                } else {
+                    //bad format, we're gonna fail graciously and let the plugin keep moving
+                    if (globals::context) OrthancPluginLogWarning(globals::context, "invalid entry in Dicom-Filter blacklist (must be 4 or 8 hex-digits eg. '0017,0010')");
+                }
             }
-        }
-        for (const auto &iter: config["Dicom-Filter"]["whitelist"]) {
-            // get tag string, convert to decimal
-            auto tag_entry = iter.get<std::string>();
-            if (tag_entry.length() == 9) {
-                // register tag
-                tag_entry.append(tag_entry.substr(0, 4));
-                tag_entry.erase(0, 5);
-                uint64_t tag_code = HexToDec(tag_entry);
-                whitelist.emplace(tag_code);
-                log(tag_code);
-            }  else {
-                //bad format, we're gonna fail graciously and let the plugin keep moving
-                if(globals::context) OrthancPluginLogWarning(globals::context, "invalid entry in Dicom-Filter whitelist (must be a full tag ie. 'xxxx,xxxx')");
+            for (const auto &iter: config["Dicom-Filter"]["whitelist"]) {
+                // get tag string, convert to decimal
+                auto tag_entry = iter.get<std::string>();
+                if (tag_entry.length() == 9) {
+                    // register tag
+                    tag_entry.append(tag_entry.substr(0, 4));
+                    tag_entry.erase(0, 5);
+                    uint64_t tag_code = HexToDec(tag_entry);
+                    whitelist.emplace(tag_code);
+                    log(tag_code);
+                } else {
+                    //bad format, we're gonna fail graciously and let the plugin keep moving
+                    if (globals::context) OrthancPluginLogWarning(globals::context, "invalid entry in Dicom-Filter whitelist (must be a full tag ie. 'xxxx,xxxx')");
+                }
             }
         }
     } catch (const std::exception &e) {
