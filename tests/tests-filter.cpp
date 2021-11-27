@@ -35,7 +35,6 @@ TEST(filtering, store_filtered) {
         DicomFile dicom(buffer.get(), size);
         ASSERT_TRUE(dicom.IsValid());
         auto filtered = filter.ApplyFilter(dicom);
-
         ASSERT_TRUE(fs::exists(path.parent_path().string()));
         fs::path output_path(path.parent_path().string() + "/filtered.dcm");
         std::ofstream output(output_path);
