@@ -33,15 +33,26 @@ TEST(filtering, store_filtered) {
         file.close();
         ASSERT_TRUE(file.good());
         DicomFile dicom(buffer.get(), size);
+        ASSERT_TRUE(dicom.IsValid());
         auto filtered = filter.ApplyFilter(dicom);
 
         ASSERT_TRUE(fs::exists(path.parent_path().string()));
         fs::path output_path(path.parent_path().string() + "/filtered.dcm");
         std::ofstream output(output_path);
         output.write(std::get<0>(filtered).get(),std::get<1>(filtered));
-        output.close();
         ASSERT_TRUE(output.good());
+        output.close();
+        ASSERT_TRUE(fs::file_size(output_path) != 0);
         ASSERT_TRUE(fs::file_size(output_path) <= size);
+        size = fs::file_size(output_path);
+        buffer = std::unique_ptr<char[]>(new char[size]);
+        file.open(output_path);
+        ASSERT_TRUE(file.is_open());
+        file.read(buffer.get(),size);
+        file.close();
+        ASSERT_TRUE(file.good());
+        dicom = DicomFile(buffer.get(), size);
+        ASSERT_TRUE(dicom.IsValid());
         fs::remove(output_path);
     };
     TestWithDicomFiles(test);
