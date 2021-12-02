@@ -25,7 +25,7 @@ string DateTruncation(const nlm::json &config, string value){
     if (!(format[1] == "MM")){
         if(!(format[2] == "DD")){
             month = format[1];
-            if(get_days_for_month(stoi(year),stoi(month)) <= stoi(format[2])){
+            if(get_days_for_month(stoi(year),stoi(month)) >= stoi(format[2])){
                 day = format[2];
             }
             else{
@@ -41,7 +41,7 @@ string DateTruncation(const nlm::json &config, string value){
         return value;
     }
     if(!(format[2] == "DD")){
-        if(get_days_for_month(stoi(month),stoi(year)) <= stoi(format[2])){
+        if(get_days_for_month(stoi(month),stoi(year)) >= stoi(format[2])){
             day = format[2];
         }
         else{
