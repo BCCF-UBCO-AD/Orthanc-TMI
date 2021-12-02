@@ -32,8 +32,10 @@ TEST(filtering, store_filtered) {
         file.read(buffer.get(),size);
         file.close();
         ASSERT_TRUE(file.good());
+        std::cout << "DicomFile construction" << std::endl;
         DicomFile dicom(buffer.get(), size);
         ASSERT_TRUE(dicom.IsValid());
+        std::cout << "DicomFile loaded." << std::endl;
         auto filtered = filter.ApplyFilter(dicom);
         ASSERT_TRUE(fs::exists(path.parent_path().string()));
         fs::path output_path(path.parent_path().string() + "/filtered.dcm");
@@ -54,6 +56,7 @@ TEST(filtering, store_filtered) {
         ASSERT_TRUE(dicom.IsValid());
         fs::remove(output_path);
     };
-    TestWithDicomFiles(test);
+    test(GetProjRoot().string() + "/samples/0002.DCM");
+    //TestWithDicomFiles(test);
     std::cout << "Test Complete." << std::endl;
 }
