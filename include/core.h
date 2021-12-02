@@ -19,9 +19,14 @@ namespace globals {
     extern fs::perms file_permissions;
 }
 #endif
-
+#define UNIT_TEST
 #ifndef NDEBUG
- #define DEBUG_LOG(msg) if(globals::context) OrthancPluginLogWarning(globals::context, msg);
+    #ifndef UNIT_TEST
+     #define DEBUG_LOG(msg) if(globals::context) OrthancPluginLogWarning(globals::context, msg);
+    #else
+     #include <iostream>
+     #define DEBUG_LOG(msg) std::cout << msg << std::endl;
+    #endif
 #else
  #define DEBUG_LOG(msg)
 #endif
