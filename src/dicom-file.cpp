@@ -57,6 +57,8 @@ bool DicomFile::parse_file() {
         elements.emplace_back(element.tag, std::make_pair(i,j));
         i = j;
     }
+    sprintf(msg_buffer,"buffer size = %ld, read head idx = %ld", size, i);
+    DEBUG_LOG(msg_buffer);
     is_valid = i == size;
     return is_valid;
 }
