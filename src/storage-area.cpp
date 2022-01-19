@@ -4,6 +4,7 @@
 #include <db-interface.h>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 
 namespace fs = std::filesystem;
 
@@ -14,7 +15,7 @@ const fs::path GetPath(OrthancPluginContentType type, const char* uuid){
     std::string b2 = std::string(std::string_view(uuid+3,2)) + "/";
     switch(type){
         case OrthancPluginContentType_Dicom:
-            path = fs::path(storage_root)
+            path = fs::path(storage_root).string()
                     .append("/by-uuid/")
                     .append(b1)
                     .append(b2)
@@ -22,7 +23,7 @@ const fs::path GetPath(OrthancPluginContentType type, const char* uuid){
                     .append(".DCM");
             break;
         case OrthancPluginContentType_DicomAsJson:
-            path = fs::path(storage_root)
+            path = fs::path(storage_root).string()
                     .append("/json/")
                     .append(b1)
                     .append(b2)
@@ -30,7 +31,7 @@ const fs::path GetPath(OrthancPluginContentType type, const char* uuid){
                     .append(".json");
             break;
         case OrthancPluginContentType_DicomUntilPixelData:
-            path = fs::path(storage_root)
+            path = fs::path(storage_root).string()
                     .append("/no-pixel/")
                     .append(b1)
                     .append(b2)
@@ -38,14 +39,14 @@ const fs::path GetPath(OrthancPluginContentType type, const char* uuid){
                     .append(".DCM");
             break;
         case _OrthancPluginContentType_INTERNAL:
-            path = fs::path(storage_root)
+            path = fs::path(storage_root).string()
                     .append("/internal/")
                     .append(b1)
                     .append(b2)
                     .append(uuid);
             break;
         case OrthancPluginContentType_Unknown:
-            path = fs::path(storage_root)
+            path = fs::path(storage_root).string()
                     .append("/unknown-files/")
                     .append(b1)
                     .append(b2)
@@ -56,32 +57,44 @@ const fs::path GetPath(OrthancPluginContentType type, const char* uuid){
 }
 
 OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
+    char msg[1024] = {0};
+    sprintf(msg, "WriteDicomFile for uuid: %s", uuid);
+    DEBUG_LOG(msg);
     const fs::path storage_root(globals::storage_location);
     std::unique_ptr<char[]> content = nullptr;
     size_t size = 0;
     if(dicom.IsValid()) {
-        DBInterface::HandlePHI(dicom);
+        fs::path master_path = GetPath(OrthancPluginContentType_Dicom, uuid);
+        //DBInterface::HandlePHI(dicom);
         auto filter = PluginConfigurer::GetDicomFilter();
+        DEBUG_LOG("Filtering DICOM file");
         simple_buffer filtered = filter.ApplyFilter(dicom);
-        if (std::get<0>(filtered)) {
-            content = std::move(std::get<0>(filtered));
-            size = std::get<1>(filtered);
+        DEBUG_LOG("Filtering complete");
+        content = std::move(std::get<0>(filtered));
+        size = std::get<1>(filtered);
+        if (content) {
             if(size == 0){
+                if(globals::context) OrthancPluginLogError(globals::context, "WriteDicomFile: Request is empty. ApplyFilter returned size zero for the buffer. This message should never display");
                 // todo: probably a better error code
                 return OrthancPluginErrorCode_EmptyRequest;
             }
+            // write to disk
+            fs::create_directories(master_path);
+
+            sprintf(msg,"writing file: %s", master_path.string().c_str());
+            DEBUG_LOG(msg)
+            std::fstream file(master_path, std::ios::binary | std::ios::out);
+            file.write(content.get(),size);
+            file.close();
+        } else {
+            DEBUG_LOG("Nothing was filtered");
+            dicom.Write(uuid);
         }
-        // write to disk
-        fs::path master_path = GetPath(OrthancPluginContentType_Dicom, uuid);
-        fs::create_directories(master_path);
-        std::fstream file(master_path, std::ios::binary | std::ios::out);
-        file.write(content.get(),size);
-        file.close();
         // set file permissions
         // todo: permission debug info?
         fs::file_status master_status = fs::status(master_path);
         master_status.permissions(globals::file_permissions);
-
+        DEBUG_LOG("WriteDicomFile: permissions set");
         // create hard links
         auto hardlink_to = [&](std::string groupby, std::string group) {
             fs::path link = fs::path(storage_root)
@@ -95,12 +108,20 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
         };
         // todo: integrate json settings to enable/disable individual hard links
         // todo: replace placeholders
-        std::string DOB_placeholder;
-        std::string PID_placeholder;
-        std::string SD_placeholder;
-        hardlink_to("/by-dob/", DOB_placeholder);
-        hardlink_to("/by-patient-id/", PID_placeholder);
-        hardlink_to("/by-study-date/", SD_placeholder);
+        if(false) {
+            std::string DOB_placeholder;
+            std::string PID_placeholder;
+            std::string SD_placeholder;
+            try {
+                hardlink_to("/by-dob/", DOB_placeholder);
+                hardlink_to("/by-patient-id/", PID_placeholder);
+                hardlink_to("/by-study-date/", SD_placeholder);
+            } catch (const std::exception &e) {
+                DEBUG_LOG("We failed to create hard links. They may already exist. OR the placeholders still aren't replaced.")
+                std::cerr << e.what() << std::endl;
+            }
+        }
+        DEBUG_LOG("WriteDicomFile: success");
         return OrthancPluginErrorCode_Success;
     }
     return OrthancPluginErrorCode_BadFileFormat;
@@ -127,7 +148,7 @@ OrthancPluginErrorCode StorageCreateCallback(const char *uuid,
             file.close();
             return OrthancPluginErrorCode_Success;
         }
-        OrthancPluginLogWarning(globals::context, "StorageCreateCallback: but write out appears bad");
+        if(globals::context) OrthancPluginLogWarning(globals::context, "StorageCreateCallback: but write out appears bad");
     }
     return OrthancPluginErrorCode_FileStorageCannotWrite;
 }
@@ -145,7 +166,7 @@ OrthancPluginErrorCode StorageReadWholeCallback(OrthancPluginMemoryBuffer64 *tar
             file.close();
             return OrthancPluginErrorCode_Success;
         }
-        OrthancPluginLogWarning(globals::context, "StorageReadWholeCallback: opened file, but couldn't read it");
+        if(globals::context) OrthancPluginLogWarning(globals::context, "StorageReadWholeCallback: opened file, but couldn't read it");
         return OrthancPluginErrorCode_StorageAreaPlugin;
     }
     return OrthancPluginErrorCode_InexistentFile;

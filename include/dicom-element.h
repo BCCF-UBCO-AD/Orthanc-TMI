@@ -30,27 +30,7 @@ public:
     DicomElement(const char *buffer, uint64_t index, const char *hex_buffer = nullptr)
             : buffer(buffer),
               hex_buffer(hex_buffer),
-              idx(index) {
-// This preprocessor allows printing DataElement debug information as part of construction
-#ifdef DEBUG_
-        uint32_t len = length == -1 ? 0 : length;
-        printf("[%s](%s,%s)->(%s)\n",
-               VR.c_str(),
-               HexGroup().c_str(),
-               HexElement().c_str(),
-               HexTag().c_str());
-        printf(" idx: %zu, next: %zu, size: %zu, bytes: %zu, length: %d\n",
-               idx,GetNextIndex(),size,bytes,(int)length);
-        std::string value;
-
-        if(VR == "UL") {
-            value = std::to_string(*(uint32_t*)(buffer+idx+bytes));
-        } else if (hex_buffer) {
-            value = std::string((std::string_view(hex_buffer+(2*idx)+(2*bytes),len > 120 || len == 0 ? 120 : len)));
-        }
-        printf("  %s\n", value.c_str());
-#endif
-    }
+              idx(index) {}
 
     std::string HexTag() const { return DecToHex(tag, 4); }
     std::string HexGroup() const { return DecToHex(group, 2); }

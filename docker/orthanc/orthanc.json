@@ -14,13 +14,15 @@
     "ConnectionRetryInterval": 5,
     "IndexConnectionsCount": 2
   },
+  "Dicom-DateTruncation": {
+    "dateformat": ["YYYY","04","10"]
+  },
   "Dicom-Filter": {
-    "UseWhitelist": false,
-    "tags": [
-      "0010,0010",
-      "0010,0020",
-      "0010,0030",
-      "0010,0040"
+    "blacklist": [
+      "0010"
+    ],
+    "whitelist": [
+      "0010,0030"
     ]
   },
   "StorageDirectory": "/var/lib/orthanc/dicom",
