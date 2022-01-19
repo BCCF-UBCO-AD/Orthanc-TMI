@@ -26,41 +26,25 @@ TEST(filtering, store_filtered) {
     auto test = [&](const fs::path &path){
         auto size = fs::file_size(path);
         std::unique_ptr<char[]> buffer(new char[size]);
-        std::cout << "Filtering " << path << std::endl;
+        std::cout << "Loading " << path << std::endl;
         std::ifstream file(path, std::ios::binary | std::ios::in);
         ASSERT_TRUE(file.is_open());
         file.read(buffer.get(),size);
         file.close();
         ASSERT_TRUE(file.good());
-        std::cout << "DicomFile construction" << std::endl;
-//https://discord.com/channels/244230771232079873/244238376167800832/916590150706929675
-DicomFile dicom(buffer.get(), size); // valid
-ASSERT_TRUE(dicom.IsValid()); // pass
-std::cout << "DicomFile loaded." << std::endl;
-auto [filtered_buffer,filtered_size] = filter.ApplyFilter(dicom); //memcpy ran til end of file(buffer)
-DicomFile filtered_dicom(filtered_buffer.get(),filtered_size);
-//ASSERT_TRUE(filtered_dicom.IsValid()); //first sign the memcpy didn't work
-// now testing write -> read -> DicomFile
-//ASSERT_TRUE(fs::exists(path.parent_path().string()));
-        fs::path output_path(path.parent_path().string() + "/filtered.dcm");
-        std::ofstream output(output_path, std::ios::binary | std::ios::out);
-        output.write(filtered_buffer.get(),filtered_size);
-        ASSERT_TRUE(output.good());
-        output.close();
-        ASSERT_TRUE(fs::file_size(output_path) != 0);
-        ASSERT_TRUE(fs::file_size(output_path) <= size);
-        size = fs::file_size(output_path);
-        buffer = std::unique_ptr<char[]>(new char[size]);
-        file.open(output_path);
-        ASSERT_TRUE(file.is_open());
-        file.read(buffer.get(),size);
-        file.close();
-        ASSERT_TRUE(file.good());
-        dicom = DicomFile(buffer.get(), size);
-        ASSERT_TRUE(dicom.IsValid());
-        fs::remove(output_path);
+        std::cout << "Parsing.." << std::endl;
+        DicomFile dicom(buffer.get(), size); // valid
+        ASSERT_TRUE(dicom.IsValid()); // pass
+        std::cout << "Loaded " << (dicom.IsValid() ? "valid" : "invalid") << " dicom file." << std::endl;
+        std::cout << "Filtering.." << std::endl;
+        auto [filtered_buffer,filtered_size] = filter.ApplyFilter(dicom); //memcpy ran til end of file(buffer)
+        DicomFile filtered_dicom(filtered_buffer.get(),filtered_size);
+        ASSERT_TRUE(filtered_dicom.IsValid()); //first sign the memcpy didn't work
+        std::cout << "Filtered data: " << (filtered_dicom.IsValid() ? "valid" : "invalid") << std::endl;
+        filter.reset();
+        std::cout << "  FILE PASSED\n" << std::endl;
     };
-    test(GetProjRoot().string() + "/samples/0002.DCM");
-    //TestWithDicomFiles(test);
+    //test(GetProjRoot().string() + "/samples/0002.DCM");
+    TestWithDicomFiles(test);
     std::cout << "Test Complete." << std::endl;
 }
