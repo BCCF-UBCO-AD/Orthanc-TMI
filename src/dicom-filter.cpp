@@ -70,16 +70,17 @@ simple_buffer DicomFilter::ApplyFilter(DicomFile &file) {
         if (file.is_valid) {
             std::vector<Range> discard_list;
             for (const auto &[tag_code,range]: file.elements) {
+                const auto &[start,end] = range;
                 if (!whitelist.contains(tag_code) && (blacklist.contains(tag_code) || blacklist.contains(tag_code&GROUP_MASK))) {
                     discard_list.push_back(range);
-                    if (viPHI_list.contains(tag_code)) {
-                        DicomElement e((const char*) file.data, range.first);
-                        // todo: PHI stuff?
-                        if (e.value_length != -1) {
-                            std::string value(std::string_view(e.GetValueHead(), e.value_length));
-                            discarded[tag_code] = value;
-                        }
-                    }
+//                    if (viPHI_list.contains(tag_code)) {
+//                        DicomElement e((const char*) file.data, start);
+//                        // todo: PHI stuff?
+//                        if (e.value_length != -1) {
+//                            std::string value(std::string_view(e.GetValueHead(), e.value_length));
+//                            discarded[tag_code] = value;
+//                        }
+//                    }
                 }
             }
             if (discard_list.empty()) {
@@ -89,14 +90,14 @@ simple_buffer DicomFilter::ApplyFilter(DicomFile &file) {
             // invert discard_list into keep_list
             size_t i = 0;
             std::vector<Range> keep_list;
-            size_t new_size = 0;
+            size_t new_size = file.size;
             for (const auto &[start,end]: discard_list) {
+                assert(i < end);
                 keep_list.emplace_back(i, start);
-                new_size += end - start;
-                i = end;
+                new_size -= end - start;
+                i = end; //why is i correct?
             }
             keep_list.emplace_back(i, file.size);
-            new_size += file.size - i;
             // compile filtered buffer
             i = 0;
             std::unique_ptr<char[]> buffer(new char[new_size]);
@@ -105,11 +106,9 @@ simple_buffer DicomFilter::ApplyFilter(DicomFile &file) {
                 char msg[128] = {0};
                 size_t copy_size = end - start;
                 if(copy_size != 0) {
-                    memcpy(buffer.get() + i, ((char*) file.data) + start, copy_size);
+                    std::memcpy((void*)(buffer.get() + i),(void*)(((char*) file.data) + start), copy_size);
                     sprintf(msg, "i: %ld, range.1: %ld, range.2: %ld, copy_size: %ld", i, start, end, copy_size);
                     DEBUG_LOG(msg);
-
-
                     i += copy_size;
                 }
             }

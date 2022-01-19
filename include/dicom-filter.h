@@ -16,4 +16,8 @@ public:
     DicomFilter(const DicomFilter &other);
     static DicomFilter ParseConfig(const nlm::json &config);
     simple_buffer ApplyFilter(DicomFile &file);
+    void reset() {
+        ready = false;
+        discarded = {};
+    }
 };

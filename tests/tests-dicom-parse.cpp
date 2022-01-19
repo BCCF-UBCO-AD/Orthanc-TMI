@@ -13,16 +13,16 @@ TEST(dicom_parsing, dicom_parse) {
     std::function<void(const fs::path&)> test = [](const fs::path &path){
         std::cout << "Parse " << path << std::endl;
         auto size = fs::file_size(path);
-        char* buffer = new char[size];
+        std::unique_ptr<char[]> buffer(new char[size]);
         std::ifstream file(path);
         ASSERT_TRUE(file.is_open());
-        file.read(buffer,size);
+        file.read(buffer.get(),size);
         file.close();
-        DicomFile dicom(buffer,size);
+        DicomFile dicom(buffer.get(),size);
         ASSERT_TRUE(dicom.IsValid());
-        delete[] buffer;
     };
-    TestWithDicomFiles(test);
+    test(GetProjRoot().string() + "/samples/0002.DCM");
+    //TestWithDicomFiles(test);
     std::cout << "Test Complete." << std::endl;
 }
 
