@@ -90,14 +90,14 @@ simple_buffer DicomFilter::ApplyFilter(DicomFile &file) {
             // invert discard_list into keep_list
             size_t i = 0;
             std::vector<Range> keep_list;
-            size_t new_size = 0;
+            size_t new_size = file.size;
             for (const auto &[start,end]: discard_list) {
+                assert(i < end);
                 keep_list.emplace_back(i, start);
-                new_size += end - start;
-                i = end;
+                new_size -= end - start;
+                i = end; //why is i correct?
             }
             keep_list.emplace_back(i, file.size);
-            new_size += file.size - i;
             // compile filtered buffer
             i = 0;
             std::unique_ptr<char[]> buffer(new char[new_size]);
