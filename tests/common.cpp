@@ -23,7 +23,7 @@ fs::path GetProjRoot() {
 void TestWithDicomFiles(std::function<void(const fs::path&)> test){
     auto samples = fs::path(GetProjRoot().string() + "/samples/");
     // recurse sample directory, parse every file as a dicom
-    std::cout << "reading from: " << samples << std::endl;
+    std::cout << "reading from: " << samples << std::endl << std::endl;
     fs::recursive_directory_iterator recursive_iter(samples);
     for(auto &entry : recursive_iter){
         auto path = entry.path();
