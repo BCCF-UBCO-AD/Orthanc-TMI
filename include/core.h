@@ -25,7 +25,7 @@ namespace globals {
      #define DEBUG_LOG(msg) if(globals::context) OrthancPluginLogWarning(globals::context, msg);
     #else
      #include <iostream>
-     #define DEBUG_LOG(msg) std::cout << msg << std::endl;
+     #define DEBUG_LOG(msg) printf("%s\n",msg);
     #endif
 #else
  #define DEBUG_LOG(msg)
