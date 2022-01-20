@@ -54,6 +54,7 @@ bool DicomFile::parse_file() {
         DEBUG_LOG(msg_buffer);
         // save element range
         size_t j = element.GetNextIndex();
+        // todo: should it be j-1?
         elements.emplace_back(element.tag, std::make_pair(i,j));
         i = j;
     }
