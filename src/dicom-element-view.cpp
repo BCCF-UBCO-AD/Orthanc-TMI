@@ -1,7 +1,7 @@
-#include <dicom-element.h>
+#include <dicom-element-view.h>
 #include <dicom-tag.h>
 
-uint64_t DicomElement::CalcValueOffset() {
+uint64_t DicomElementView::CalcValueOffset() {
     // length width, and location must be deduced
     // Dicom Element Structure: https://www.leadtools.com/help/sdk/v21/dicom/api/overview-data-element-structure.html#!
     require_length = VR == "UT";
@@ -9,14 +9,14 @@ uint64_t DicomElement::CalcValueOffset() {
     if (has_reserved) {
         // structure includes reserved bytes after the VR
         return 12;
-    } else if(tag == dicomTag::Item){
+    } else if(tag == DicomTag::Item){
         // structure has an implicit VR
         return 8;
     }
     return 8;
 }
 
-uint32_t DicomElement::CalcValueLength() {
+uint32_t DicomElementView::CalcValueLength() {
     // length width, and location must be deduced
     // Dicom Element Structure: https://www.leadtools.com/help/sdk/v21/dicom/api/overview-data-element-structure.html#!
     require_length = VR == "UT";
@@ -26,7 +26,7 @@ uint32_t DicomElement::CalcValueLength() {
     if (has_reserved) {
         // structure includes reserved bytes after the VR
         value = *(uint32_t *) (buffer + idx + 8); // 4 bytes
-    } else if(tag == dicomTag::Item){
+    } else if(tag == DicomTag::Item){
         // structure has an implicit VR
         value = *(uint32_t *) (buffer + idx + 4); // 4 bytes
     } else {
@@ -36,7 +36,7 @@ uint32_t DicomElement::CalcValueLength() {
     return value;
 }
 
-uint64_t DicomElement::CalcElementSize() {
+uint64_t DicomElementView::CalcElementSize() {
     //runs after CalcLength
     if (value_length == -1) {
         // Dicom Element is only as big as the header

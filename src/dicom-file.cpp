@@ -1,5 +1,5 @@
 #include <dicom-file.h>
-#include <dicom-element.h>
+#include <dicom-element-view.h>
 #include <vector>
 #include <fstream>
 
@@ -39,7 +39,7 @@ bool DicomFile::parse_file() {
     size_t i;
     for(i = preamble+prefix; i < size;){
         // parse next element
-        DicomElement element(readable_buffer,i);
+        DicomElementView element(readable_buffer, i);
         // print element info
         sprintf(msg_buffer,"[%s] (%s,%s)->(%s)\n idx: %zu, next: %zu, size: %zu, value offset: %zu, length: %d",
                 element.VR.c_str(),
