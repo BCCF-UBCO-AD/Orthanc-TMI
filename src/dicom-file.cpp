@@ -24,14 +24,14 @@ bool DicomFile::parse_file() {
     DEBUG_LOG("DicomFile: parsing dicom data");
     // there is no valid header if the file size is smaller than 132 bytes
     if(size <= preamble + prefix){
-        if(globals::context) OrthancPluginLogError(globals::context, "DicomFile does not have a valid size, cannot continue parsing");
+        DEBUG_LOG("DicomFile does not have a valid size, cannot continue parsing");
         is_valid = false;
         return false;
     }
     // the DICOM file header must end with DICM
     if(std::string_view(readable_buffer+preamble,prefix) != "DICM"){
         // apparently not a DICOM file... so...
-        if(globals::context) OrthancPluginLogError(globals::context, "DicomFile does not match a valid DICOM format, cannot continue parsing");
+        DEBUG_LOG("DicomFile does not match a valid DICOM format, cannot continue parsing");
         is_valid = false;
         return false;
     }

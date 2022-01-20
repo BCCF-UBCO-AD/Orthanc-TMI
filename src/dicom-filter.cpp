@@ -9,7 +9,7 @@ DicomFilter::DicomFilter(const nlm::json &config) {
         auto log = [](uint64_t &code) {
             char msg_buffer[256] = {0};
             sprintf(msg_buffer, "filter registered tag code: %ld", code);
-            if(globals::context) OrthancPluginLogWarning(globals::context, msg_buffer);
+            DEBUG_LOG(msg_buffer);
         };// log the tags registered
         if(config.contains("Dicom-Filter")) {
             for (const auto &iter: config["Dicom-Filter"]["blacklist"]) {
@@ -29,7 +29,7 @@ DicomFilter::DicomFilter(const nlm::json &config) {
                     log(group_code);
                 } else {
                     //bad format, we're gonna fail graciously and let the plugin keep moving
-                    if (globals::context) OrthancPluginLogWarning(globals::context, "invalid entry in Dicom-Filter blacklist (must be 4 or 8 hex-digits eg. '0017,0010')");
+                    DEBUG_LOG("invalid entry in Dicom-Filter blacklist (must be 4 or 8 hex-digits eg. '0017,0010')");
                 }
             }
             for (const auto &iter: config["Dicom-Filter"]["whitelist"]) {
@@ -44,7 +44,7 @@ DicomFilter::DicomFilter(const nlm::json &config) {
                     log(tag_code);
                 } else {
                     //bad format, we're gonna fail graciously and let the plugin keep moving
-                    if (globals::context) OrthancPluginLogWarning(globals::context, "invalid entry in Dicom-Filter whitelist (must be a full tag ie. 'xxxx,xxxx')");
+                    DEBUG_LOG("invalid entry in Dicom-Filter whitelist (must be a full tag ie. 'xxxx,xxxx')");
                 }
             }
         }
@@ -113,7 +113,7 @@ simple_buffer DicomFilter::ApplyFilter(DicomFile &file) {
 
             // compile filtered buffer
             std::unique_ptr<char[]> buffer(new char[filtered_buffer_size]);
-            if(globals::context) OrthancPluginLogWarning(globals::context, "Filter: compile new dicom buffer");
+            DEBUG_LOG("Filter: compile new dicom buffer");
             for (size_t index = 0; const auto &[start,end]: keep_list) {
                 char msg[128] = {0};
                 size_t copy_size = end - start;
