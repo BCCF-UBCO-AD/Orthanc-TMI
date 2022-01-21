@@ -6,10 +6,9 @@
 
 DicomFilter::DicomFilter(const nlm::json &config) {
     try {
+        char msg_buffer[256] = {0};
         auto log = [](uint64_t &code) {
-            char msg_buffer[256] = {0};
-            sprintf(msg_buffer, "filter registered tag code: %ld", code);
-            DEBUG_LOG(msg_buffer);
+
         };// log the tags registered
         if(config.contains("Dicom-Filter")) {
             for (const auto &iter: config["Dicom-Filter"]["blacklist"]) {
@@ -21,15 +20,17 @@ DicomFilter::DicomFilter(const nlm::json &config) {
                     tag_entry.erase(0, 5);
                     uint64_t tag_code = HexToDec(tag_entry);
                     blacklist.emplace(tag_code);
-                    log(tag_code);
+                    sprintf(msg_buffer, "filter registered tag code: %ld", tag_code);
+                    DEBUG_LOG(0,msg_buffer);
                 } else if (tag_entry.length() == 4) {
                     // register group
                     uint64_t group_code = HexToDec(tag_entry);
                     blacklist.emplace(group_code);
-                    log(group_code);
+                    sprintf(msg_buffer, "filter registered tag code: %ld", group_code);
+                    DEBUG_LOG(0,msg_buffer);
                 } else {
                     //bad format, we're gonna fail graciously and let the plugin keep moving
-                    DEBUG_LOG("invalid entry in Dicom-Filter blacklist (must be 4 or 8 hex-digits eg. '0017,0010')");
+                    DEBUG_LOG(PLUGIN_ERRORS,"invalid entry in Dicom-Filter blacklist (must be 4 or 8 hex-digits eg. '0017,0010')");
                 }
             }
             for (const auto &iter: config["Dicom-Filter"]["whitelist"]) {
@@ -41,10 +42,11 @@ DicomFilter::DicomFilter(const nlm::json &config) {
                     tag_entry.erase(0, 5);
                     uint64_t tag_code = HexToDec(tag_entry);
                     whitelist.emplace(tag_code);
-                    log(tag_code);
+                    sprintf(msg_buffer, "filter registered tag code: %ld", tag_code);
+                    DEBUG_LOG(0,msg_buffer);
                 } else {
                     //bad format, we're gonna fail graciously and let the plugin keep moving
-                    DEBUG_LOG("invalid entry in Dicom-Filter whitelist (must be a full tag ie. 'xxxx,xxxx')");
+                    DEBUG_LOG(PLUGIN_ERRORS,"invalid entry in Dicom-Filter whitelist (must be a full tag ie. 'xxxx,xxxx')");
                 }
             }
         }
@@ -70,7 +72,7 @@ simple_buffer DicomFilter::ApplyFilter(DicomFile &file) {
      */
     // todo: probably should make this class stateless
     if(!ready) {
-        DEBUG_LOG("ApplyFilter: !ready");
+        DEBUG_LOG(1,"ApplyFilter: !ready");
         ready = true;
         if (file.is_valid) {
             std::vector<Range> discard_list;
@@ -93,7 +95,7 @@ simple_buffer DicomFilter::ApplyFilter(DicomFile &file) {
             }
             // if the discard list is empty then there was nothing to filter
             if (discard_list.empty()) {
-                DEBUG_LOG("ApplyFilter: discard list is empty");
+                DEBUG_LOG(0,"ApplyFilter: discard list is empty (no work)");
                 return std::make_tuple(nullptr,0);
             }
             size_t filtered_buffer_size = file.size;
@@ -113,7 +115,7 @@ simple_buffer DicomFilter::ApplyFilter(DicomFile &file) {
 
             // compile filtered buffer
             std::unique_ptr<char[]> buffer(new char[filtered_buffer_size]);
-            DEBUG_LOG("Filter: compile new dicom buffer");
+            DEBUG_LOG(1,"Filter: compile new dicom buffer");
             for (size_t index = 0; const auto &[start,end]: keep_list) {
                 char msg[128] = {0};
                 size_t copy_size = end - start;
@@ -121,15 +123,15 @@ simple_buffer DicomFilter::ApplyFilter(DicomFile &file) {
                     // copy from file.data at wherever the loop tells us to the new buffer at the current index in it
                     std::memcpy((void*)(buffer.get() + index), (void*)(((char*) file.data) + start), copy_size);
                     sprintf(msg, "i: %ld, range.1: %ld, range.2: %ld, copy_size: %ld", index, start, end, copy_size);
-                    DEBUG_LOG(msg);
+                    DEBUG_LOG(1,msg);
                     // update the new buffer's index (everything in front of this index is the copied data so far)
                     index += copy_size;
                 }
             }
-            DEBUG_LOG("ApplyFilter: new buffer complete");
+            DEBUG_LOG(1,"ApplyFilter: new buffer complete");
             return std::make_tuple(std::move(buffer), filtered_buffer_size);
         }
     }
-    DEBUG_LOG("ApplyFilter: ready");
+    DEBUG_LOG(-1,"ApplyFilter: ready"); //this shouldn't happen (it can, but we messed up if it does)
     return std::make_tuple(nullptr,0);;
 }

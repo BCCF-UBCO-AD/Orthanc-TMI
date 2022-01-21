@@ -33,7 +33,7 @@ TEST(filtering, store_filtered) {
         std::unique_ptr<char[]> buffer(new char[size]);
 
         sprintf(msg,"Loading %s\n", path.c_str());
-        DEBUG_LOG(msg);
+        DEBUG_LOG(1,msg);
         std::ifstream file(path, std::ios::binary | std::ios::in);
         ASSERT_TRUE(file.is_open());
         file.read(buffer.get(),size);
@@ -42,13 +42,13 @@ TEST(filtering, store_filtered) {
         DicomFile dicom(buffer.get(), size); // valid
         ASSERT_TRUE(dicom.IsValid()); // pass
         sprintf(msg,"%s file\n",(dicom.IsValid() ? "valid" : "invalid"));
-        DEBUG_LOG(msg);
+        DEBUG_LOG(1,msg);
 
         auto [filtered_buffer,filtered_size] = filter.ApplyFilter(dicom); //memcpy ran til end of file(buffer)
         DicomFile filtered_dicom(filtered_buffer.get(),filtered_size);
         ASSERT_TRUE(filtered_dicom.IsValid()); //first sign the memcpy didn't work
         sprintf(msg,"Filtering: %s\n", (filtered_dicom.IsValid() ? "passed" : "failed"));
-        DEBUG_LOG(msg);
+        DEBUG_LOG(1,msg);
 
         filter.reset();
         files_passed++;
