@@ -79,7 +79,7 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
                 return OrthancPluginErrorCode_EmptyRequest;
             }
             // write to disk
-            fs::create_directories(master_path);
+            fs::create_directories(master_path.parent_path());
 
             sprintf(msg,"writing file: %s", master_path.string().c_str());
             DEBUG_LOG(msg)
