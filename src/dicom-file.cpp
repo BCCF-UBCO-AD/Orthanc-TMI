@@ -1,6 +1,7 @@
 #include <dicom-file.h>
 #include <dicom-element.h>
 #include <vector>
+#include <fstream>
 
 DicomFile::DicomFile(const OrthancPluginDicomInstance *instance) {
     this->instance = instance;
@@ -15,24 +16,24 @@ DicomFile::DicomFile(const void *data, size_t size) {
     parse_file();
 }
 
-void DicomFile::parse_file() {
+bool DicomFile::parse_file() {
     char msg_buffer[256] = {0};
     const char* readable_buffer = (const char*)data;
     size_t preamble = 128;
     size_t prefix = 4;
-    OrthancPluginLogWarning(globals::context, "Filter: Parsing dicom data");
+    DEBUG_LOG("DicomFile: parsing dicom data");
     // there is no valid header if the file size is smaller than 132 bytes
     if(size <= preamble + prefix){
-        OrthancPluginLogError(globals::context, "DicomFile does not have a valid size");
+        if(globals::context) OrthancPluginLogError(globals::context, "DicomFile does not have a valid size, cannot continue parsing");
         is_valid = false;
-        return;
+        return false;
     }
     // the DICOM file header must end with DICM
     if(std::string_view(readable_buffer+preamble,prefix) != "DICM"){
         // apparently not a DICOM file... so...
-        OrthancPluginLogError(globals::context, "DicomFile does not match a valid DICOM format");
+        if(globals::context) OrthancPluginLogError(globals::context, "DicomFile does not match a valid DICOM format, cannot continue parsing");
         is_valid = false;
-        return;
+        return false;
     }
     // parse dicom data elements
     size_t i;
@@ -40,7 +41,7 @@ void DicomFile::parse_file() {
         // parse next element
         DicomElement element(readable_buffer,i);
         // print element info
-        sprintf(msg_buffer,"[%s] (%s,%s)->(%s)\n idx: %zu, next: %zu, size: %zu, bytes: %zu, length: %d",
+        sprintf(msg_buffer,"[%s] (%s,%s)->(%s)\n idx: %zu, next: %zu, size: %zu, value offset: %zu, length: %d",
                 element.VR.c_str(),
                 element.HexGroup().c_str(),
                 element.HexElement().c_str(),
@@ -48,51 +49,29 @@ void DicomFile::parse_file() {
                 element.idx,
                 element.GetNextIndex(),
                 element.size,
-                element.bytes,
-                (int)element.length);
-        OrthancPluginLogInfo(globals::context, msg_buffer);
+                element.value_offset,
+                (int)element.value_length);
+        DEBUG_LOG(msg_buffer);
         // save element range
         size_t j = element.GetNextIndex();
-        elements.emplace(element.tag, std::make_pair(i,j));
+        elements.emplace_back(element.tag, std::make_pair(i,j));
         i = j;
     }
+    sprintf(msg_buffer,"buffer size = %ld, read head idx = %ld", size, i);
+    DEBUG_LOG(msg_buffer);
     is_valid = i == size;
+    return is_valid;
 }
 
-std::tuple<char*,size_t> DicomFile::ApplyFilter(TagFilter filter) {
-    char* buffer = nullptr;
-    size_t new_size = 0;
-    if(is_valid) {
-        std::vector<Range> discard_list;
-        for (auto &tag: filter) {
-            auto iter = elements.find(tag);
-            if (iter != elements.end()) {
-                const auto &element = iter->second;
-                discard_list.push_back(element);
-            }
-        }
-        if (discard_list.empty()) {
-            return std::make_tuple(buffer,new_size);
-        }
-        // invert discard_list into keep_list
-        size_t i = 0;
-        std::vector<Range> keep_list;
-        for (auto pair: discard_list) {
-            keep_list.emplace_back(i, pair.first);
-            i = pair.second;
-            new_size += pair.first - i;
-        }
-        keep_list.emplace_back(i, size);
-        new_size += size - i;
-        // compile filtered buffer
-        i = 0;
-        buffer = new char[new_size];
-        OrthancPluginLogWarning(globals::context, "Filter: compile new dicom buffer");
-        for (auto pair: keep_list) {
-            size_t copy_size = pair.second - pair.first;
-            memcpy((void *) (buffer + i), (void *) ((char *) data + pair.first), copy_size);
-            i += copy_size;
-        }
-    }
-    return std::make_tuple(buffer,new_size);
+extern const fs::path GetPath(OrthancPluginContentType type, const char* uuid);
+void DicomFile::Write(const char* uuid) {
+    char msg[256] = {0};
+    fs::path master_path = GetPath(OrthancPluginContentType_Dicom, uuid);
+    fs::create_directories(master_path);
+    sprintf(msg, "DicomFile: writing to %s", master_path.c_str());
+    DEBUG_LOG(msg);
+    std::fstream file(master_path, std::ios::binary | std::ios::out);
+    file.write((const char*)data,size);
+    file.close();
+    DEBUG_LOG("DicomFile: write complete");
 }
