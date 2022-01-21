@@ -26,3 +26,7 @@ bool DBInterface::is_open() {
 void DBInterface::HandlePHI(const DicomFile &dicom) {
 
 }
+
+void DBInterface::UpdateChecksum(std::string uuid, int64_t size, char* hash) {
+
+}
