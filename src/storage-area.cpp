@@ -86,6 +86,9 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
             std::fstream file(master_path, std::ios::binary | std::ios::out);
             file.write(content.get(),size);
             file.close();
+
+            // update checksum - We need both md5 and size;
+            char* md5 = OrthancPluginComputeMd5(globals::context, content.get(), size);
         } else {
             DEBUG_LOG("Nothing was filtered");
             dicom.Write(uuid);
