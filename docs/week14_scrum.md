@@ -24,7 +24,7 @@ N/A
 
 **Task for this week:**
 
-- Fix malformed buffer copy
+- Fix malformed buffer copy - Josh Cooper
 
 **Learning activities proposed for this week:**
 

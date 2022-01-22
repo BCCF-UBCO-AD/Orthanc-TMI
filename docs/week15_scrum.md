@@ -24,11 +24,11 @@ N/A
   - Explored benefits over undocumented Orthanc SDK functions
   - Explored cost of implementation
   - Explored performance and scaling
+- Use DICOM protocols to communicate with Orthanc
+  - Pushing DICOM files to Orthanc from another DICOM client
 
 ## 3. Plan
 
 **Task for this week:**
 
-- Start implementing ODBC & crosswalk table
-- Start building frontend
-
+- Start implementing ODBC & crosswalk table - Brian Zhou & Iwan Levin
