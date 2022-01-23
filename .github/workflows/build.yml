@@ -4,6 +4,7 @@
         - master
         - develop
         - feat-filter
+    workflow_dispatch:
 
   env:
     BUILD_TYPE: Debug
