@@ -59,7 +59,7 @@ const fs::path GetPath(OrthancPluginContentType type, const char* uuid){
 OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
     char msg[1024] = {0};
     sprintf(msg, "WriteDicomFile for uuid: %s", uuid);
-    DEBUG_LOG(msg);
+    DEBUG_LOG(0,msg);
     const fs::path storage_root(globals::storage_location);
     std::unique_ptr<char[]> content = nullptr;
     size_t size = 0;
@@ -67,14 +67,14 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
         fs::path master_path = GetPath(OrthancPluginContentType_Dicom, uuid);
         //DBInterface::HandlePHI(dicom);
         auto filter = PluginConfigurer::GetDicomFilter();
-        DEBUG_LOG("Filtering DICOM file");
+        DEBUG_LOG(1,"Filtering DICOM file");
         simple_buffer filtered = filter.ApplyFilter(dicom);
-        DEBUG_LOG("Filtering complete");
+        DEBUG_LOG(1,"Filtering complete");
         content = std::move(std::get<0>(filtered));
         size = std::get<1>(filtered);
         if (content) {
             if(size == 0){
-                if(globals::context) OrthancPluginLogError(globals::context, "WriteDicomFile: Request is empty. ApplyFilter returned size zero for the buffer. This message should never display");
+                DEBUG_LOG(PLUGIN_ERRORS,"WriteDicomFile: Request is empty. ApplyFilter returned size zero for the buffer. This message should never display");
                 // todo: probably a better error code
                 return OrthancPluginErrorCode_EmptyRequest;
             }
@@ -82,19 +82,19 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
             fs::create_directories(master_path.parent_path());
 
             sprintf(msg,"writing file: %s", master_path.string().c_str());
-            DEBUG_LOG(msg)
+            DEBUG_LOG(0,msg)
             std::fstream file(master_path, std::ios::binary | std::ios::out);
             file.write(content.get(),size);
             file.close();
         } else {
-            DEBUG_LOG("Nothing was filtered");
+            DEBUG_LOG(1,"Nothing was filtered");
             dicom.Write(uuid);
         }
         // set file permissions
         // todo: permission debug info?
         fs::file_status master_status = fs::status(master_path);
         master_status.permissions(globals::file_permissions);
-        DEBUG_LOG("WriteDicomFile: permissions set");
+        DEBUG_LOG(1,"WriteDicomFile: permissions set");
         // create hard links
         auto hardlink_to = [&](std::string groupby, std::string group) {
             fs::path link = fs::path(storage_root)
@@ -117,11 +117,11 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
                 hardlink_to("/by-patient-id/", PID_placeholder);
                 hardlink_to("/by-study-date/", SD_placeholder);
             } catch (const std::exception &e) {
-                DEBUG_LOG("We failed to create hard links. They may already exist. OR the placeholders still aren't replaced.")
+                DEBUG_LOG(PLUGIN_ERRORS,"We failed to create hard links. They may already exist. OR the placeholders still aren't replaced.")
                 std::cerr << e.what() << std::endl;
             }
         }
-        DEBUG_LOG("WriteDicomFile: success");
+        DEBUG_LOG(1,"WriteDicomFile: success");
         return OrthancPluginErrorCode_Success;
     }
     return OrthancPluginErrorCode_BadFileFormat;
@@ -148,7 +148,7 @@ OrthancPluginErrorCode StorageCreateCallback(const char *uuid,
             file.close();
             return OrthancPluginErrorCode_Success;
         }
-        if(globals::context) OrthancPluginLogWarning(globals::context, "StorageCreateCallback: but write out appears bad");
+        DEBUG_LOG(PLUGIN_ERRORS,"StorageCreateCallback: but write out appears bad");
     }
     return OrthancPluginErrorCode_FileStorageCannotWrite;
 }
@@ -166,7 +166,7 @@ OrthancPluginErrorCode StorageReadWholeCallback(OrthancPluginMemoryBuffer64 *tar
             file.close();
             return OrthancPluginErrorCode_Success;
         }
-        if(globals::context) OrthancPluginLogWarning(globals::context, "StorageReadWholeCallback: opened file, but couldn't read it");
+        DEBUG_LOG(PLUGIN_ERRORS,"StorageReadWholeCallback: opened file, but couldn't read it");
         return OrthancPluginErrorCode_StorageAreaPlugin;
     }
     return OrthancPluginErrorCode_InexistentFile;
