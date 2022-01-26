@@ -2,6 +2,7 @@
 #include <nlohmann/json.hpp>
 #include <pqxx/pqxx>
 #include <db-interface.h>
+#include "common.h"
 
 //appears to be the form of a basic unit test
 // https://github.com/google/googletest/blob/master/googletest/samples/sample1_unittest.cc

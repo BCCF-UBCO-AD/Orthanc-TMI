@@ -2,6 +2,7 @@
 #include <pqxx/pqxx>
 #include <pqxx/field.hxx>
 #include <db-interface.h>
+#include "common.h"
 pqxx::connection c{"postgresql://postgres:example@localhost:5432"};
 
 
