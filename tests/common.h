@@ -1,4 +1,5 @@
 #pragma once
+#define UNIT_TEST
 extern fs::path GetProjRoot();
 extern void TestWithDicomFiles(std::function<void(const fs::path&)> test);
 namespace uuid {

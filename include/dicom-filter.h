@@ -2,7 +2,19 @@
 #include <core.h>
 #include <dicom-file.h>
 
+// an alias for a smart pointer buffer and its allocation size
 using simple_buffer = std::tuple<std::unique_ptr<char[]>, size_t>;
+
+/* class: DicomFilter
+ *  Used to filter data from a dicom file.
+ *
+ *  This class will be configured via json to have particular sets of data to remove, keep, and potentially both.
+ *
+ *  Provides methods to:
+ *   - configure the filter
+ *   - apply the filter
+ *   - reset the filter object's internal state
+ */
 class DicomFilter{
 private:
     std::unordered_set<uint64_t> blacklist;

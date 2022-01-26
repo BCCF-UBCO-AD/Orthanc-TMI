@@ -2,7 +2,9 @@
 #include <core.h>
 #include <dicom-tag.h>
 
-/* class: DicomElement
+/* class: DicomElementView
+ *  Used to view a dicom element and its data. Could be used to implement an iterator.
+ *
  *  Takes an index and data buffer to a DICOM file.
  *  Using the buffer and index, it locates DICOM data element information.
  *  This information locates the next DICOM data element index in the buffer.
@@ -13,7 +15,7 @@
  *   - get hex for element id
  *   - get hex for entire tag (group+element)
  */
-class DicomElement {
+class DicomElementView {
     // below DicomElement locates and aliases data within the dicom's data buffer, then calculates appropriate length/size values
 public:
     const char *const buffer;
@@ -27,7 +29,7 @@ public:
     const uint32_t value_length = CalcValueLength();
     const uint64_t size = CalcElementSize();
 
-    DicomElement(const char *buffer, uint64_t index, const char *hex_buffer = nullptr)
+    DicomElementView(const char *buffer, uint64_t index, const char *hex_buffer = nullptr)
             : buffer(buffer),
               hex_buffer(hex_buffer),
               idx(index) {}

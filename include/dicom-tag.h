@@ -9,7 +9,7 @@ extern std::string DecToHex(uint64_t value, uint8_t bytes = 1);
 extern uint64_t HexToDec(std::string hex);
 
 // Dicom Tags/VR/Name found here https://www.dicomlibrary.com/dicom/dicom-tags/
-enum dicomTag{
+enum DicomTag{
     Item = 0xe000fffe,
     ItemDelItem = 0xe00dfffe,
     SeqDelItem = 0xe0ddfffe
