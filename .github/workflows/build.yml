@@ -47,9 +47,13 @@
             cd .github
             docker-compose down
             docker-compose up -d && sleep 5s
-        - name: Check Docker Status
+        - name: Check PostgreSQL
           run: |
             sleep 20s
+            status=$(docker ps --all --filter name=postgres --format '{{.Status}}')
+            echo PostgreSQL Docker Container: $status
+        - name: Check Docker Status
+          run: |
             status=$(docker ps --all --filter name=orthanc-server --format '{{.Status}}')
             echo Orthanc Docker Container: $status
             if echo $status | grep Up &>/dev/null; then :; else docker logs orthanc-server && exit 1; fi
