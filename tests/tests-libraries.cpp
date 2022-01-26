@@ -65,4 +65,5 @@ TEST(libraries, pqxx_test){
     //pqxx::work w(c);
     DBInterface::connect("example");
     ASSERT_TRUE(DBInterface::is_open());
+    DBInterface::disconnect();
 }
