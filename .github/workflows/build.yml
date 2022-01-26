@@ -45,23 +45,22 @@
         - name: Initialize PostgreSQL
           run: | 
             cd .github
-            docker-compose up -d postgres && sleep 30s
+            docker-compose up -d postgres && sleep 60s
             docker logs --details postgres
             docker-compose down && sleep 10s
-        - name: Launch Docker
+        - name: Launch Docker Compose
           run: |
-            docker-compose up -d && sleep 5s
+            docker-compose up -d && sleep 25s
         - name: Check PostgreSQL
           run: |
-            sleep 20s
-            docker logs --details postgres
             status=$(docker ps --all --filter name=postgres --format '{{.Status}}')
             echo PostgreSQL Docker Container: $status
+            if echo $status | grep Up &>/dev/null; then :; else docker logs --details postgres && exit 1; fi
         - name: Check Docker Status
           run: |
             status=$(docker ps --all --filter name=orthanc-server --format '{{.Status}}')
             echo Orthanc Docker Container: $status
-            if echo $status | grep Up &>/dev/null; then :; else docker logs orthanc-server && exit 1; fi
+            if echo $status | grep Up &>/dev/null; then :; else docker logs --details orthanc-server && exit 1; fi
         - name: Run Unit Tests
           run: |
             build/bin/all-tests --gtest_output=xml:build/
