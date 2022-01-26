@@ -24,7 +24,7 @@ extern "C" {
     int32_t OrthancPluginInitialize(OrthancPluginContext* context){
         globals::context = context;
         /* Connect with database interface. */
-        DBInterface::connect("example");
+        DBInterface::connect("postgres", "example");
         if(!DBInterface::is_open()){
             OrthancPluginLogError(context, "DBInterface failed to connect to DB.");
             return -1;

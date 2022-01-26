@@ -5,7 +5,7 @@
 // todo: name better?
 class DBInterface { // not an 'interface'
 public:
-    static void connect(std::string password);
+    static void connect(std::string host, std::string password);
     static void disconnect();
     static bool is_open();
     static void HandlePHI(const DicomFile &dicom);
