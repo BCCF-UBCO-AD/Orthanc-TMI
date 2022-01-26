@@ -50,6 +50,7 @@
         - name: Check PostgreSQL
           run: |
             sleep 20s
+            docker logs --details postgres
             status=$(docker ps --all --filter name=postgres --format '{{.Status}}')
             echo PostgreSQL Docker Container: $status
         - name: Check Docker Status
