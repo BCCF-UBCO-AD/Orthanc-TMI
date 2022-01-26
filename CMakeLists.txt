@@ -1,31 +1,45 @@
 cmake_minimum_required(VERSION 3.20)
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_SHARED_LIBRARY_PREFIX_CXX "")
+set(BSL ${BUILD_SHARED_LIBS})
 
 # project variables
-set(PROJECT_DIR ${CMAKE_CURRENT_LIST_DIR})
 project(Orthanc-TMI)
-set(PLUGIN_NAME DataAnonymizer)
-set(TESTS ${CMAKE_PROJECT_NAME}-tests)
+set(PROJECT_DIR ${CMAKE_CURRENT_LIST_DIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
+
+# target names
+set(PLUGIN_TARGET data-anonymizer)
+set(TEST_TARGET all-tests)
 
 # dependencies
-file(GLOB_RECURSE PLUGIN_SOURCES LIST_DIRECTORIES true src/*)
-file(GLOB_RECURSE TEST_SOURCES LIST_DIRECTORIES true test/*)
-add_subdirectory(lib/googletest)
+file(GLOB_RECURSE PLUGIN_SOURCES LIST_DIRECTORIES false src/*)
+file(GLOB_RECURSE TEST_SOURCES LIST_DIRECTORIES false tests/*)
+list(FILTER TEST_SOURCES EXCLUDE REGEX .*main.cpp)
+message("Plugin sources: ${PLUGIN_SOURCES}")
+message("Common test sources: ${TEST_SOURCES}")
+
+
+add_subdirectory(extern/googletest EXCLUDE_FROM_ALL)
+set(BUILD_SHARED_LIBS ON)
+add_subdirectory(extern/libpqxx EXCLUDE_FROM_ALL)
+set(BUILD_SHARED_LIBS ${BSL})
+
+# include directories
+include_directories(include)
+include_directories(extern/nlohmann-json/single_include/)
+
+# test targets
+add_executable(${TEST_TARGET} tests/main.cpp ${TEST_SOURCES} ${PLUGIN_SOURCES})
+target_link_libraries(${TEST_TARGET} PUBLIC gtest pqxx)
+add_test(NAME ${TEST_TARGET} COMMAND ${TEST_TARGET})
 
 # plugin target
-include_directories(include)
-add_library(${PLUGIN_NAME} SHARED ${PLUGIN_SOURCES})
+set(CMAKE_SHARED_LIBRARY_PREFIX_CXX "")
+add_library(${PLUGIN_TARGET} SHARED ${PLUGIN_SOURCES})
+target_link_libraries(${PLUGIN_TARGET} PUBLIC pqxx)
 add_custom_command(
-        TARGET ${PLUGIN_NAME} POST_BUILD
+        TARGET ${PLUGIN_TARGET} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-        ${CMAKE_CURRENT_BINARY_DIR}/${PLUGIN_NAME}.so
-        ${PROJECT_DIR}/docker/orthanc/plugins/${PLUGIN_NAME}.so)
-
-# test target
-include_directories(lib/googletest/googlemock/include)
-include_directories(lib/googletest/googletest/include)
-add_executable(${TESTS} ${TEST_SOURCES} ${PLUGIN_SOURCES})
-target_link_libraries(${TESTS} PUBLIC gtest)
-
-add_test(NAME ${TESTS} COMMAND ${TESTS})
+        ${PROJECT_BINARY_DIR}/bin/${PLUGIN_TARGET}.so
+        ${PROJECT_DIR}/docker/orthanc/plugins/${PLUGIN_TARGET}.so)
