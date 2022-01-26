@@ -4,6 +4,7 @@
         - master
         - develop
         - feat-filter
+        - feat-phi
     workflow_dispatch:
 
   env:
