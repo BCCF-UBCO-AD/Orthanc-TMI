@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include <dicom-tag.h>
+#include "common.h"
 
 TEST(hex, conversions) {
     const char* hex = "00030002"; //element:group

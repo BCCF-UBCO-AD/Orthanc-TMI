@@ -1,5 +1,8 @@
 #define IMPLEMENTS_GLOBALS
 #include <core.h>
+#include <dicom-file.h>
+#include <db-interface.h>
+#include <nlohmann/json.hpp>
 #include <configuration.h>
 #include <storage-area.h>
 #include <plugin-configure.h>
@@ -20,6 +23,16 @@ extern "C" {
 
     int32_t OrthancPluginInitialize(OrthancPluginContext* context){
         globals::context = context;
+        /* Connect with database interface. */
+        DBInterface::connect("postgres", "example");
+        if(!DBInterface::is_open()){
+            OrthancPluginLogError(context, "DBInterface failed to connect to DB.");
+            return -1;
+        }else{
+            OrthancPluginLogError(context, "DBInterface connect success.");
+            DBInterface::create_tables();
+        }
+
         /* Check the version of the Orthanc core */
         if (OrthancPluginCheckVersion(context) == 0){
             char info[256];
