@@ -16,7 +16,7 @@ Absent:
 
 **Blockers + Surprises**
 
-- File checksum/file size does not update after anonymization
+- (Bug) File checksum/file size does not update after anonymization
 
 ## 2. Learning Activity
 
