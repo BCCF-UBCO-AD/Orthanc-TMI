@@ -13,7 +13,6 @@ services:
       - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql # Create database for Orthanc
     environment:
       POSTGRES_PASSWORD: example
-      POSTGRES_HOST_AUTH_METHOD: trust
     networks:
       - postgres-network
     healthcheck:
