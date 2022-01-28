@@ -89,6 +89,12 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
 
             // update checksum - We need both md5 and size;
             char* md5 = OrthancPluginComputeMd5(globals::context, content.get(), size);
+
+            char msg[1024] = {0};
+            sprintf(msg, "Checksum: MD5 = %s, size = %d", md5, size);
+            DEBUG_LOG(1,msg);
+            DBInterface::UpdateChecksum(uuid, size, md5);
+            DEBUG_LOG(1,"Updated checksum");
         } else {
             DEBUG_LOG(1,"Nothing was filtered");
             dicom.Write(uuid);
