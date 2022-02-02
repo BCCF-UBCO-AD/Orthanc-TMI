@@ -12,6 +12,8 @@ bool JobQueue::Enqueue() {
         queue_lock.lock();
         jqueue.emplace(true);
         queue_lock.unlock();
+        cv.notify_all();
+        has_work = true;
         return true;
     }
     // we return false to indicate the queue didn't accept the job
@@ -20,15 +22,14 @@ bool JobQueue::Enqueue() {
 
 void JobQueue::Process() {
     keep_running = true;
+    std::mutex wait_mtx;
+    std::unique_lock<std::mutex> wait_lock(wait_mtx);
     // so long as this stays true we're gonna keep looping
     while(keep_running.load()){
-        queue_lock.lock();
-        if(jqueue.empty()){
-            //todo: use adaptive sleeping (ie. sleep more or less depending on how things go)
-            queue_lock.unlock();
-            std::this_thread::sleep_for(std::chrono::seconds(1));
-            queue_lock.lock();
+        if(!has_work.load()){
+            cv.wait(wait_lock);
         }
+        queue_lock.lock();
         auto &job = jqueue.front();
         jqueue.pop();
         queue_lock.unlock();
