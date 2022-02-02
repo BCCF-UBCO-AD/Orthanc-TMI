@@ -24,13 +24,11 @@ void JobQueue::Process() {
     while(keep_running.load()){
         queue_lock.lock();
         if(jqueue.empty()){
-            queue_lock.unlock();
             //todo: use adaptive sleeping (ie. sleep more or less depending on how things go)
-            std::this_thread::sleep_for(std::chrono::seconds(1));
-        } else {
             queue_lock.unlock();
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            queue_lock.lock();
         }
-        queue_lock.lock();
         auto &job = jqueue.front();
         jqueue.pop();
         queue_lock.unlock();
