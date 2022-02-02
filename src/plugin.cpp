@@ -6,6 +6,8 @@
 #include <configuration.h>
 #include <storage-area.h>
 #include <plugin-configure.h>
+#include <job-queue.h>
+#include <thread>
 
 namespace fs = std::filesystem;
 namespace globals {
@@ -15,9 +17,14 @@ namespace globals {
     fs::perms file_permissions = fs::perms::owner_all | fs::perms::group_all | fs::perms::others_read;
 }
 
+static std::thread job_thread;
+
 // plugin foundation
 extern "C" {
-    void OrthancPluginFinalize(){}
+    void OrthancPluginFinalize(){
+        JobQueue::GetInstance().Stop();
+        job_thread.join();
+    }
     const char* OrthancPluginGetName(){ return ORTHANC_PLUGIN_NAME; }
     const char* OrthancPluginGetVersion(){ return ORTHANC_PLUGIN_VERSION; }
 
@@ -50,6 +57,7 @@ extern "C" {
         OrthancPluginRegisterStorageArea2(context, StorageCreateCallback, StorageReadWholeCallback,
                                           StorageReadRangeCallback, StorageRemoveCallback);
         //OrthancPluginRegisterIncomingDicomInstanceFilter(context, FilterCallback);
+        job_thread = std::thread(&JobQueue::Process, &JobQueue::GetInstance());
         return 0;
     }
 }
