@@ -17,9 +17,11 @@ namespace globals {
 
 // plugin foundation
 extern "C" {
-    void OrthancPluginFinalize(){}
-    const char* OrthancPluginGetName(){ return ORTHANC_PLUGIN_NAME; }
-    const char* OrthancPluginGetVersion(){ return ORTHANC_PLUGIN_VERSION; }
+    void OrthancPluginFinalize() {
+        DBInterface::disconnect();
+    }
+    const char* OrthancPluginGetName() { return ORTHANC_PLUGIN_NAME; }
+    const char* OrthancPluginGetVersion() { return ORTHANC_PLUGIN_VERSION; }
 
     int32_t OrthancPluginInitialize(OrthancPluginContext* context){
         globals::context = context;
