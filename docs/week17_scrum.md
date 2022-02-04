@@ -1,6 +1,6 @@
 # Team Meetings
 
-Date: Jan 28, 2022
+Date: Feb 4, 2022
 
 Attendees: Raouf Tiliouine, Josh Cooper, Brian Zhou, Iwan Levin
 
