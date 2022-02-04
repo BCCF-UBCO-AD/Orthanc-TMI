@@ -13,6 +13,7 @@ Absent:
 - Implemented job queue
 - Reassessed ODBC as a functional requirement and decided to hold off implementation for now
 - Began frontend integration (blocker below)
+- Test duplicate DICOM files bug using second DICOM server
 
 **Blockers + Surprises**
 
@@ -26,4 +27,4 @@ Absent:
 
 - Fix checksum issue
 - Set up crosswalk table
-- Test duplicate DICOM files bug using second DICOM server
+- Write SQL queries for mismatch cases
