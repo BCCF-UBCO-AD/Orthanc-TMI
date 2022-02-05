@@ -49,7 +49,7 @@ extern "C" {
         }
         OrthancPluginRegisterStorageArea2(context, StorageCreateCallback, StorageReadWholeCallback,
                                           StorageReadRangeCallback, StorageRemoveCallback);
-        //OrthancPluginRegisterIncomingDicomInstanceFilter(context, FilterCallback);
+        OrthancPluginRegisterOnStoredInstanceCallback(context, OnStoredInstanceCallback);
         return 0;
     }
 }

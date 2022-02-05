@@ -86,15 +86,6 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
             std::fstream file(master_path, std::ios::binary | std::ios::out);
             file.write(content.get(),size);
             file.close();
-
-            // update checksum - We need both md5 and size;
-            char* md5 = OrthancPluginComputeMd5(globals::context, content.get(), size);
-
-            char msg[1024] = {0};
-            sprintf(msg, "Checksum: MD5 = %s, size = %d", md5, size);
-            DEBUG_LOG(1,msg);
-            DBInterface::UpdateChecksum(uuid, size, md5);
-            DEBUG_LOG(1,"Updated checksum");
         } else {
             DEBUG_LOG(1,"Nothing was filtered");
             dicom.Write(uuid);
@@ -226,5 +217,24 @@ OrthancPluginErrorCode StorageRemoveCallback(const char *uuid, OrthancPluginCont
         fs::remove(path);
     }
 
+    return OrthancPluginErrorCode_Success;
+}
+
+OrthancPluginErrorCode OnStoredInstanceCallback(const OrthancPluginDicomInstance *instance, const char *instanceId) {
+    char msg[1024] = {0};
+    sprintf(msg, "OnStored Instance Id: %s", instanceId);
+    DEBUG_LOG(1,msg);
+
+    const void* instance_data = OrthancPluginGetInstanceData(globals::context, instance);
+    int size = OrthancPluginGetInstanceSize(globals::context, instance);
+    // update checksum - We need both md5 and size;
+    char* md5 = OrthancPluginComputeMd5(globals::context, instance_data, size);
+
+    memset(msg, 0, sizeof msg);
+    sprintf(msg, "Checksum: MD5 = %s, size = %d", md5, size);
+    DEBUG_LOG(1,msg);
+
+    //DBInterface::UpdateChecksum(uuid, size, md5);
+    //DEBUG_LOG(1,"Updated checksum");
     return OrthancPluginErrorCode_Success;
 }

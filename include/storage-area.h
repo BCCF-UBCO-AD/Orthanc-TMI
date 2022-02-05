@@ -13,3 +13,4 @@ extern OrthancPluginErrorCode StorageReadRangeCallback(OrthancPluginMemoryBuffer
                                                        OrthancPluginContentType type,
                                                        uint64_t rangeStart);
 extern OrthancPluginErrorCode StorageRemoveCallback(const char *uuid, OrthancPluginContentType type);
+extern OrthancPluginErrorCode OnStoredInstanceCallback(const OrthancPluginDicomInstance *instance, const char *instanceId);
