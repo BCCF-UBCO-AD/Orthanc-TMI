@@ -87,21 +87,13 @@ int get_days_for_month(int month, int year){
     }
 }
 
-bool isleap(int year)
-{
-
-    if (year % 4 == 0)
-    {
-        if (year % 100 == 0)
-        {
-            if (year % 400 == 0)
+bool isleap(int year) {
+    if (year % 4 == 0) {
+        if (year % 100 == 0) {
+            if (year % 400 == 0) {
                 return true;
-            else
-                return false;
+            }
         }
-        else
-           return true;
     }
-    else
-        return false;
+    return false;
 }
