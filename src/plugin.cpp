@@ -15,7 +15,6 @@ namespace globals {
     fs::perms file_permissions = fs::perms::owner_all | fs::perms::group_all | fs::perms::others_read;
 }
 
-int32_t OnIncomingCallback(const OrthancPluginDicomInstance* instance);
 OrthancPluginErrorCode OnStoredCallback(const OrthancPluginDicomInstance* instance, const char *instanceId);
 
 // plugin foundation
@@ -33,10 +32,9 @@ extern "C" {
         if (!DBInterface::is_open()) {
             OrthancPluginLogError(context, "DBInterface failed to connect to DB.");
             return -1;
-        } else {
-            OrthancPluginLogError(context, "DBInterface connect success.");
-            DBInterface::create_tables();
         }
+        DEBUG_LOG(0, "DBInterface connect success.");
+        DBInterface::create_tables();
 
         /* Check the version of the Orthanc core */
         if (OrthancPluginCheckVersion(context) == 0) {
@@ -58,32 +56,6 @@ extern "C" {
         OrthancPluginRegisterOnStoredInstanceCallback(context, OnStoredCallback);
         return 0;
     }
-}
-
-int32_t OnIncomingCallback(const OrthancPluginDicomInstance* instance){
-    char msg[256] = {0};
-    sprintf(msg,"OnIncomingCallback: %ld", instance);
-    DEBUG_LOG(0,msg);
-    DicomFile dicom(instance);
-    if(!dicom.IsValid()){
-        // discard if not valid
-        return -1;
-    }
-    // perform filter
-    auto filter = PluginConfigurer::GetDicomFilter();
-    simple_buffer filtered = filter.ApplyFilter(dicom);
-    auto &[buffer,size] = filtered;
-    // store if no filter is necessary
-    if(size == 0){
-        return 1;
-    }
-    // todo: replace with a C-Store operation so that we can save the filtered copy into the server
-    // cause this doesn't work, the filtered copy is not kept
-    auto i2 = OrthancPluginCreateDicomInstance(globals::context, buffer.get(), size);
-    OrthancPluginFreeDicomInstance(globals::context,i2);
-
-    // todo: save dicom instance to disk
-    return 0; /*{0: discard, 1: store, -1: error}*/
 }
 
 OrthancPluginErrorCode OnStoredCallback(const OrthancPluginDicomInstance* instance, const char *instanceId){
