@@ -6,11 +6,11 @@ JobQueue& JobQueue::GetInstance() {
     return jq;
 }
 
-bool JobQueue::Enqueue() {
+bool JobQueue::AddJob(std::function<void()> job) {
     // check the atomic bool, if it indicates the job queue is still running we can add to the queue
     if(keep_running.load()){
         queue_lock.lock();
-        jqueue.emplace(true);
+        jqueue.emplace(job);
         queue_lock.unlock();
         cv.notify_all();
         has_work = true;
@@ -33,12 +33,12 @@ void JobQueue::Process() {
         auto &job = jqueue.front();
         jqueue.pop();
         queue_lock.unlock();
-        // todo: do stuff with the job
+        job();
     }
     // todo: we can't leave unperformed jobs in the queue otherwise they will be forgotten, so we have to finish them before we can shut down fully
     while(!jqueue.empty()){
         auto &job = jqueue.front();
-        // todo: do stuff with the job
+        job();
         jqueue.pop();
     }
 }
