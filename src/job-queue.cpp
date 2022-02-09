@@ -32,6 +32,9 @@ void JobQueue::Process() {
         queue_lock.lock();
         auto &job = jqueue.front();
         jqueue.pop();
+        if(jqueue.empty()){
+            has_work = false;
+        }
         queue_lock.unlock();
         job();
     }
