@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <thread>
 #include <job-queue.h>
 #include "common.h"
 
