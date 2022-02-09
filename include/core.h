@@ -30,9 +30,9 @@ namespace globals {
     #ifndef UNIT_TEST
      #define DEBUG_LOG(L,msg) if(globals::context && L <= LOGGING_LEVEL) switch(L){ \
         case PLUGIN_ERRORS: OrthancPluginLogError(globals::context, msg);break;     \
-        case INFO: OrthancPluginLogInfo(globals::context, msg); break;              \
+        case INFO: OrthancPluginLogWarning(globals::context, msg); break;           \
         case VERBOSE_1:                                                             \
-        case VERBOSE_2: OrthancPluginLogWarning(globals::context, msg); break;      \
+        case VERBOSE_2: OrthancPluginLogInfo(globals::context, msg); break;         \
       }
     #else
      #define LOGGING_LEVEL INFO
@@ -40,5 +40,9 @@ namespace globals {
      #define DEBUG_LOG(L,msg) if(L <= LOGGING_LEVEL) printf("%s\n",msg);
     #endif
 #else
- #define DEBUG_LOG(L,msg)
+  #define LOGGING_LEVEL INFO
+  #define DEBUG_LOG(L,msg) if(globals::context && L <= LOGGING_LEVEL) switch(L){ \
+     case PLUGIN_ERRORS: OrthancPluginLogError(globals::context, msg);break;     \
+     case INFO: OrthancPluginLogWarning(globals::context, msg); break;           \
+   }
 #endif

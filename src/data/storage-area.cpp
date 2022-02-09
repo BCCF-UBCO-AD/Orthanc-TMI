@@ -2,11 +2,15 @@
 #include <dicom-file.h>
 #include <plugin-configure.h>
 #include <db-interface.h>
+//#include <job-queue.h>
+
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 
 namespace fs = std::filesystem;
+
+void MakeHardlinks(const fs::path storage_root, const fs::path master_path, const char* uuid);
 
 const fs::path GetPath(OrthancPluginContentType type, const char* uuid){
     const fs::path storage_root(globals::storage_location);
@@ -95,32 +99,8 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
         fs::file_status master_status = fs::status(master_path);
         master_status.permissions(globals::file_permissions);
         DEBUG_LOG(1,"WriteDicomFile: permissions set");
-        // create hard links
-        auto hardlink_to = [&](std::string groupby, std::string group) {
-            fs::path link = fs::path(storage_root)
-                    .append(groupby)
-                    .append(group)
-                    .append(uuid)
-                    .append(".DCM");
-            fs::create_directories(link);
-            fs::create_hard_link(master_path, link);
-            fs::permissions(link, globals::file_permissions);
-        };
-        // todo: integrate json settings to enable/disable individual hard links
-        // todo: replace placeholders
-        if(false) {
-            std::string DOB_placeholder;
-            std::string PID_placeholder;
-            std::string SD_placeholder;
-            try {
-                hardlink_to("/by-dob/", DOB_placeholder);
-                hardlink_to("/by-patient-id/", PID_placeholder);
-                hardlink_to("/by-study-date/", SD_placeholder);
-            } catch (const std::exception &e) {
-                DEBUG_LOG(PLUGIN_ERRORS,"We failed to create hard links. They may already exist. OR the placeholders still aren't replaced.")
-                std::cerr << e.what() << std::endl;
-            }
-        }
+        //JobQueue::GetInstance().AddJob([&](){MakeHardlinks(storage_root, master_path, uuid);});
+
         DEBUG_LOG(1,"WriteDicomFile: success");
         return OrthancPluginErrorCode_Success;
     }
@@ -218,4 +198,32 @@ OrthancPluginErrorCode StorageRemoveCallback(const char *uuid, OrthancPluginCont
     }
 
     return OrthancPluginErrorCode_Success;
+}
+
+void MakeHardlinks(const fs::path storage_root, const fs::path master_path, const char* uuid){
+    // create hard links
+    auto hardlink_to = [&](std::string groupby, std::string group) {
+        fs::path link = fs::path(storage_root)
+                .append(groupby)
+                .append(group)
+                .append(uuid)
+                .append(".DCM");
+        fs::create_directories(link);
+        fs::create_hard_link(master_path, link);
+        fs::permissions(link, globals::file_permissions);
+    };
+    // todo: integrate json settings to enable/disable individual hard links
+    // todo: replace placeholders
+    std::string DOB_placeholder;
+    std::string PID_placeholder;
+    std::string SD_placeholder;
+    try {
+        hardlink_to("/by-dob/", DOB_placeholder);
+        hardlink_to("/by-patient-id/", PID_placeholder);
+        //todo: also sort into actual/individual studies
+        hardlink_to("/by-study-date/", SD_placeholder);
+    } catch (const std::exception &e) {
+        DEBUG_LOG(PLUGIN_ERRORS,"We failed to create hard links. They may already exist. OR the placeholders still aren't replaced.")
+        std::cerr << e.what() << std::endl;
+    }
 }

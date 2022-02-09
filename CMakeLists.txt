@@ -27,6 +27,8 @@ set(BUILD_SHARED_LIBS ${BSL})
 
 # include directories
 include_directories(include)
+include_directories(include/dicom)
+include_directories(include/data)
 include_directories(extern/nlohmann-json/single_include/)
 
 # test targets
