@@ -1,6 +1,5 @@
 #define IMPLEMENTS_GLOBALS
 #include <core.h>
-#include <dicom-filter.h>
 #include <db-interface.h>
 #include <nlohmann/json.hpp>
 #include <configuration.h>
