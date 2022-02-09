@@ -33,7 +33,7 @@ extern "C" {
             OrthancPluginLogError(context, "DBInterface failed to connect to DB.");
             return -1;
         }
-        DEBUG_LOG(0, "DBInterface connect success.");
+        DEBUG_LOG(0, "DBInterface: connection successful.");
         DBInterface::create_tables();
 
         /* Check the version of the Orthanc core */
