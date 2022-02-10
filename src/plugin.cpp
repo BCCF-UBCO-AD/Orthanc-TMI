@@ -5,6 +5,7 @@
 #include <nlohmann/json.hpp>
 #include <configuration.h>
 #include <storage-area.h>
+#include <on-stored.h>
 #include <plugin-configure.h>
 #include <job-queue.h>
 #include <thread>
