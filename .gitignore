@@ -79,6 +79,7 @@ fabric.properties
 
 #Docker
 docker/orthanc/db/
+docker/orthanc/storage/
 docker/postgres/data/
 
 #submodules
