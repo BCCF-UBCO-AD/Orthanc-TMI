@@ -64,11 +64,8 @@ bool DicomFile::parse_file() {
     return is_valid;
 }
 
-extern const fs::path GetPath(OrthancPluginContentType type, const char* uuid);
-void DicomFile::Write(const char* uuid) {
+void DicomFile::Write(const fs::path &master_path) {
     char msg[256] = {0};
-    fs::path master_path = GetPath(OrthancPluginContentType_Dicom, uuid);
-    fs::create_directories(master_path);
     sprintf(msg, "DicomFile: writing to %s", master_path.c_str());
     DEBUG_LOG(0,msg);
     std::fstream file(master_path, std::ios::binary | std::ios::out);

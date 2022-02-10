@@ -64,46 +64,46 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
     char msg[1024] = {0};
     sprintf(msg, "WriteDicomFile for uuid: %s", uuid);
     DEBUG_LOG(0,msg);
-    const fs::path storage_root(globals::storage_location);
-    std::unique_ptr<char[]> content = nullptr;
-    size_t size = 0;
     if(dicom.IsValid()) {
-        fs::path master_path = GetPath(OrthancPluginContentType_Dicom, uuid);
-        //DBInterface::HandlePHI(dicom);
+        // Get configured DicomFilter
         auto filter = PluginConfigurer::GetDicomFilter();
-        DEBUG_LOG(1,"Filtering DICOM file");
-        simple_buffer filtered = filter.ApplyFilter(dicom);
-        DEBUG_LOG(1,"Filtering complete");
-        content = std::move(std::get<0>(filtered));
-        size = std::get<1>(filtered);
-        if (content) {
-            if(size == 0){
-                DEBUG_LOG(PLUGIN_ERRORS,"WriteDicomFile: Request is empty. ApplyFilter returned size zero for the buffer. This message should never display");
-                // todo: probably a better error code
-                return OrthancPluginErrorCode_EmptyRequest;
+        // Apply filter to file
+        auto [content,size] = filter.ApplyFilter(dicom);
+        // If there is filtered data
+        if(content) {
+            // But if the filtered DICOM is invalid
+            if (DicomFile fd(content.get(), size); !fd.IsValid()) {
+                // todo: should we save the original or return an error? or both?
+                DEBUG_LOG(PLUGIN_ERRORS, "WriteDicomFile: Filtered DICOM is invalid, cannot save.");
+                return OrthancPluginErrorCode_CannotWriteFile;
             }
-            // write to disk
-            fs::create_directories(master_path.parent_path());
+        }
+        // We have data to save
+        fs::path master_path = GetPath(OrthancPluginContentType_Dicom, uuid);
+        fs::create_directories(master_path.parent_path());
 
-            sprintf(msg,"writing file: %s", master_path.string().c_str());
+        // If the filtered data is empty, save the original (because it means there was nothing to filter)
+        if (!content) {
+            DEBUG_LOG(0, "WriteDicomFile: Filtered DICOM is the original DICOM.");
+            dicom.Write(master_path);
+        }
+        // Otherwise, we want to save the filtered data
+        else {
+            sprintf(msg, "WriteDicomFile: writing to %s", master_path.c_str());
             DEBUG_LOG(0,msg)
             std::fstream file(master_path, std::ios::binary | std::ios::out);
             file.write(content.get(),size);
             file.close();
-        } else {
-            DEBUG_LOG(1,"Nothing was filtered");
-            dicom.Write(uuid);
         }
-        // set file permissions
-        // todo: permission debug info?
+        // Set the permissions on the file we saved
         fs::file_status master_status = fs::status(master_path);
         master_status.permissions(globals::file_permissions);
         DEBUG_LOG(1,"WriteDicomFile: permissions set");
         //JobQueue::GetInstance().AddJob([&](){MakeHardlinks(storage_root, master_path, uuid);});
-
         DEBUG_LOG(1,"WriteDicomFile: success");
         return OrthancPluginErrorCode_Success;
     }
+    DEBUG_LOG(PLUGIN_ERRORS,"WriteDicomFile: invalid DICOM received, cannot save.");
     return OrthancPluginErrorCode_BadFileFormat;
 }
 
