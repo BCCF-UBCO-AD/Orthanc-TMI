@@ -10,4 +10,5 @@ protected:
 public:
     static int Initialize();
     static DicomFilter GetDicomFilter() { return {filter}; }
+    static std::string GetDateFormat(uint64_t tag_code = 0);
 };
