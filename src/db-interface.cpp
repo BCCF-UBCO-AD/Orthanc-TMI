@@ -13,6 +13,12 @@ void DBInterface::connect(std::string host, std::string password) {
             static pqxx::connection c(buffer);
             con = &c;
             con->prepare(
+                    "get_uuid_from_instanceid",
+                    "SELECT a.uuid "
+                    "FROM attachedfiles a, resources r "
+                    "WHERE r.internalid = a.id AND r.publicid = $1;"
+                    );
+            con->prepare(
                     "update_checksum",
                     "UPDATE attachedfiles "
                     "SET uncompressedsize = $1, compressedsize = $2, uncompressedhash = $3, compressedhash = $4 "
@@ -38,9 +44,21 @@ void DBInterface::HandlePHI(const DicomFile &dicom) {
 
 }
 
-void DBInterface::UpdateChecksum(std::string uuid, int64_t size, char* hash) {
+std::string DBInterface::get_uuid_from_instanceid(const char* instanceid) {
     pqxx::work w( *con);
-    //w.exec_prepared("update_checksum", size, size, hash, hash, uuid);
+    pqxx::result r = w.exec_prepared("get_uuid_from_instanceid", instanceid);
+
+    const pqxx::row row = r[0];
+    const pqxx::field field = row[0];
+    return std::string(field.c_str());
+}
+
+
+void DBInterface::update_checksum(std::string uuid, int64_t size, const char* hash) {
+    pqxx::work w( *con);
+    w.exec_prepared("update_checksum", size, size, hash, hash, uuid);
+    w.commit();
+    /*
     pqxx::result r = w.exec("SELECT * FROM attachedfiles;");
     DEBUG_LOG(1, "Current checksum in database: ");
     DEBUG_LOG(1, "| id | filetype | uuid | compressedsize | uncompressedsize | compressiontype | uncompressedhash | compressedhash | revision |");
@@ -52,8 +70,9 @@ void DBInterface::UpdateChecksum(std::string uuid, int64_t size, char* hash) {
             rs += " | ";
         }
         DEBUG_LOG(1, rs.c_str());
-    }
+    }*/
 }
+
 
 void DBInterface::create_tables() {
     pqxx::work w( *con);
