@@ -8,6 +8,12 @@ extern std::string DecToHex(uint64_t value, uint8_t bytes = 1);
 // convert up to 8 bytes of hex to decimal
 extern uint64_t HexToDec(std::string hex);
 
+// convert hex tag to tag key (a0a0b0b0 => b0b0,a0a0)
+extern std::string HexToKey(std::string hex);
+
+// convert tag key to hex tag (b0b0,a0a0 => a0a0b0b0)
+extern std::string KeyToHex(std::string key);
+
 // Dicom Tags/VR/Name found here https://www.dicomlibrary.com/dicom/dicom-tags/
 enum DicomTag{
     Item = 0xe000fffe,

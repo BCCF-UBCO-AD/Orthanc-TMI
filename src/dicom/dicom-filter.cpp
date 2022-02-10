@@ -1,6 +1,7 @@
 #include <dicom-filter.h>
 #include <dicom-element-view.h>
 #include <dicom-tag.h>
+#include <date-truncation.h>
 #include <cstdint>
 #include <iostream>
 
@@ -16,9 +17,7 @@ DicomFilter::DicomFilter(const nlm::json &config) {
                 auto tag_entry = iter.get<std::string>();
                 if (tag_entry.length() == 9) {
                     // register tag
-                    tag_entry.append(tag_entry.substr(0, 4));
-                    tag_entry.erase(0, 5);
-                    uint64_t tag_code = HexToDec(tag_entry);
+                    uint64_t tag_code = HexToDec(KeyToHex(tag_entry));
                     blacklist.emplace(tag_code);
                     sprintf(msg_buffer, "filter registered tag code: %ld", tag_code);
                     DEBUG_LOG(0,msg_buffer);
@@ -38,9 +37,7 @@ DicomFilter::DicomFilter(const nlm::json &config) {
                 auto tag_entry = iter.get<std::string>();
                 if (tag_entry.length() == 9) {
                     // register tag
-                    tag_entry.append(tag_entry.substr(0, 4));
-                    tag_entry.erase(0, 5);
-                    uint64_t tag_code = HexToDec(tag_entry);
+                    uint64_t tag_code = HexToDec(KeyToHex(tag_entry));
                     whitelist.emplace(tag_code);
                     sprintf(msg_buffer, "filter registered tag code: %ld", tag_code);
                     DEBUG_LOG(0,msg_buffer);
@@ -81,16 +78,14 @@ simple_buffer DicomFilter::ApplyFilter(DicomFile &file) {
             for (const auto &[tag_code,range]: file.elements) {
                 const auto &[start,end] = range;
                 // check what we need to do with this data element
-                if (!whitelist.contains(tag_code) && (blacklist.contains(tag_code) || blacklist.contains(tag_code&GROUP_MASK))) {
+                if (whitelist.contains(tag_code)){
+                    DicomElementView data((const char*)file.data,start);
+                    if (data.VR == "DA"){
+                        std::string date = std::string(std::string_view(data.GetValueHead(),data.value_length));
+                        //DateTruncation(,date);
+                    }
+                } else if (blacklist.contains(tag_code) || blacklist.contains(tag_code&GROUP_MASK)) {
                     discard_list.push_back(range);
-//                    if (viPHI_list.contains(tag_code)) {
-//                        DicomElement e((const char*) file.data, start);
-//                        // todo: PHI stuff?
-//                        if (e.value_length != -1) {
-//                            std::string value(std::string_view(e.GetValueHead(), e.value_length));
-//                            discarded[tag_code] = value;
-//                        }
-//                    }
                 }
             }
             // if the discard list is empty then there was nothing to filter
