@@ -6,7 +6,7 @@ using namespace std;
 
 int get_days_for_month(int month, int year);
 bool isleap(int year);
-string DateTruncation(string value, const char* config = nullptr){
+string DateTruncation(string value, const char* config){
     string year, month, day;
     string year_config,month_config,day_config;
 
