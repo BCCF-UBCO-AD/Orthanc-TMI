@@ -24,13 +24,11 @@ int PluginConfigurer::Initialize() {
     return 0;
 }
 std::string PluginConfigurer::GetDateFormat(uint64_t tag_code) {
-    {
-        auto dt = config.at("Dicom-DateTruncation");
-        auto tag = HexToKey(DecToHex(tag_code,4));
-        if(tag_code == 0 || !dt.contains(tag)) {
-            return dt.at("dateformat").get<std::string>();
-        }
-        // todo: change config format to have: default truncation format, and tag_code keyed formats so that this can be tested
-        return dt.at(tag).get<std::string>();
+    auto dt = config.at("Dicom-DateTruncation");
+    auto tag = HexToKey(DecToHex(tag_code,4));
+    if(tag_code == 0 || !dt.contains(tag)) {
+        return dt.at("dateformat").get<std::string>();
     }
+    // todo: change config format to have: default truncation format, and tag_code keyed formats so that this can be tested
+    return dt.at(tag).get<std::string>();
 }
