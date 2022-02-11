@@ -22,6 +22,8 @@ TEST(datetimetests, datetruncation){
     value = DateTruncation(defvalue, tcase3);
     std::cout << value << std::endl;
     ASSERT_EQ(value, "20000323");
-
+    value = DateTruncation(defvalue);
+    std::cout << value << std::endl;
+    ASSERT_EQ(value, "19990323");
 }
 

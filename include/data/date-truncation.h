@@ -1,5 +1,5 @@
 #pragma once
 #include <core.h>
 //date truncation function
-extern std::string DateTruncation(std::string value, const char* config = "YYYY0101");
+extern std::string DateTruncation(std::string value, const char* config = "YYYYMMDD");
 
