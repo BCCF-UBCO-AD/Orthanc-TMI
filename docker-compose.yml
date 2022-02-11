@@ -10,7 +10,7 @@ services:
       #  WARNING: FOR WSL USE THE FOLLOWING LINE INSTEAD:
       #- ~/docker/postgres/data:/var/lib/postgresql/data
       - ./docker/postgres/data:/var/lib/postgresql/data
-      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql # Create database for Orthanc
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql # Create databases for Orthanc and OrthancToolsJS
     environment:
       POSTGRES_PASSWORD: example
     networks:
@@ -53,6 +53,51 @@ services:
       - 8080:8080
     networks:
       - postgres-network
+
+  orthanctoolsjs:
+    image: salimkanoun/orthanctoolsjs
+    container_name: orthanctoolsjs
+    restart: unless-stopped
+    volumes:
+      - ./docker/orthanc/orthanctoolsjs:/OrthancToolsJs/data:Z
+    environment:
+      TZ: "America/Vancouver"
+      ORTHANC_ADDRESS: "http://orthanc"
+      ORTHANC_PORT: "8042"
+      ORTHANC_USERNAME: "orthanc"
+      ORTHANC_PASSWORD: "orthanc"
+      DOMAIN_PROTOCOL: "https"
+      DOMAIN_ADDRESS: "0e44be91-4285-440b-a132-c6580851eed7.pub.instances.scw.cloud"
+      REDIS_HOST: "redis"
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ""
+      DB_USERNAME: "postgres"
+      DB_PASSWORD: "example"
+      DB_HOST: "postgres"
+      DB_PORT: 5432
+      DB_NAME: orthanctoolsjs
+    networks:
+      - postgres-network
+
+  redis:
+    image: redis:alpine
+    networks:
+      - postgres-network
+
+  orthanctoolsjspacs:
+    image: brianzhouzc/orthanc-tmi-plugins:latest
+    ports: ["8043:8042"]
+    container_name: orthanctoolsjspacs
+    restart: unless-stopped
+    volumes:
+      - ./docker/orthanc/orthancpacs:/var/lib/orthanc/db:Z
+    networks:
+      - postgres-network
+    environment:
+      ORTHANC__NAME: "OrthancPacs"
+      ORTHANC__DICOM_MODALITIES_IN_DATABASE: "true"
+      ORTHANC__REGISTERED_USERS: |
+        {"orthanc": "orthanc"}
 
 networks:
   postgres-network:
