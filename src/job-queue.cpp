@@ -26,7 +26,7 @@ void JobQueue::Process() {
     std::unique_lock<std::mutex> wait_lock(wait_mtx);
     // so long as this stays true we're gonna keep looping
     while(keep_running.load()){
-        if(!has_work.load()){
+        while(!has_work.load()){
             cv.wait(wait_lock);
         }
         queue_lock.lock();
