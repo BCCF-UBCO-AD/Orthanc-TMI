@@ -14,5 +14,6 @@ TEST(hex, conversions) {
 }
 
 TEST(hex, mask_extraction) {
-    ASSERT_EQ(HexToDec(group),dec&GROUP_MASK);
+    ASSERT_EQ(dec&GROUP_MASK, HexToDec(group));
+    ASSERT_EQ(dec&GROUP_MASK, HexToDec(KeyToHex(key))&GROUP_MASK);
 }
