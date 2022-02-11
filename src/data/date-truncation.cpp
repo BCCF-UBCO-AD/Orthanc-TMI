@@ -2,31 +2,35 @@
 #include <string>
 #include <vector>
 #include "date-truncation.h"
-#include "nlohmann/json.hpp"
 using namespace std;
 
 int get_days_for_month(int month, int year);
 bool isleap(int year);
-string DateTruncation(const nlm::json &config, string value){
+string DateTruncation(string value, const char* config = nullptr){
     string year, month, day;
+    string year_config,month_config,day_config;
+
     // todo: change configuration format to key with tags so that different dates can be truncated easily
-    auto format = config.at("Dicom-DateTruncation").at("dateformat").get<vector<string>>();
 
     year = value.substr(0,4);
     month = value.substr(4,2);
     day = value.substr(6, 2);
 
-    if(!(format[0] == "YYYY")){
-        year = format[0];
+    year_config = basic_string(config).substr(0,4);
+    month_config = basic_string(config).substr(4,2);
+    day_config = basic_string(config).substr(6, 2);
+
+    if(!(year_config == "YYYY")){
+        year = year_config;
         value.erase(0, 4);
         value = year + value;
         return value;
     }
-    if (!(format[1] == "MM")){
-        if(!(format[2] == "DD")){
-            month = format[1];
-            if(get_days_for_month(stoi(year),stoi(month)) >= stoi(format[2])){
-                day = format[2];
+    if (!(month_config == "MM")){
+        if(!(day_config == "DD")){
+            month = month_config;
+            if(get_days_for_month(stoi(year),stoi(month)) >= stoi(day_config)){
+                day = day_config;
             }
             else{
                 return value;
@@ -35,14 +39,14 @@ string DateTruncation(const nlm::json &config, string value){
             value = year + month + day;
             return value;
         }
-        month = format[1];
+        month = month_config;
         value.erase(0, 6);
         value = year + month + value;
         return value;
     }
-    if(!(format[2] == "DD")){
-        if(get_days_for_month(stoi(month),stoi(year)) >= stoi(format[2])){
-            day = format[2];
+    if(!(day_config == "DD")){
+        if(get_days_for_month(stoi(month),stoi(year)) >= stoi(day_config)){
+            day = day_config;
         }
         else{
             return value;

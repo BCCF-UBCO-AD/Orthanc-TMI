@@ -4,22 +4,22 @@
 
 TEST(datetimetests, datetruncation){
     std::string defvalue = "19990323";
-    nlm::json tcase0 = R"({"Dicom-DateTruncation": {"dateformat": ["YYYY","MM","DD"]}})"_json;
-    nlm::json tcase1 = R"({"Dicom-DateTruncation": {"dateformat": ["YYYY","MM","10"]}})"_json;
-    nlm::json tcase2 = R"({"Dicom-DateTruncation": {"dateformat": ["YYYY","06","DD"]}})"_json;
-    nlm::json tcase3 = R"({"Dicom-DateTruncation": {"dateformat": ["2000","MM","DD"]}})"_json;
+    const char* tcase0 = "YYYYMMDD";
+    const char* tcase1 = "YYYYMM10";
+    const char* tcase2 = "YYYY06DD";
+    const char* tcase3 = "2000MMDD";
 
     std::string value;
-    value = DateTruncation(tcase0, defvalue);
+    value = DateTruncation(defvalue, tcase0);
     std::cout << value << std::endl;
     ASSERT_EQ(value, "19990323");
-    value = DateTruncation(tcase1, defvalue);
+    value = DateTruncation(defvalue, tcase1);
     std::cout << value << std::endl;
     ASSERT_EQ(value, "19990310");
-    value = DateTruncation(tcase2, defvalue);
+    value = DateTruncation(defvalue, tcase2);
     std::cout << value << std::endl;
     ASSERT_EQ(value, "19990623");
-    value = DateTruncation(tcase3, defvalue);
+    value = DateTruncation(defvalue, tcase3);
     std::cout << value << std::endl;
     ASSERT_EQ(value, "20000323");
 
