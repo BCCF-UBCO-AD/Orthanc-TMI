@@ -80,6 +80,8 @@ fabric.properties
 #Docker
 docker/orthanc/db/
 docker/postgres/data/
+docker/orthanc/orthanctoolsjs
+docker/orthanc/orthancpacs
 
 #submodules
 extern/
