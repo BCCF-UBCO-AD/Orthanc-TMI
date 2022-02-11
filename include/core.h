@@ -35,6 +35,7 @@ namespace globals {
         case VERBOSE_2: OrthancPluginLogInfo(globals::context, msg); break;         \
       }
     #else
+     #undef LOGGING_LEVEL
      #define LOGGING_LEVEL INFO
      #include <iostream>
      #define DEBUG_LOG(L,msg) if(L <= LOGGING_LEVEL) printf("%s\n",msg);
