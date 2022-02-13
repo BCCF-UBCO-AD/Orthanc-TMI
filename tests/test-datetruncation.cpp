@@ -10,19 +10,19 @@ TEST(datetimetests, datetruncation){
     const char* tcase3 = "2000MMDD";
 
     std::string value;
-    value = DateTruncation(defvalue, tcase0);
+    value = TruncateDate(defvalue, tcase0);
     std::cout << value << std::endl;
     ASSERT_EQ(value, "19990323");
-    value = DateTruncation(defvalue, tcase1);
+    value = TruncateDate(defvalue, tcase1);
     std::cout << value << std::endl;
     ASSERT_EQ(value, "19990310");
-    value = DateTruncation(defvalue, tcase2);
+    value = TruncateDate(defvalue, tcase2);
     std::cout << value << std::endl;
     ASSERT_EQ(value, "19990623");
-    value = DateTruncation(defvalue, tcase3);
+    value = TruncateDate(defvalue, tcase3);
     std::cout << value << std::endl;
     ASSERT_EQ(value, "20000323");
-    value = DateTruncation(defvalue);
+    value = TruncateDate(defvalue);
     std::cout << value << std::endl;
     ASSERT_EQ(value, "19990323");
 }

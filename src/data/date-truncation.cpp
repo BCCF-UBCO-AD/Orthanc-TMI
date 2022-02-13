@@ -6,15 +6,15 @@ using namespace std;
 
 int get_days_for_month(int month, int year);
 bool isleap(int year);
-string DateTruncation(string value, const char* config){
+string TruncateDate(string date, const char* config){
     string year, month, day;
     string year_config,month_config,day_config;
 
     // todo: change configuration format to key with tags so that different dates can be truncated easily
 
-    year = value.substr(0,4);
-    month = value.substr(4,2);
-    day = value.substr(6, 2);
+    year = date.substr(0, 4);
+    month = date.substr(4, 2);
+    day = date.substr(6, 2);
 
     year_config = basic_string(config).substr(0,4);
     month_config = basic_string(config).substr(4,2);
@@ -22,9 +22,9 @@ string DateTruncation(string value, const char* config){
 
     if(!(year_config == "YYYY")){
         year = year_config;
-        value.erase(0, 4);
-        value = year + value;
-        return value;
+        date.erase(0, 4);
+        date = year + date;
+        return date;
     }
     if (!(month_config == "MM")){
         if(!(day_config == "DD")){
@@ -33,29 +33,29 @@ string DateTruncation(string value, const char* config){
                 day = day_config;
             }
             else{
-                return value;
+                return date;
             }
-            value.erase(0,8);
-            value = year + month + day;
-            return value;
+            date.erase(0, 8);
+            date = year + month + day;
+            return date;
         }
         month = month_config;
-        value.erase(0, 6);
-        value = year + month + value;
-        return value;
+        date.erase(0, 6);
+        date = year + month + date;
+        return date;
     }
     if(!(day_config == "DD")){
         if(get_days_for_month(stoi(month),stoi(year)) >= stoi(day_config)){
             day = day_config;
         }
         else{
-            return value;
+            return date;
         }
-        value.erase(0,8);
-        value = year + month + day;
-        return value;
+        date.erase(0, 8);
+        date = year + month + day;
+        return date;
     }
-    return value;
+    return date;
 }
 
 int get_days_for_month(int month, int year){
