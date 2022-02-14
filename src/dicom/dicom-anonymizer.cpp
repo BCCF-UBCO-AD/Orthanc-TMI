@@ -12,7 +12,7 @@ bool DicomAnonymizer::Filter(uint64_t tag) {
 }
 
 bool DicomAnonymizer::Truncate(DicomElementView &view) {
-    return view.VR == "DA";
+    return view.VR == "DA" && view.value_length != 0;
 }
 
 bool DicomAnonymizer::BuildWork(DicomFile &file) {
