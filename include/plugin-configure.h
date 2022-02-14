@@ -1,14 +1,14 @@
 #pragma once
 #include <core.h>
-#include <dicom-filter.h>
+#include <dicom-anonymizer.h>
 
 class PluginConfigurer {
 private:
     static nlm::json config;
-    static DicomFilter filter;
+    static DicomAnonymizer filter;
 protected:
 public:
     static int Initialize();
-    static DicomFilter GetDicomFilter() { return {filter}; }
+    static DicomAnonymizer& GetDicomFilter() { return filter; }
     static std::string GetDateFormat(uint64_t tag_code = 0);
 };
