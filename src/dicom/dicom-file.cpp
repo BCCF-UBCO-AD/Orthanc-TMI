@@ -4,18 +4,6 @@
 #include <fstream>
 #include <iostream>
 
-DicomFile::DicomFile(const OrthancPluginDicomInstance* instance) {
-    this->instance = instance;
-    is_const = true;
-    data = OrthancPluginGetInstanceData(globals::context, instance);
-    size = OrthancPluginGetInstanceSize(globals::context, instance);
-    Parse();
-}
-
-DicomFile::DicomFile(void* data, size_t size) : DicomFile((const void*)data,size) {
-    is_const = false;
-}
-
 DicomFile::DicomFile(const void* data, size_t size) {
     this->data = data;
     this->size = size;
@@ -28,16 +16,15 @@ DicomFile::DicomFile(size_t size) {
 }
 
 DicomFile& DicomFile::operator=(DicomFile &&other) noexcept {
-    is_const = other.is_const;
-    if(other.is_const){
-        instance = other.instance;
-        data = other.data;
-    } else {
-        buffer = std::move(other.buffer);
-    }
+    instance = other.instance;
+    data = other.data;
+    buffer = std::move(other.buffer);
     size = other.size;
     is_valid = other.is_valid;
+    elements.clear();
     elements.swap(other.elements);
+    other.data = nullptr;
+    other.buffer.reset();
     return *this;
 }
 
