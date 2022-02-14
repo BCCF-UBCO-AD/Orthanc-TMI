@@ -4,6 +4,7 @@
 
 class DicomAnonymizer {
     friend class PluginConfigurer;
+    friend class TestAnonymizer;
 
 private:
     using idx = size_t;
@@ -18,7 +19,7 @@ protected:
     static bool Filter(tag_code tag);
     static bool Truncate(DicomElementView &view);
     bool BuildWork(DicomFile &file);
-public:
     DicomAnonymizer() = default;
+public:
     bool Anonymize(DicomFile &file);
 };

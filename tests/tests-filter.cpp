@@ -1,29 +1,59 @@
 #include <gtest/gtest.h>
-#include <storage-area.h>
-#include <dicom-filter.h>
+#include <plugin-configure.h>
+#include <dicom-anonymizer.h>
 #include <iostream>
 #include <fstream>
 #include <cstdio>
+
 #include "common.h"
 
-extern OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid);
+std::string static_config = "{\n"
+                            "  \"Dicom-DateTruncation\": {\n"
+                            "    \"default\": [\"YYYY\",\"01\",\"01\"]\n"
+                            "  },\n"
+                            "  \"Dicom-Filter\": {\n"
+                            "    \"blacklist\": [\n"
+                            "      \"0010\"\n"
+                            "    ],\n"
+                            "    \"whitelist\": [\n"
+                            "      \"0010,0030\"\n"
+                            "    ]\n"
+                            "  }\n"
+                            "}";
+
+class TestAnonymizer{
+    static bool CheckDate(DicomElementView &view){
+        std::string date = std::string(std::string_view(view.GetValueHead(),view.value_length));
+    }
+public:
+    static bool CheckOutput(const DicomFile &dicom){
+        auto &blacklist = DicomAnonymizer::blacklist;
+        auto &whitelist = DicomAnonymizer::whitelist;
+        for (const auto &[tag_code, range]: dicom.elements) {
+            if (!whitelist.contains(tag_code)) {
+                if(blacklist.contains(tag_code) || blacklist.contains(tag_code&GROUP_MASK)){
+                    return false;
+                }
+            } else {
+                auto &[start,end] = range;
+                DicomElementView view(dicom.data, start);
+                if (!CheckDate(view)){
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+};
 
 TEST(filtering, store_filtered) {
-    fs::path config_path(GetProjRoot().string() + "/docker/orthanc/orthanc.json");
-    nlm::json config;
-    std::cout << "Loading config.." << std::endl;
-    if(fs::exists(config_path)) {
-        std::ifstream file(config_path);
-        ASSERT_TRUE(file.is_open());
-        file >> config;
-        ASSERT_TRUE(file.good());
-        file.close();
-    } else {
-        ASSERT_TRUE(false);
-    }
-    std::cout << "Configuring DicomFilter.." << std::endl;
-    DicomFilter filter = DicomFilter::ParseConfig(config);
-    std::cout << " configured" << std::endl;
+    //fs::path config_path(GetProjRoot().string() + "/docker/orthanc/orthanc.json");
+    nlm::json config = nlm::json::parse(static_config.c_str());
+    std::cout << "Configuring.." << std::endl;
+    PluginConfigurer::UnitTestInitialize(config);
+    DicomAnonymizer &anonymizer = PluginConfigurer::GetDicomFilter();
+    std::cout << " configured!" << std::endl;
+
     size_t files_passed = 0;
     size_t files_total = 0;
     auto test = [&](const fs::path &path){
@@ -44,13 +74,15 @@ TEST(filtering, store_filtered) {
         sprintf(msg,"%s file\n",(dicom.IsValid() ? "valid" : "invalid"));
         DEBUG_LOG(1,msg);
 
-        auto [filtered_buffer,filtered_size] = filter.ApplyFilter(dicom); //memcpy ran til end of file(buffer)
-        DicomFile filtered_dicom(filtered_buffer.get(),filtered_size);
-        ASSERT_TRUE(filtered_dicom.IsValid()); //first sign the memcpy didn't work
-        sprintf(msg,"Filtering: %s\n", (filtered_dicom.IsValid() ? "passed" : "failed"));
+        anonymizer.Anonymize(dicom); //memcpy ran til end of file(buffer)
+        sprintf(msg,"Filtering: %s\n", (dicom.IsValid() ? "passed" : "failed"));
         DEBUG_LOG(1,msg);
+        ASSERT_TRUE(dicom.IsValid()); //first sign the memcpy didn't work
 
-        filter.reset();
+        /*todo:
+         * (1) check for blacklist && !whitelist tags
+         * (2) check DOB truncation
+         */
         files_passed++;
     };
     //test(GetProjRoot().string() + "/samples/0002.DCM");

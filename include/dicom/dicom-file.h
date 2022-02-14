@@ -20,6 +20,7 @@ using Range = std::pair<size_t,size_t>;
  */
 class DicomFile{
     friend class DicomAnonymizer;
+    friend class TestAnonymizer;
     using tag = uint64_t;
 private:
     std::unique_ptr<char[]> buffer;
