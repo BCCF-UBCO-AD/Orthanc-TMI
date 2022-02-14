@@ -1,6 +1,7 @@
 #pragma once
 #include <dicom-file.h>
 #include <dicom-element-view.h>
+#include <dicom-tag.h>
 
 class DicomAnonymizer {
     friend class PluginConfigurer;
@@ -8,7 +9,6 @@ class DicomAnonymizer {
 
 private:
     using idx = size_t;
-    using tag_code = uint64_t;
     static std::unordered_set<tag_code> blacklist;
     static std::unordered_set<tag_code> whitelist;
     std::unordered_map<idx, std::string> dates;

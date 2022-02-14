@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #define GROUP_MASK ((1<<16)-1)
+using tag_code = uint64_t;
 
 // convert decimal to hex, and pad the string to size `2*bytes`
 extern std::string DecToHex(uint64_t value, uint8_t bytes = 1);
