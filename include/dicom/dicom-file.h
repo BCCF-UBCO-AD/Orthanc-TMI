@@ -33,6 +33,7 @@ private:
     bool is_const = true;
 protected:
     explicit DicomFile(size_t size); // Allocate a buffer and create an empty DicomFile
+    void MakeHardlinks(const fs::path &master_path);
 public:
     explicit DicomFile(const OrthancPluginDicomInstance* instance);
     DicomFile(void* data, size_t size);

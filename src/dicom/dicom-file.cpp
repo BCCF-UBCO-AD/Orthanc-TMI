@@ -108,13 +108,16 @@ OrthancPluginErrorCode DicomFile::Write(const fs::path &master_path) {
         // Set the permissions on the file we saved
         fs::file_status master_status = fs::status(master_path);
         master_status.permissions(globals::file_permissions);
+        MakeHardlinks(master_path);
         return OrthancPluginErrorCode_Success;
     }
     DEBUG_LOG(PLUGIN_ERRORS, "DicomFile: invalid file, cannot write");
     return OrthancPluginErrorCode_CorruptedFile;
 }
 
-void MakeHardlinks(const fs::path storage_root, const fs::path master_path, const char* uuid){
+void DicomFile::MakeHardlinks(const fs::path &master_path){
+    const fs::path storage_root(globals::storage_location);
+    std::string uuid = master_path.filename();
     // create hard links
     auto hardlink_to = [&](std::string groupby, std::string group) {
         fs::path link = fs::path(storage_root)
