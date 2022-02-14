@@ -19,7 +19,6 @@ using Range = std::pair<size_t,size_t>;
  *   - to write to the dicom file to the default location (this may come in handy writing an update function to re-filter existing files with new specifications)
  */
 class DicomFile{
-    friend class DicomFilter;
     friend class DicomAnonymizer;
     using tag = uint64_t;
 private:
