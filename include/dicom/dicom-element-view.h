@@ -18,19 +18,20 @@
 class DicomElementView {
     // below DicomElement locates and aliases data within the dicom's data buffer, then calculates appropriate length/size values
 public:
-    const char *const buffer;
-    const char *const hex_buffer;
+    const char* const buffer;
+    const char* const hex_buffer;
     const uint64_t idx;
-    const uint32_t &tag = *(uint32_t *) (buffer + idx);
-    const uint16_t &group = *(uint16_t *) (buffer + idx);
-    const uint16_t &element = *(uint16_t *) (buffer + idx + 2);;
+    const uint32_t &tag = *(uint32_t*) (buffer + idx);
+    const uint16_t &group = *(uint16_t*) (buffer + idx);
+    const uint16_t &element = *(uint16_t*) (buffer + idx + 2);;
     const std::string VR = std::string(std::string_view(buffer + idx + 4, 2));
     const uint64_t value_offset = CalcValueOffset();
     const uint32_t value_length = CalcValueLength();
     const uint64_t size = CalcElementSize();
+    //const std::string value = std::string(std::string_view(buffer + idx + value_offset, value_length));
 
-    DicomElementView(const void *buffer, uint64_t index, const char *hex_buffer = nullptr)
-            : buffer((const char*)buffer),
+    DicomElementView(const void* buffer, uint64_t index, const char* hex_buffer = nullptr)
+            : buffer((const char*) buffer),
               hex_buffer(hex_buffer),
               idx(index) {}
 
@@ -40,7 +41,6 @@ public:
     uint64_t GetNextIndex() const { return idx + size; }
     uint64_t GetValueIndex() const { return idx + value_offset; }
     const char* GetValueHead() const { return buffer + idx + value_offset; }
-
 protected:
     bool require_length = false;
     bool has_reserved = false;
