@@ -9,7 +9,7 @@
 
 std::string static_config = "{\n"
                             "  \"Dicom-DateTruncation\": {\n"
-                            "    \"default\": [\"YYYY\",\"01\",\"01\"]\n"
+                            "    \"default\": \"YYYY0101\"\n"
                             "  },\n"
                             "  \"Dicom-Filter\": {\n"
                             "    \"blacklist\": [\n"
@@ -47,7 +47,7 @@ public:
     }
 };
 
-TEST(filtering, store_filtered) {
+TEST(filtering, anonymize) {
     //fs::path config_path(GetProjRoot().string() + "/docker/orthanc/orthanc.json");
     nlm::json config = nlm::json::parse(static_config.c_str());
     std::cout << "Configuring.." << std::endl;
@@ -62,9 +62,10 @@ TEST(filtering, store_filtered) {
         files_total++;
         auto size = fs::file_size(path);
         std::unique_ptr<char[]> buffer(new char[size]);
+        std::cout << (uint64_t)buffer.get() << std::endl;
 
         sprintf(msg,"Loading %s\n", path.c_str());
-        DEBUG_LOG(1,msg);
+        DEBUG_LOG(0,msg);
         std::ifstream file(path, std::ios::binary | std::ios::in);
         ASSERT_TRUE(file.is_open());
         file.read(buffer.get(),size);
@@ -75,16 +76,20 @@ TEST(filtering, store_filtered) {
         sprintf(msg,"%s file\n",(dicom.IsValid() ? "valid" : "invalid"));
         DEBUG_LOG(1,msg);
 
-        anonymizer.Anonymize(dicom); //memcpy ran til end of file(buffer)
+        ASSERT_TRUE(anonymizer.Anonymize(dicom));
         sprintf(msg,"Filtering: %s\n", (dicom.IsValid() ? "passed" : "failed"));
         DEBUG_LOG(1,msg);
         ASSERT_TRUE(dicom.IsValid()); //first sign the memcpy didn't work
 
+        ASSERT_TRUE(TestAnonymizer::CheckOutput(dicom));
         /*todo:
          * (1) check for blacklist && !whitelist tags
          * (2) check DOB truncation
          */
         files_passed++;
+        DEBUG_LOG(2, "releasing first buffer");
+        std::cout << (uint64_t)buffer.get() << std::endl;
+        //delete[] buffer;
     };
     //test(GetProjRoot().string() + "/samples/0002.DCM");
     TestWithDicomFiles(test);
