@@ -2,21 +2,50 @@
 #include <dicom-element-view.h>
 #include <vector>
 #include <fstream>
+#include <iostream>
 
-DicomFile::DicomFile(const OrthancPluginDicomInstance *instance) {
+DicomFile::DicomFile(const OrthancPluginDicomInstance* instance) {
     this->instance = instance;
+    is_const = true;
     data = OrthancPluginGetInstanceData(globals::context, instance);
     size = OrthancPluginGetInstanceSize(globals::context, instance);
-    parse_file();
+    Parse();
 }
 
-DicomFile::DicomFile(const void *data, size_t size) {
+DicomFile::DicomFile(void* data, size_t size) : DicomFile((const void*)data,size) {
+    is_const = false;
+}
+
+DicomFile::DicomFile(const void* data, size_t size) {
     this->data = data;
     this->size = size;
-    parse_file();
+    Parse();
 }
 
-bool DicomFile::parse_file() {
+DicomFile::DicomFile(size_t size) {
+    buffer = std::unique_ptr<char[]>(new char[size]);
+    is_const = false;
+}
+
+DicomFile& DicomFile::operator=(DicomFile &&other) noexcept {
+    is_const = other.is_const;
+    if(other.is_const){
+        instance = other.instance;
+        data = other.data;
+    } else {
+        buffer = std::move(other.buffer);
+    }
+    size = other.size;
+    is_valid = other.is_valid;
+    elements.swap(other.elements);
+    return *this;
+}
+
+bool DicomFile::Parse(void* data, size_t size) {
+    return DicomFile(data,size).IsValid();
+}
+
+bool DicomFile::Parse() {
     char msg_buffer[256] = {0};
     const char* readable_buffer = (const char*)data;
     size_t preamble = 128;
@@ -64,12 +93,51 @@ bool DicomFile::parse_file() {
     return is_valid;
 }
 
-void DicomFile::Write(const fs::path &master_path) {
-    char msg[256] = {0};
-    sprintf(msg, "DicomFile: writing to %s", master_path.c_str());
-    DEBUG_LOG(0,msg);
-    std::fstream file(master_path, std::ios::binary | std::ios::out);
-    file.write((const char*)data,size);
-    file.close();
-    DEBUG_LOG(1,"DicomFile: write complete");
+OrthancPluginErrorCode DicomFile::Write(const fs::path &master_path) {
+    if(is_valid) {
+        char msg[256] = {0};
+        sprintf(msg, "DicomFile: writing to %s", master_path.c_str());
+        DEBUG_LOG(0, msg);
+        std::fstream file(master_path, std::ios::binary | std::ios::out);
+        file.write((const char*) data, size);
+        file.close();
+        DEBUG_LOG(1, "DicomFile: write complete");
+        if (!file.good()) {
+            return OrthancPluginErrorCode_FileStorageCannotWrite;
+        }
+        // Set the permissions on the file we saved
+        fs::file_status master_status = fs::status(master_path);
+        master_status.permissions(globals::file_permissions);
+        return OrthancPluginErrorCode_Success;
+    }
+    DEBUG_LOG(PLUGIN_ERRORS, "DicomFile: invalid file, cannot write");
+    return OrthancPluginErrorCode_CorruptedFile;
+}
+
+void MakeHardlinks(const fs::path storage_root, const fs::path master_path, const char* uuid){
+    // create hard links
+    auto hardlink_to = [&](std::string groupby, std::string group) {
+        fs::path link = fs::path(storage_root)
+                .append(groupby)
+                .append(group)
+                .append(uuid)
+                .append(".DCM");
+        fs::create_directories(link);
+        fs::create_hard_link(master_path, link);
+        fs::permissions(link, globals::file_permissions);
+    };
+    // todo: integrate json settings to enable/disable individual hard links
+    // todo: replace placeholders
+    std::string DOB_placeholder;
+    std::string PID_placeholder;
+    std::string SD_placeholder;
+    try {
+        hardlink_to("/by-dob/", DOB_placeholder);
+        hardlink_to("/by-patient-id/", PID_placeholder);
+        //todo: also sort into actual/individual studies
+        hardlink_to("/by-study-date/", SD_placeholder);
+    } catch (const std::exception &e) {
+        DEBUG_LOG(PLUGIN_ERRORS,"We failed to create hard links. They may already exist. OR the placeholders still aren't replaced.")
+        std::cerr << e.what() << std::endl;
+    }
 }

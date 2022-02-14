@@ -20,19 +20,29 @@ using Range = std::pair<size_t,size_t>;
  */
 class DicomFile{
     friend class DicomFilter;
-private:
+    friend class DicomAnonymizer;
     using tag = uint64_t;
+private:
+    std::unique_ptr<char[]> buffer;
     const OrthancPluginDicomInstance* instance = nullptr;
-    const void* data;
-    size_t size;
+    const void* data = nullptr;
+    size_t size = 0;
+
     std::vector<std::tuple<tag, Range>> elements;
     bool is_valid = true;
+    bool is_const = true;
 protected:
-    bool parse_file();
+    explicit DicomFile(size_t size); // Allocate a buffer and create an empty DicomFile
 public:
-    DicomFile(const OrthancPluginDicomInstance* instance);
+    explicit DicomFile(const OrthancPluginDicomInstance* instance);
+    DicomFile(void* data, size_t size);
     DicomFile(const void* data, size_t size);
-    //std::tuple<nlm::json,std::unique_ptr<char[]>,size_t> ApplyFilter(const DicomFilter &filter);
+    DicomFile()= default;
+    // todo: this should be tested
+    DicomFile& operator=(DicomFile &&other) noexcept;
+
+    static bool Parse(void* data, size_t size);
+    bool Parse();
     bool IsValid() const { return is_valid; }
-    void Write(const fs::path &master_path);
+    OrthancPluginErrorCode Write(const fs::path &master_path);
 };
