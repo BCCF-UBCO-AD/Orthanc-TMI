@@ -1,11 +1,11 @@
+#include "common.h"
 #include <gtest/gtest.h>
 #include <plugin-configure.h>
 #include <dicom-anonymizer.h>
 #include <iostream>
 #include <fstream>
-#include <cstdio>
 
-#include "common.h"
+#include <cstdio>
 
 std::string static_config = "{\n"
                             "  \"Dicom-DateTruncation\": {\n"

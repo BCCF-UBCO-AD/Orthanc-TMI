@@ -1,5 +1,5 @@
-#include "date-truncation.h"
 #include "common.h"
+#include "date-truncation.h"
 #include "gtest/gtest.h"
 
 TEST(datetimetests, datetruncation){

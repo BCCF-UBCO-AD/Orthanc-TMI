@@ -1,10 +1,10 @@
-#include <gtest/gtest.h>
 #define DEBUG_
+#include "common.h"
+#include <gtest/gtest.h>
 #include <dicom-file.h>
 #include <filesystem>
 #include <functional>
 #include <fstream>
-#include "common.h"
 
 namespace fs = std::filesystem;
 
