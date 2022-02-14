@@ -15,7 +15,7 @@
     "IndexConnectionsCount": 2
   },
   "Dicom-DateTruncation": {
-    "dateformat": ["YYYY","MM","1"]
+    "default": "YYYYMM01"
   },
   "Dicom-Filter": {
     "blacklist": [
