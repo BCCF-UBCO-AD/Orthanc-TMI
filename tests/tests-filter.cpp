@@ -24,6 +24,7 @@ std::string static_config = "{\n"
 class TestAnonymizer{
     static bool CheckDate(DicomElementView &view){
         std::string date = std::string(std::string_view(view.GetValueHead(),view.value_length));
+        return date.find("0101") != std::string::npos;
     }
 public:
     static bool CheckOutput(const DicomFile &dicom){
@@ -37,7 +38,7 @@ public:
             } else {
                 auto &[start,end] = range;
                 DicomElementView view(dicom.data, start);
-                if (!CheckDate(view)){
+                if (view.VR == "DA" && !CheckDate(view)){
                     return false;
                 }
             }
