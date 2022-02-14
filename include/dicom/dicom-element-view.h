@@ -29,8 +29,8 @@ public:
     const uint32_t value_length = CalcValueLength();
     const uint64_t size = CalcElementSize();
 
-    DicomElementView(const char *buffer, uint64_t index, const char *hex_buffer = nullptr)
-            : buffer(buffer),
+    DicomElementView(const void *buffer, uint64_t index, const char *hex_buffer = nullptr)
+            : buffer((const char*)buffer),
               hex_buffer(hex_buffer),
               idx(index) {}
 
@@ -38,6 +38,7 @@ public:
     std::string HexGroup() const { return DecToHex(group, 2); }
     std::string HexElement() const { return DecToHex(element, 2); }
     uint64_t GetNextIndex() const { return idx + size; }
+    uint64_t GetValueIndex() const { return idx + value_offset; }
     const char* GetValueHead() const { return buffer + idx + value_offset; }
 
 protected:
