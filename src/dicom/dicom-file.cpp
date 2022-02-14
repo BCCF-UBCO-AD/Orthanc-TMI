@@ -11,8 +11,9 @@ DicomFile::DicomFile(const void* data, size_t size) {
 }
 
 DicomFile::DicomFile(size_t size) {
+    this->size = size;
     buffer = std::unique_ptr<char[]>(new char[size]);
-    is_const = false;
+    data = buffer.get();
 }
 
 DicomFile& DicomFile::operator=(DicomFile &&other) noexcept {
