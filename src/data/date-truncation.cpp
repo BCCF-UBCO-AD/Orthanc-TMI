@@ -7,6 +7,9 @@ using namespace std;
 int get_days_for_month(int month, int year);
 bool isleap(int year);
 string TruncateDate(string date, const char* config){
+    if(date.length() != 8){
+        return date;
+    }
     string year, month, day;
     string year_config,month_config,day_config;
 
