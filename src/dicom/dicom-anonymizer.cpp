@@ -29,6 +29,8 @@ void DicomAnonymizer::debug() {
 }
 
 bool DicomAnonymizer::BuildWork(DicomFile &file) {
+    static int count = 0;
+    ++count;
     std::vector<Range> discard_list;
     // iterate the DICOM data elements (file.elements is in the same order as the binary file/data)
     for (const auto &[tag_code, range]: file.elements) {
@@ -39,9 +41,9 @@ bool DicomAnonymizer::BuildWork(DicomFile &file) {
             discard_list.push_back(range);
         } else if (DicomElementView view(file.data, start); Truncate(view)) {
             // truncate date
-            std::string date(std::string_view(view.GetValueHead(), view.value_length));
+            /*std::string date(std::string_view(view.GetValueHead(), view.value_length));
             date = TruncateDate(date, PluginConfigurer::GetDateFormat(tag_code).c_str());
-            dates.emplace(view.GetValueIndex(), date);
+            dates.emplace(view.GetValueIndex(), date);*/
         }
     }
     // if containers are empty there is no work
@@ -88,7 +90,9 @@ bool DicomAnonymizer::Anonymize(DicomFile &file) {
             size_t copy_size = end - start;
             if (copy_size != 0) {
                 // copy from file.data at wherever the loop tells us to the new buffer at the current index in it
-                std::memcpy(output.buffer.get() + index, (char*) file.data + start, copy_size);
+                void* dst = output.buffer.get() + index;
+                void* src = ((char*)file.data) + start;
+                std::memcpy(dst, src, copy_size);
                 sprintf(msg, "i: %ld, range.1: %ld, range.2: %ld, copy_size: %ld", index, start, end, copy_size);
                 DEBUG_LOG(1, msg);
                 // update the new buffer's index (everything left of this index is the copied data so far)
@@ -96,10 +100,11 @@ bool DicomAnonymizer::Anonymize(DicomFile &file) {
             }
         }
         // truncate dates
-        for (const auto &[index, date]: dates) {
+        /*for (const auto &[index, date]: dates) {
             // rewrite the appropriate part of the buffer
-            std::memcpy(output.buffer.get() + index, date.c_str(), date.length());
-        }
+            void* dst = output.buffer.get() + index;
+            std::memcpy(dst, date.c_str(), date.length());
+        }*/
         // check the filtered output is valid
         output.Parse();
         if (output.IsValid()) {
@@ -149,7 +154,7 @@ int DicomAnonymizer::Configure(const nlohmann::json &config) {
                     DEBUG_LOG(PLUGIN_ERRORS,"invalid entry in Dicom-Filter whitelist (must be 8 digits eg. '0017,0010')");
                 }
             }
-            for (auto &[key,value] : config["Dicom-TruncateDate"].items()) {
+            for (auto &[key,value] : config["Dicom-DateTruncation"].items()) {
                 // we want dates configured to truncate to not be accidentally discarded, so we add them to the whitelist
                 if (key.length() == 9 && key.find(',') != std::string::npos) {
                     whitelist.emplace(HexToDec(KeyToHex(value)));
