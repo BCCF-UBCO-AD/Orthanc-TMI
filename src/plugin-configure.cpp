@@ -16,17 +16,17 @@ int PluginConfigurer::Initialize() {
             DEBUG_LOG(PLUGIN_ERRORS, "Configuration json does not contain a StorageDirectory field.");
             return -1;
         }
-        DicomAnonymizer::Configure(config);
     } catch (const std::exception &e) {
         std::cerr << e.what() << std::endl;
         return -1;
     }
-    return 0;
+    return DicomAnonymizer::Configure(config);
 }
 
 void PluginConfigurer::UnitTestInitialize(nlm::json &cfg) {
+    DicomAnonymizer::Configure(cfg);
+    config = cfg;
     try {
-        config = cfg;
         if (cfg["StorageDirectory"].is_string()) {
             globals::storage_location = cfg["StorageDirectory"].get<std::string>();
             fs::create_directories(globals::storage_location);
@@ -35,7 +35,6 @@ void PluginConfigurer::UnitTestInitialize(nlm::json &cfg) {
             DEBUG_LOG(PLUGIN_ERRORS, "Configuration json does not contain a StorageDirectory field.");
             return;
         }
-        DicomAnonymizer::Configure(cfg);
     } catch (const std::exception &e) {
         std::cerr << e.what() << std::endl;
     }
