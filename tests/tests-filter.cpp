@@ -53,6 +53,7 @@ TEST(filtering, anonymize) {
     std::cout << "Configuring.." << std::endl;
     PluginConfigurer::UnitTestInitialize(config);
     DicomAnonymizer &anonymizer = PluginConfigurer::GetDicomFilter();
+    anonymizer.debug();
     std::cout << " configured!" << std::endl;
 
     size_t files_passed = 0;

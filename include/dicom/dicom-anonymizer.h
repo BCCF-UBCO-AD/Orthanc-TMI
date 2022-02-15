@@ -22,4 +22,5 @@ protected:
     DicomAnonymizer() = default;
 public:
     bool Anonymize(DicomFile &file);
+    static void debug();
 };

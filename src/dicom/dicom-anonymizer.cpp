@@ -15,6 +15,19 @@ bool DicomAnonymizer::Truncate(DicomElementView &view) {
     return view.VR == "DA" && view.value_length != 0;
 }
 
+void DicomAnonymizer::debug() {
+    std::cout << "blacklist: " << std::endl;
+    for(uint64_t tag_code : blacklist){
+        auto hex = DecToHex(tag_code);
+        std::cout << (hex.length() > 4 ? HexToKey(hex) : hex) << std::endl;
+    }
+    std::cout << "whitelist: " << std::endl;
+    for(uint64_t tag_code : whitelist){
+        auto hex = DecToHex(tag_code);
+        std::cout << (hex.length() > 4 ? HexToKey(hex) : hex) << std::endl;
+    }
+}
+
 bool DicomAnonymizer::BuildWork(DicomFile &file) {
     std::vector<Range> discard_list;
     // iterate the DICOM data elements (file.elements is in the same order as the binary file/data)
