@@ -37,7 +37,7 @@ public:
     DicomFile(const void* data, size_t size);
     DicomFile()= default;
     // todo: this should be tested
-    DicomFile& operator=(DicomFile &&other) noexcept;
+    void swap(DicomFile &other);
 
     static bool Parse(void* data, size_t size);
     bool Parse();

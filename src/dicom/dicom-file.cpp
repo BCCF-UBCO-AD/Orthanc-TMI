@@ -16,17 +16,13 @@ DicomFile::DicomFile(size_t size) {
     data = buffer.get();
 }
 
-DicomFile& DicomFile::operator=(DicomFile &&other) noexcept {
-    instance = other.instance;
-    data = other.data;
-    buffer = std::move(other.buffer);
-    size = other.size;
-    is_valid = other.is_valid;
-    elements.clear();
-    elements.swap(other.elements);
-    other.data = nullptr;
-    other.buffer.reset();
-    return *this;
+void DicomFile::swap(DicomFile &other) {
+    std::swap(instance,other.instance);
+    std::swap(data,other.data);
+    std::swap(size,other.size);
+    std::swap(is_valid,other.is_valid);
+    std::swap(buffer,other.buffer);
+    std::swap(elements,other.elements);
 }
 
 bool DicomFile::Parse(void* data, size_t size) {
@@ -128,7 +124,7 @@ void DicomFile::MakeHardlinks(const fs::path &master_path){
         //todo: also sort into actual/individual studies
         hardlink_to("/by-study-date/", SD_placeholder);
     } catch (const std::exception &e) {
-        DEBUG_LOG(PLUGIN_ERRORS,"We failed to create hard links. They may already exist. OR the placeholders still aren't replaced.")
+        DEBUG_LOG(PLUGIN_ERRORS,"We failed to create hard links. They may already exist. OR the placeholders still aren't replaced.");
         std::cerr << e.what() << std::endl;
     }
 }
