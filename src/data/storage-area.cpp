@@ -65,7 +65,8 @@ OrthancPluginErrorCode StorageCreateCallback(const char *uuid,
     switch (type) {
         case OrthancPluginContentType_Dicom: {
             DicomFile file(content, size);
-            if (PluginConfigurer::GetDicomFilter().Anonymize(file)) {
+            DicomFile filtered = PluginConfigurer::GetDicomFilter().Anonymize(file);
+            if (filtered.IsValid()) {
                 fs::create_directories(path.parent_path());
                 return file.Write(path);
             }
