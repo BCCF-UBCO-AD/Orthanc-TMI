@@ -61,10 +61,11 @@ TEST(filtering, anonymize) {
     auto test = [&](const fs::path &path){
         char msg[1024] = {0};
         files_total++;
+        // Allocate buffer
         auto size = fs::file_size(path);
-        std::unique_ptr<char[]> buffer(new char[size]);
-        std::cout << (uint64_t)buffer.get() << std::endl;
+        std::shared_ptr<char[]> buffer(new char[size]);
 
+        // Load file into buffer
         sprintf(msg,"Loading %s\n", path.c_str());
         DEBUG_LOG(0,msg);
         std::ifstream file(path, std::ios::binary | std::ios::in);
@@ -72,25 +73,19 @@ TEST(filtering, anonymize) {
         file.read(buffer.get(),size);
         file.close();
         ASSERT_TRUE(file.good());
-        DicomFile dicom(buffer.get(), size); // valid
-        ASSERT_TRUE(dicom.IsValid()); // pass
-        sprintf(msg,"%s file\n",(dicom.IsValid() ? "valid" : "invalid"));
-        DEBUG_LOG(1,msg);
 
-        ASSERT_TRUE(anonymizer.Anonymize(dicom));
-        sprintf(msg,"Filtering: %s\n", (dicom.IsValid() ? "passed" : "failed"));
-        DEBUG_LOG(1,msg);
-        ASSERT_TRUE(dicom.IsValid()); //first sign the memcpy didn't work
+        // Parse file
+        DicomFile dicom(buffer, size);
+        ASSERT_TRUE(dicom.IsValid());
 
-        ASSERT_TRUE(TestAnonymizer::CheckOutput(dicom));
-        /*todo:
-         * (1) check for blacklist && !whitelist tags
-         * (2) check DOB truncation
-         */
+        // Anonymize file
+        DicomFile filtered = anonymizer.Anonymize(dicom);
+        ASSERT_TRUE(filtered.IsValid());
+
+        // Verify result
+        ASSERT_TRUE(TestAnonymizer::CheckOutput(filtered));
+
         files_passed++;
-        DEBUG_LOG(2, "releasing first buffer");
-        std::cout << (uint64_t)buffer.get() << std::endl;
-        //delete[] buffer;
     };
     //test(GetProjRoot().string() + "/samples/0002.DCM");
     TestWithDicomFiles(test);
