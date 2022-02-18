@@ -3,12 +3,11 @@
 #include <pqxx/field.hxx>
 #include <db-interface.h>
 #include "common.h"
-pqxx::connection c{"postgresql://postgres:example@localhost:5432"};
-
 
 
 
 TEST(postgrsql, basicsqltest){
+    pqxx::connection c{"postgresql://postgres:example@localhost:5432"};
     pqxx::work txn{c};
     txn.exec0("CREATE TABLE IF NOT EXISTS public.team (id int, name varchar, age int, title varchar(4));");
     pqxx::result r{txn.exec("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema='public' AND table_name='team');")};
