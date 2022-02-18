@@ -21,9 +21,11 @@ public:
     const char* const buffer;
     const char* const hex_buffer;
     const uint64_t idx;
-    const uint32_t &tag = *(uint32_t*) (buffer + idx);
-    const uint16_t &group = *(uint16_t*) (buffer + idx);
-    const uint16_t &element = *(uint16_t*) (buffer + idx + 2);;
+    // these are apparently UB, according to the experts on TPH (discord) (ie. `*(uint32_t*) (buffer + idx);`)
+    const uint32_t tag = ReadTag();
+    const uint16_t group = tag&GROUP_MASK;
+    const uint16_t element = tag-group;
+    // end of UB, hopefully
     const std::string VR = std::string(std::string_view(buffer + idx + 4, 2));
     const uint64_t value_offset = CalcValueOffset();
     const uint32_t value_length = CalcValueLength();
@@ -48,4 +50,5 @@ protected:
     uint64_t CalcValueOffset();
     uint32_t CalcValueLength();
     uint64_t CalcElementSize();
+    uint32_t ReadTag();
 };
