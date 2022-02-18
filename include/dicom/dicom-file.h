@@ -1,6 +1,5 @@
 #pragma once
 #include <core.h>
-//#include <dicom-filter.h>
 #include <unordered_map>
 
 // an alias for a range as a std::pair
@@ -23,17 +22,16 @@ class DicomFile{
     friend class TestAnonymizer;
     using tag = uint64_t;
 private:
-    std::unique_ptr<char[]> buffer;
-    const OrthancPluginDicomInstance* instance = nullptr;
+    std::shared_ptr<char[]> buffer;
     const void* data = nullptr;
     size_t size = 0;
 
     std::vector<std::tuple<tag, Range>> elements;
     bool is_valid = true;
 protected:
-    explicit DicomFile(size_t size); // Allocate a buffer and create an empty DicomFile
     void MakeHardlinks(const fs::path &master_path);
 public:
+    explicit DicomFile(std::shared_ptr<char[]> buffer, size_t size);
     DicomFile(const void* data, size_t size);
     DicomFile()= default;
     // todo: this should be tested

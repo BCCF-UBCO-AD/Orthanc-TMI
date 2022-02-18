@@ -4,20 +4,23 @@
 #include <fstream>
 #include <iostream>
 
-DicomFile::DicomFile(const void* data, size_t size) {
-    this->data = data;
+DicomFile::DicomFile(std::shared_ptr<char[]> buffer, size_t size) {
     this->size = size;
+    this->buffer = buffer;
+    data = this->buffer.get();
+    elements.clear();
     Parse();
 }
 
-DicomFile::DicomFile(size_t size) {
+DicomFile::DicomFile(const void* data, size_t size) {
+    this->data = data;
     this->size = size;
-    buffer = std::unique_ptr<char[]>(new char[size]);
-    data = buffer.get();
+    elements.clear();
+    buffer.reset();
+    Parse();
 }
 
 void DicomFile::swap(DicomFile &other) {
-    std::swap(instance,other.instance);
     std::swap(data,other.data);
     std::swap(size,other.size);
     std::swap(is_valid,other.is_valid);
@@ -54,11 +57,12 @@ bool DicomFile::Parse() {
         // parse next element
         DicomElementView element(readable_buffer, i);
         // print element info
-        sprintf(msg_buffer,"[%s] (%s,%s)->(%s)\n idx: %zu, next: %zu, size: %zu, value offset: %zu, length: %d",
+        std::string key = HexToKey(DecToHex(element.tag,4));
+        const char* kc = key.c_str();
+        sprintf(msg_buffer,"[%s] (%s)->(%d)\n idx: %zu, next: %zu, size: %zu, value offset: %zu, length: %d",
                 element.VR.c_str(),
-                element.HexGroup().c_str(),
-                element.HexElement().c_str(),
-                element.HexTag().c_str(),
+                kc,
+                element.tag,
                 element.idx,
                 element.GetNextIndex(),
                 element.size,
