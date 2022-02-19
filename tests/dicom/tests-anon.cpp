@@ -1,7 +1,7 @@
-#include "common.h"
+#include "../common.h"
 #include <gtest/gtest.h>
-#include <plugin-configure.h>
-#include <dicom-anonymizer.h>
+#include "plugin-configure.h"
+#include "dicom/dicom-anonymizer.h"
 #include <iostream>
 #include <fstream>
 
@@ -47,7 +47,7 @@ public:
     }
 };
 
-TEST(filtering, anonymize) {
+TEST(dicom, anonymize) {
     //fs::path config_path(GetProjRoot().string() + "/docker/orthanc/orthanc.json");
     nlm::json config = nlm::json::parse(static_config.c_str());
     std::cout << "Configuring.." << std::endl;

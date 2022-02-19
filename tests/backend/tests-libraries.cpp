@@ -1,13 +1,13 @@
 #include <gtest/gtest.h>
-#include <nlohmann/json.hpp>
-#include <pqxx/pqxx>
-#include <db-interface.h>
-#include "common.h"
+#include "nlohmann/json.hpp"
+#include "pqxx/pqxx"
+#include "data/db-interface.h"
+#include "../common.h"
 
 //appears to be the form of a basic unit test
 // https://github.com/google/googletest/blob/master/googletest/samples/sample1_unittest.cc
 // https://google.github.io/googletest/primer.html
-TEST(libraries, json_test) {
+TEST(libraries, json) {
     using json = nlohmann::json;
     // create an empty structure (null)
     json j;
@@ -49,7 +49,7 @@ TEST(libraries, json_test) {
     ASSERT_NE(j,j2);
 }
 
-TEST(libraries, pqxx_test){
+TEST(libraries, pqxx){
     //https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING
     //postgresql://[userspec@][hostspec][/dbname][?paramspec]
     //    where userspec is:

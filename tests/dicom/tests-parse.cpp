@@ -1,7 +1,7 @@
 #define DEBUG_
-#include "common.h"
+#include "../common.h"
 #include <gtest/gtest.h>
-#include <dicom-file.h>
+#include "dicom/dicom-file.h"
 #include <filesystem>
 #include <functional>
 #include <fstream>
@@ -9,7 +9,7 @@
 namespace fs = std::filesystem;
 
 
-TEST(dicom_parsing, dicom_parse) {
+TEST(dicom, parsing) {
     std::function<void(const fs::path&)> test = [](const fs::path &path){
         std::cout << "Parse " << path << std::endl;
         auto size = fs::file_size(path);

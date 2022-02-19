@@ -1,8 +1,8 @@
-#include "common.h"
+#include "../common.h"
 #include "date-truncation.h"
 #include "gtest/gtest.h"
 
-TEST(datetimetests, datetruncation){
+TEST(functions, datetruncation){
     std::string defvalue = "19990323";
     const char* tcase0 = "YYYYMMDD";
     const char* tcase1 = "YYYY0101";

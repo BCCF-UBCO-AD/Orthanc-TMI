@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
-#include <pqxx/pqxx>
-#include <pqxx/field.hxx>
-#include <db-interface.h>
-#include "common.h"
+#include "pqxx/pqxx"
+#include "pqxx/field.hxx"
+#include "data/db-interface.h"
+#include "../common.h"
 
 
 
