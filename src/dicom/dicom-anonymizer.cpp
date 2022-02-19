@@ -33,7 +33,7 @@ bool DicomAnonymizer::BuildWork(const DicomFile &file) {
     ++count;
     std::vector<Range> discard_list;
     // iterate the DICOM data elements (file.elements is in the same order as the binary file/data)
-    for (const auto &[tag_code, range]: file.elements) {
+    for (uint64_t removed = 0; const auto &[tag_code, range]: file.elements) {
         const auto &[start, end] = range;
         // check what we need to do with this data element
         std::string key = HexToKey(DecToHex(tag_code,4));
@@ -41,6 +41,7 @@ bool DicomAnonymizer::BuildWork(const DicomFile &file) {
         if (Filter(tag_code)) {
             // redact data
             discard_list.push_back(range);
+            removed += range.second - range.first;
         } else if (DicomElementView view(file.data, start); Truncate(view)) {
             // truncate date
             std::string date(std::string_view(view.GetValueHead(), view.value_length));
@@ -51,7 +52,10 @@ bool DicomAnonymizer::BuildWork(const DicomFile &file) {
                 auto date0c = date0.c_str();
                 date = TruncateDate(date, dfc);
                 auto date2c = date.c_str();
-                dates.emplace(view.GetValueIndex(), date);
+                const char* in_buffer = view.GetValueHead();
+                if(date0 != date) {
+                    dates.emplace(view.GetValueIndex() - removed, date);
+                }
             }
         }
     }
@@ -121,7 +125,9 @@ DicomFile DicomAnonymizer::Anonymize(const DicomFile &file) {
     for (const auto &[index, date]: dates) {
         // rewrite the appropriate part of the buffer
         void* dst = buffer.get() + index;
-        std::memcpy(dst, date.c_str(), date.length());
+        auto new_date = date.c_str();
+        char* date_in_place = (char*)dst;
+        std::memcpy(dst, date.c_str(), 8);
     }
     // check the filtered output is valid
     DicomFile R = DicomFile(buffer,size);

@@ -38,7 +38,7 @@ public:
             } else {
                 auto &[start,end] = range;
                 DicomElementView view(dicom.data, start);
-                if (view.VR == "DA" && !CheckDate(view)){
+                if (view.VR == "DA" && view.value_length != 0 && !CheckDate(view)){
                     return false;
                 }
             }
