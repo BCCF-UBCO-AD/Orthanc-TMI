@@ -61,7 +61,10 @@ OrthancPluginErrorCode StorageCreateCallback(const char *uuid,
                                              const void *content,
                                              int64_t size,
                                              OrthancPluginContentType type) {
-    fs::path path = GetPath(type, uuid);;
+    char msg[1024] = {0};
+    sprintf(msg,"StorageCreateCallback:\nuuid: %s\ncontent: %zu\n", uuid, content);
+    DEBUG_LOG(1,msg)
+    fs::path path = GetPath(type, uuid);
     switch (type) {
         case OrthancPluginContentType_Dicom: {
             DicomFile file(content, size);
