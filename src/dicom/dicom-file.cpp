@@ -1,5 +1,6 @@
 #include <dicom-file.h>
 #include <dicom-element-view.h>
+#include <plugin-configure.h>
 #include <vector>
 #include <fstream>
 #include <iostream>
@@ -109,18 +110,14 @@ void DicomFile::MakeHardlinks(const fs::path &master_path){
         fs::create_hard_link(master_path, link);
         fs::permissions(link, globals::file_permissions);
     };
-    // todo: integrate json settings to enable/disable individual hard links
-    // todo: replace placeholders
-    std::string DOB_placeholder;
-    std::string PID_placeholder;
-    std::string SD_placeholder;
-    try {
-        hardlink_to("/by-dob/", DOB_placeholder);
-        hardlink_to("/by-patient-id/", PID_placeholder);
-        //todo: also sort into actual/individual studies
-        hardlink_to("/by-study-date/", SD_placeholder);
-    } catch (const std::exception &e) {
-        DEBUG_LOG(PLUGIN_ERRORS,"We failed to create hard links. They may already exist. OR the placeholders still aren't replaced.");
-        std::cerr << e.what() << std::endl;
+    for(auto &[groupby,key] : PluginConfigurer::GetHardlinks()){
+        auto tag = HexToDec(KeyToHex(key));
+        try {
+            // todo: implement GetData(uuid,tag) and the presumed SetData(uuid,tag,value) with an integration somewhere in DicomAnonymizer
+            //hardlink_to("/"+groupby+"/", GetData(uuid,tag));
+        } catch (const std::exception &e) {
+            DEBUG_LOG(PLUGIN_ERRORS,"We failed to create a hard link. It may already exist.");
+            std::cerr << e.what() << std::endl;
+        }
     }
 }
