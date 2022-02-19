@@ -31,11 +31,9 @@ private:
 protected:
     void MakeHardlinks(const fs::path &master_path);
 public:
-    explicit DicomFile(std::shared_ptr<char[]> buffer, size_t size);
+    DicomFile(std::shared_ptr<char[]> &buffer, size_t size);
     DicomFile(const void* data, size_t size);
     DicomFile()= default;
-    // todo: this should be tested
-    void swap(DicomFile &other);
 
     static bool Parse(void* data, size_t size);
     bool Parse();

@@ -4,7 +4,7 @@
 #include <fstream>
 #include <iostream>
 
-DicomFile::DicomFile(std::shared_ptr<char[]> buffer, size_t size) {
+DicomFile::DicomFile(std::shared_ptr<char[]> &buffer, size_t size) {
     this->size = size;
     this->buffer = buffer;
     data = this->buffer.get();
@@ -18,14 +18,6 @@ DicomFile::DicomFile(const void* data, size_t size) {
     elements.clear();
     buffer.reset();
     Parse();
-}
-
-void DicomFile::swap(DicomFile &other) {
-    std::swap(data,other.data);
-    std::swap(size,other.size);
-    std::swap(is_valid,other.is_valid);
-    std::swap(buffer,other.buffer);
-    std::swap(elements,other.elements);
 }
 
 bool DicomFile::Parse(void* data, size_t size) {
