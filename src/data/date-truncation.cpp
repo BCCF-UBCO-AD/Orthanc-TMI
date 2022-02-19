@@ -1,57 +1,30 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <algorithm>
 #include "date-truncation.h"
-#include "nlohmann/json.hpp"
 using namespace std;
 
 int get_days_for_month(int month, int year);
 bool isleap(int year);
-string DateTruncation(const nlm::json &config, string value){
-    string year, month, day;
-    // todo: change configuration format to key with tags so that different dates can be truncated easily
-    auto format = config.at("Dicom-DateTruncation").at("dateformat").get<vector<string>>();
-
-    year = value.substr(0,4);
-    month = value.substr(4,2);
-    day = value.substr(6, 2);
-
-    if(!(format[0] == "YYYY")){
-        year = format[0];
-        value.erase(0, 4);
-        value = year + value;
-        return value;
+std::string TruncateDate(std::string date, std::string format) {
+    if (format.length() != 8 || date.length() != 8) {
+        return date;
     }
-    if (!(format[1] == "MM")){
-        if(!(format[2] == "DD")){
-            month = format[1];
-            if(get_days_for_month(stoi(year),stoi(month)) >= stoi(format[2])){
-                day = format[2];
-            }
-            else{
-                return value;
-            }
-            value.erase(0,8);
-            value = year + month + day;
-            return value;
+    for (int i = 0; char c: format) {
+        if (std::isdigit(c)) {
+            date.replace(i, 1, 1, c);
         }
-        month = format[1];
-        value.erase(0, 6);
-        value = year + month + value;
-        return value;
+        i++;
     }
-    if(!(format[2] == "DD")){
-        if(get_days_for_month(stoi(month),stoi(year)) >= stoi(format[2])){
-            day = format[2];
-        }
-        else{
-            return value;
-        }
-        value.erase(0,8);
-        value = year + month + day;
-        return value;
-    }
-    return value;
+    int year = std::stoi(date.substr(0, 4));
+    int month = std::stoi(date.substr(4, 2));
+    int day = std::stoi(date.substr(6, 2));
+    month = std::max(std::min(month, 12), 0);
+    day = std::max(std::min(day, get_days_for_month(month, year)), 0);
+    char truncated[24] = {0};
+    sprintf(truncated,"%d%02d%02d",year,month,day);
+    return truncated;
 }
 
 int get_days_for_month(int month, int year){
@@ -87,21 +60,13 @@ int get_days_for_month(int month, int year){
     }
 }
 
-bool isleap(int year)
-{
-
-    if (year % 4 == 0)
-    {
-        if (year % 100 == 0)
-        {
-            if (year % 400 == 0)
+bool isleap(int year) {
+    if (year % 4 == 0) {
+        if (year % 100 == 0) {
+            if (year % 400 == 0) {
                 return true;
-            else
-                return false;
+            }
         }
-        else
-           return true;
     }
-    else
-        return false;
+    return false;
 }

@@ -6,11 +6,8 @@
 
 #include <filesystem>
 #include <fstream>
-#include <iostream>
 
 namespace fs = std::filesystem;
-
-void MakeHardlinks(const fs::path storage_root, const fs::path master_path, const char* uuid);
 
 const fs::path GetPath(OrthancPluginContentType type, const char* uuid){
     const fs::path storage_root(globals::storage_location);
@@ -60,66 +57,27 @@ const fs::path GetPath(OrthancPluginContentType type, const char* uuid){
     return path;
 }
 
-OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
-    char msg[1024] = {0};
-    sprintf(msg, "WriteDicomFile for uuid: %s", uuid);
-    DEBUG_LOG(0,msg);
-    const fs::path storage_root(globals::storage_location);
-    std::unique_ptr<char[]> content = nullptr;
-    size_t size = 0;
-    if(dicom.IsValid()) {
-        fs::path master_path = GetPath(OrthancPluginContentType_Dicom, uuid);
-        //DBInterface::HandlePHI(dicom);
-        auto filter = PluginConfigurer::GetDicomFilter();
-        DEBUG_LOG(1,"Filtering DICOM file");
-        simple_buffer filtered = filter.ApplyFilter(dicom);
-        DEBUG_LOG(1,"Filtering complete");
-        content = std::move(std::get<0>(filtered));
-        size = std::get<1>(filtered);
-        if (content) {
-            if(size == 0){
-                DEBUG_LOG(PLUGIN_ERRORS,"WriteDicomFile: Request is empty. ApplyFilter returned size zero for the buffer. This message should never display");
-                // todo: probably a better error code
-                return OrthancPluginErrorCode_EmptyRequest;
-            }
-            // write to disk
-            fs::create_directories(master_path.parent_path());
-
-            sprintf(msg,"writing file: %s", master_path.string().c_str());
-            DEBUG_LOG(0,msg)
-            std::fstream file(master_path, std::ios::binary | std::ios::out);
-            file.write(content.get(),size);
-            file.close();
-        } else {
-            DEBUG_LOG(1,"Nothing was filtered");
-            dicom.Write(uuid);
-        }
-        // set file permissions
-        // todo: permission debug info?
-        fs::file_status master_status = fs::status(master_path);
-        master_status.permissions(globals::file_permissions);
-        DEBUG_LOG(1,"WriteDicomFile: permissions set");
-        //JobQueue::GetInstance().AddJob([&](){MakeHardlinks(storage_root, master_path, uuid);});
-
-        DEBUG_LOG(1,"WriteDicomFile: success");
-        return OrthancPluginErrorCode_Success;
-    }
-    return OrthancPluginErrorCode_BadFileFormat;
-}
-
 OrthancPluginErrorCode StorageCreateCallback(const char *uuid,
                                              const void *content,
                                              int64_t size,
                                              OrthancPluginContentType type) {
-    fs::path path;
+    fs::path path = GetPath(type, uuid);;
     switch (type) {
-        case OrthancPluginContentType_Dicom:
-            return WriteDicomFile(DicomFile(content, size), uuid);
+        case OrthancPluginContentType_Dicom: {
+            DicomFile file(content, size);
+            if (PluginConfigurer::GetDicomFilter().Anonymize(file)) {
+                fs::create_directories(path.parent_path());
+                return file.Write(path);
+            }
+            DEBUG_LOG(PLUGIN_ERRORS, "StorageCreateCallback: unable to anonymize input");
+            return OrthancPluginErrorCode_CannotWriteFile;
+        }
+        // todo: do these require special processing? or is the content correct already?
+        case OrthancPluginContentType_Unknown:
         case OrthancPluginContentType_DicomAsJson:
         case OrthancPluginContentType_DicomUntilPixelData:
         case _OrthancPluginContentType_INTERNAL:
-        case OrthancPluginContentType_Unknown:
-            path = GetPath(type,uuid);
+            break;
     }
     std::fstream file(path, std::ios::out | std::ios::binary);
     if (file.is_open()) {
@@ -198,32 +156,4 @@ OrthancPluginErrorCode StorageRemoveCallback(const char *uuid, OrthancPluginCont
     }
 
     return OrthancPluginErrorCode_Success;
-}
-
-void MakeHardlinks(const fs::path storage_root, const fs::path master_path, const char* uuid){
-    // create hard links
-    auto hardlink_to = [&](std::string groupby, std::string group) {
-        fs::path link = fs::path(storage_root)
-                .append(groupby)
-                .append(group)
-                .append(uuid)
-                .append(".DCM");
-        fs::create_directories(link);
-        fs::create_hard_link(master_path, link);
-        fs::permissions(link, globals::file_permissions);
-    };
-    // todo: integrate json settings to enable/disable individual hard links
-    // todo: replace placeholders
-    std::string DOB_placeholder;
-    std::string PID_placeholder;
-    std::string SD_placeholder;
-    try {
-        hardlink_to("/by-dob/", DOB_placeholder);
-        hardlink_to("/by-patient-id/", PID_placeholder);
-        //todo: also sort into actual/individual studies
-        hardlink_to("/by-study-date/", SD_placeholder);
-    } catch (const std::exception &e) {
-        DEBUG_LOG(PLUGIN_ERRORS,"We failed to create hard links. They may already exist. OR the placeholders still aren't replaced.")
-        std::cerr << e.what() << std::endl;
-    }
 }

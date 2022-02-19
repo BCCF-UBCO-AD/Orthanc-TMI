@@ -2,21 +2,29 @@
 #include <dicom-element-view.h>
 #include <vector>
 #include <fstream>
+#include <iostream>
 
-DicomFile::DicomFile(const OrthancPluginDicomInstance *instance) {
-    this->instance = instance;
-    data = OrthancPluginGetInstanceData(globals::context, instance);
-    size = OrthancPluginGetInstanceSize(globals::context, instance);
-    parse_file();
+DicomFile::DicomFile(std::shared_ptr<char[]> &buffer, size_t size) {
+    this->size = size;
+    this->buffer = buffer;
+    data = this->buffer.get();
+    elements.clear();
+    Parse();
 }
 
-DicomFile::DicomFile(const void *data, size_t size) {
+DicomFile::DicomFile(const void* data, size_t size) {
     this->data = data;
     this->size = size;
-    parse_file();
+    elements.clear();
+    buffer.reset();
+    Parse();
 }
 
-bool DicomFile::parse_file() {
+bool DicomFile::Parse(void* data, size_t size) {
+    return DicomFile(data,size).IsValid();
+}
+
+bool DicomFile::Parse() {
     char msg_buffer[256] = {0};
     const char* readable_buffer = (const char*)data;
     size_t preamble = 128;
@@ -41,11 +49,12 @@ bool DicomFile::parse_file() {
         // parse next element
         DicomElementView element(readable_buffer, i);
         // print element info
-        sprintf(msg_buffer,"[%s] (%s,%s)->(%s)\n idx: %zu, next: %zu, size: %zu, value offset: %zu, length: %d",
+        std::string key = HexToKey(DecToHex(element.tag,4));
+        const char* kc = key.c_str();
+        sprintf(msg_buffer,"[%s] (%s)->(%d)\n idx: %zu, next: %zu, size: %zu, value offset: %zu, length: %d",
                 element.VR.c_str(),
-                element.HexGroup().c_str(),
-                element.HexElement().c_str(),
-                element.HexTag().c_str(),
+                kc,
+                element.tag,
                 element.idx,
                 element.GetNextIndex(),
                 element.size,
@@ -64,15 +73,54 @@ bool DicomFile::parse_file() {
     return is_valid;
 }
 
-extern const fs::path GetPath(OrthancPluginContentType type, const char* uuid);
-void DicomFile::Write(const char* uuid) {
-    char msg[256] = {0};
-    fs::path master_path = GetPath(OrthancPluginContentType_Dicom, uuid);
-    fs::create_directories(master_path);
-    sprintf(msg, "DicomFile: writing to %s", master_path.c_str());
-    DEBUG_LOG(0,msg);
-    std::fstream file(master_path, std::ios::binary | std::ios::out);
-    file.write((const char*)data,size);
-    file.close();
-    DEBUG_LOG(1,"DicomFile: write complete");
+OrthancPluginErrorCode DicomFile::Write(const fs::path &master_path) {
+    if(is_valid) {
+        char msg[256] = {0};
+        sprintf(msg, "DicomFile: writing to %s", master_path.c_str());
+        DEBUG_LOG(0, msg);
+        std::fstream file(master_path, std::ios::binary | std::ios::out);
+        file.write((const char*) data, size);
+        file.close();
+        DEBUG_LOG(1, "DicomFile: write complete");
+        if (!file.good()) {
+            return OrthancPluginErrorCode_FileStorageCannotWrite;
+        }
+        // Set the permissions on the file we saved
+        fs::file_status master_status = fs::status(master_path);
+        master_status.permissions(globals::file_permissions);
+        MakeHardlinks(master_path);
+        return OrthancPluginErrorCode_Success;
+    }
+    DEBUG_LOG(PLUGIN_ERRORS, "DicomFile: invalid file, cannot write");
+    return OrthancPluginErrorCode_CorruptedFile;
+}
+
+void DicomFile::MakeHardlinks(const fs::path &master_path){
+    const fs::path storage_root(globals::storage_location);
+    std::string uuid = master_path.filename();
+    // create hard links
+    auto hardlink_to = [&](std::string groupby, std::string group) {
+        fs::path link = fs::path(storage_root)
+                .append(groupby)
+                .append(group)
+                .append(uuid)
+                .append(".DCM");
+        fs::create_directories(link);
+        fs::create_hard_link(master_path, link);
+        fs::permissions(link, globals::file_permissions);
+    };
+    // todo: integrate json settings to enable/disable individual hard links
+    // todo: replace placeholders
+    std::string DOB_placeholder;
+    std::string PID_placeholder;
+    std::string SD_placeholder;
+    try {
+        hardlink_to("/by-dob/", DOB_placeholder);
+        hardlink_to("/by-patient-id/", PID_placeholder);
+        //todo: also sort into actual/individual studies
+        hardlink_to("/by-study-date/", SD_placeholder);
+    } catch (const std::exception &e) {
+        DEBUG_LOG(PLUGIN_ERRORS,"We failed to create hard links. They may already exist. OR the placeholders still aren't replaced.");
+        std::cerr << e.what() << std::endl;
+    }
 }

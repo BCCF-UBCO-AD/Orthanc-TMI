@@ -1,6 +1,5 @@
 #define IMPLEMENTS_GLOBALS
 #include <core.h>
-#include <dicom-file.h>
 #include <db-interface.h>
 #include <nlohmann/json.hpp>
 #include <configuration.h>
@@ -21,10 +20,10 @@ static std::thread job_thread;
 
 // plugin foundation
 extern "C" {
-    const char* OrthancPluginGetName(){ return ORTHANC_PLUGIN_NAME; }
-    const char* OrthancPluginGetVersion(){ return ORTHANC_PLUGIN_VERSION; }
+    const char* OrthancPluginGetName() { return ORTHANC_PLUGIN_NAME; }
+    const char* OrthancPluginGetVersion() { return ORTHANC_PLUGIN_VERSION; }
 
-    int32_t OrthancPluginInitialize(OrthancPluginContext* context){
+    int32_t OrthancPluginInitialize(OrthancPluginContext* context) {
         globals::context = context;
         /* Connect with database interface. */
         DBInterface::connect("postgres", "example");
@@ -43,7 +42,7 @@ extern "C" {
                     ORTHANC_PLUGINS_MINIMAL_MAJOR_NUMBER,
                     ORTHANC_PLUGINS_MINIMAL_MINOR_NUMBER,
                     ORTHANC_PLUGINS_MINIMAL_REVISION_NUMBER);
-            DEBUG_LOG(PLUGIN_ERRORS,info);
+            DEBUG_LOG(PLUGIN_ERRORS, info);
             return -1;
         }
         if (PluginConfigurer::Initialize() != 0) {
