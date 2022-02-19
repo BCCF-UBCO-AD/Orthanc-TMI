@@ -13,12 +13,11 @@ private:
     static std::unordered_set<tag_code> whitelist;
     std::unordered_map<idx, std::string> dates;
     std::vector<Range> keep_list;
-    size_t size;
 protected:
     static int Configure(const nlm::json &config);
     static bool Filter(tag_code tag);
     static bool Truncate(DicomElementView &view);
-    bool BuildWork(const DicomFile &file);
+    size_t BuildWork(const DicomFile &file);
     DicomAnonymizer() = default;
 public:
     bool Anonymize(DicomFile &file);
