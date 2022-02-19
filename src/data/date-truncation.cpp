@@ -1,64 +1,30 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <algorithm>
 #include "date-truncation.h"
 using namespace std;
 
 int get_days_for_month(int month, int year);
 bool isleap(int year);
-string TruncateDate(string date, const char* config){
-    if(date.length() != 8){
+std::string TruncateDate(std::string date, std::string format) {
+    if (format.length() != 8 || date.length() != 8) {
         return date;
     }
-    string year, month, day;
-    string year_config,month_config,day_config;
-
-    // todo: change configuration format to key with tags so that different dates can be truncated easily
-
-    year = date.substr(0, 4);
-    month = date.substr(4, 2);
-    day = date.substr(6, 2);
-
-    year_config = basic_string(config).substr(0,4);
-    month_config = basic_string(config).substr(4,2);
-    day_config = basic_string(config).substr(6, 2);
-
-    if(!(year_config == "YYYY")){
-        year = year_config;
-        date.erase(0, 4);
-        date = year + date;
-        return date;
-    }
-    if (!(month_config == "MM")){
-        if(!(day_config == "DD")){
-            month = month_config;
-            if(get_days_for_month(stoi(year),stoi(month)) >= stoi(day_config)){
-                day = day_config;
-            }
-            else{
-                return date;
-            }
-            date.erase(0, 8);
-            date = year + month + day;
-            return date;
+    for (int i = 0; char c: format) {
+        if (std::isdigit(c)) {
+            date.replace(i, 1, 1, c);
         }
-        month = month_config;
-        date.erase(0, 6);
-        date = year + month + date;
-        return date;
+        i++;
     }
-    if(!(day_config == "DD")){
-        if(get_days_for_month(stoi(month),stoi(year)) >= stoi(day_config)){
-            day = day_config;
-        }
-        else{
-            return date;
-        }
-        date.erase(0, 8);
-        date = year + month + day;
-        return date;
-    }
-    return date;
+    int year = std::stoi(date.substr(0, 4));
+    int month = std::stoi(date.substr(4, 2));
+    int day = std::stoi(date.substr(6, 2));
+    month = std::max(std::min(month, 12), 0);
+    day = std::max(std::min(day, get_days_for_month(month, year)), 0);
+    char truncated[24] = {0};
+    sprintf(truncated,"%d%02d%02d",year,month,day);
+    return truncated;
 }
 
 int get_days_for_month(int month, int year){

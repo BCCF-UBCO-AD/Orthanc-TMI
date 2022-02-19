@@ -30,9 +30,5 @@ TEST(datetimetests, datetruncation){
     value = TruncateDate(defvalue, tcase4);
     std::cout << value << std::endl;
     ASSERT_EQ(value, "20000323");
-
-    value = TruncateDate(defvalue);
-    std::cout << value << std::endl;
-    ASSERT_EQ(value, "19990323");
 }
 
