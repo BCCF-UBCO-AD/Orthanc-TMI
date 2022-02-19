@@ -21,6 +21,6 @@ protected:
     bool BuildWork(const DicomFile &file);
     DicomAnonymizer() = default;
 public:
-    DicomFile Anonymize(const DicomFile &file);
+    bool Anonymize(DicomFile &file);
     static void debug();
 };

@@ -37,7 +37,6 @@ bool DicomAnonymizer::BuildWork(const DicomFile &file) {
         const auto &[start, end] = range;
         // check what we need to do with this data element
         std::string key = HexToKey(DecToHex(tag_code,4));
-        const char* kc = key.c_str();
         if (Filter(tag_code)) {
             // redact data
             discard_list.push_back(range);
@@ -46,14 +45,9 @@ bool DicomAnonymizer::BuildWork(const DicomFile &file) {
             // truncate date
             std::string date(std::string_view(view.GetValueHead(), view.value_length));
             if (!date.empty()) {
-                auto df = PluginConfigurer::GetDateFormat(tag_code);
-                auto dfc = df.c_str();
-                auto date0 = date;
-                auto date0c = date0.c_str();
-                date = TruncateDate(date, dfc);
-                auto date2c = date.c_str();
-                const char* in_buffer = view.GetValueHead();
-                if(date0 != date) {
+                auto original = date;
+                date = TruncateDate(date, PluginConfigurer::GetDateFormat(tag_code));
+                if(date != original) {
                     dates.emplace(view.GetValueIndex() - removed, date);
                 }
             }
@@ -86,21 +80,21 @@ bool DicomAnonymizer::BuildWork(const DicomFile &file) {
     return true;
 }
 
-DicomFile DicomAnonymizer::Anonymize(const DicomFile &file) {
+bool DicomAnonymizer::Anonymize(DicomFile &file) {
     static int count = 0;
     size = 0;
     ++count;
     // if the file is invalid do nothing
     if (!file.IsValid()) {
         DEBUG_LOG(0, "Anonymize: received invalid DICOM file");
-        return file;
+        return false;
     }
     // if the file has nothing to anonymize
     keep_list.clear();
     dates.clear();
     if (!BuildWork(file)) {
         DEBUG_LOG(0,"Anonymize: no changes");
-        return file;
+        return true;
     }
     // Allocate new buffer
     std::shared_ptr<char[]> buffer = std::shared_ptr<char[]>(new char[size]);
@@ -116,7 +110,7 @@ DicomFile DicomAnonymizer::Anonymize(const DicomFile &file) {
             void* src = ((char*)file.data) + start;
             std::memcpy(dst, src, copy_size);
             sprintf(msg, "i: %ld, range.1: %ld, range.2: %ld, copy_size: %ld", index, start, end, copy_size);
-            DEBUG_LOG(1, msg);
+            DEBUG_LOG(2, msg);
             // update the new buffer's index (everything left of this index is the copied data so far)
             index += copy_size;
         }
@@ -125,17 +119,16 @@ DicomFile DicomAnonymizer::Anonymize(const DicomFile &file) {
     for (const auto &[index, date]: dates) {
         // rewrite the appropriate part of the buffer
         void* dst = buffer.get() + index;
-        auto new_date = date.c_str();
-        char* date_in_place = (char*)dst;
         std::memcpy(dst, date.c_str(), 8);
     }
     // check the filtered output is valid
-    DicomFile R = DicomFile(buffer,size);
-    if (file.IsValid()) {
-        return R;
+    DicomFile filtered = DicomFile(buffer, size);
+    if (filtered.IsValid()) {
+        file = filtered;
+        return true;
     }
     DEBUG_LOG(0, "Anonymize: invalid DICOM output");
-    return file;
+    return false;
 }
 
 int DicomAnonymizer::Configure(const nlohmann::json &config) {
