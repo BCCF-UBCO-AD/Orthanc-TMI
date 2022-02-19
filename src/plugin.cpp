@@ -17,6 +17,7 @@ namespace globals {
 }
 
 static std::thread job_thread;
+OrthancPluginErrorCode OnStoredCallback(const OrthancPluginDicomInstance* instance, const char *instanceId);
 
 // plugin foundation
 extern "C" {
@@ -62,9 +63,9 @@ extern "C" {
     }
 }
 
-OrthancPluginErrorCode OnStoredCallback(const OrthancPluginDicomInstance* instance, const char *instanceId){
+OrthancPluginErrorCode OnStoredCallback(const OrthancPluginDicomInstance* instance, const char *instanceId) {
     char msg[256] = {0};
-    sprintf(msg,"OnStoredCallback: %ld", instance);
-    DEBUG_LOG(0,msg);
+    sprintf(msg, "OnStoredCallback: %ld", instance);
+    DEBUG_LOG(0, msg);
     return OrthancPluginErrorCode_Success;
 }
