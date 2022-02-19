@@ -177,8 +177,6 @@ int DicomAnonymizer::Configure(const nlohmann::json &config) {
         }
     } catch (const std::exception &e) {
         std::cerr << e.what() << std::endl;
-        //todo: should we exit?
-        //exit(1);
         return -1;
     }
     return 0;

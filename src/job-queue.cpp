@@ -38,7 +38,7 @@ void JobQueue::Process() {
         queue_lock.unlock();
         job();
     }
-    // todo: we can't leave unperformed jobs in the queue otherwise they will be forgotten, so we have to finish them before we can shut down fully
+    // we can't leave unperformed jobs in the queue otherwise they will be forgotten, so we have to finish them before we can shut down fully
     while(!jqueue.empty()){
         auto &job = jqueue.front();
         job();

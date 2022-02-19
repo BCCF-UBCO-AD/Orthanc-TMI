@@ -98,7 +98,6 @@ OrthancPluginErrorCode StorageReadWholeCallback(OrthancPluginMemoryBuffer64 *tar
                                                 const char *uuid,
                                                 OrthancPluginContentType type) {
     auto path = GetPath(type,uuid);
-    // todo: is the buffer ready? without this call..
     OrthancPluginCreateMemoryBuffer64(globals::context, target, fs::file_size(path));
     std::fstream file(path, std::ios::in | std::ios::binary);
     if(file.is_open()){
@@ -118,7 +117,6 @@ OrthancPluginErrorCode StorageReadRangeCallback(OrthancPluginMemoryBuffer64 *tar
                                                 OrthancPluginContentType type,
                                                 uint64_t rangeStart) {
     auto path = GetPath(type,uuid);
-    // todo: is the buffer ready? without this call..
     OrthancPluginCreateMemoryBuffer64(globals::context, target, fs::file_size(path));
     std::fstream file(path, std::ios::in | std::ios::binary);
     if(file.is_open()){
@@ -144,7 +142,8 @@ OrthancPluginErrorCode StorageRemoveCallback(const char *uuid, OrthancPluginCont
                     fs::remove(path);
                 }
             };
-            // todo: replace placeholders
+            // todo: replace placeholders, this requires database integration
+            // todo: follow lead of MakeHardlinks() for implementation of this, ie. rewrite the removal code below
             std::string DOB_placeholder;
             std::string PID_placeholder;
             std::string SD_placeholder;
