@@ -4,6 +4,7 @@
 
 nlm::json PluginConfigurer::config;
 DicomAnonymizer PluginConfigurer::filter;
+nlm::json PluginConfigurer::hardlinks;
 
 int PluginConfigurer::Initialize() {
     try {
