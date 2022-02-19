@@ -7,19 +7,25 @@
 #include <fstream>
 #include <cstdio>
 
-std::string static_config = "{\n"
-                            "  \"Dicom-DateTruncation\": {\n"
-                            "    \"default\": \"YYYY0101\"\n"
-                            "  },\n"
-                            "  \"Dicom-Filter\": {\n"
-                            "    \"blacklist\": [\n"
-                            "      \"0010\"\n"
-                            "    ],\n"
-                            "    \"whitelist\": [\n"
+std::string static_config = "{  \"DataAnon\": {\n"
+                            "    \"Hardlinks\": [\n"
+                            "      \"0008,0020\",\n"
+                            "      \"0010,0020\",\n"
                             "      \"0010,0030\"\n"
-                            "    ]\n"
-                            "  }\n"
-                            "}";
+                            "    ],\n"
+                            "    \"DateTruncation\": {\n"
+                            "      \"default\": \"YYYY0101\",\n"
+                            "      \"0010,0030\": \"YYY00101\"\n"
+                            "    },\n"
+                            "    \"Filter\": {\n"
+                            "      \"blacklist\": [\n"
+                            "        \"0010\"\n"
+                            "      ],\n"
+                            "      \"whitelist\": [\n"
+                            "        \"0010,0030\"\n"
+                            "      ]\n"
+                            "    }\n"
+                            "  }}";
 
 class TestAnonymizer{
     static bool CheckDate(DicomElementView &view){

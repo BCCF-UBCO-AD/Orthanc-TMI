@@ -8,6 +8,7 @@ DicomAnonymizer PluginConfigurer::filter;
 int PluginConfigurer::Initialize() {
     try {
         config = nlm::json::parse(OrthancPluginGetConfiguration(globals::context));
+        hardlinks = config.at("DataAnon").at("Hardlinks");
         if (config["StorageDirectory"].is_string()) {
             globals::storage_location = config["StorageDirectory"].get<std::string>();
             fs::create_directories(globals::storage_location);
@@ -41,12 +42,13 @@ void PluginConfigurer::UnitTestInitialize(nlm::json &cfg) {
 }
 
 std::string PluginConfigurer::GetDateFormat(uint64_t tag_code) {
-    //std::cout << config.dump(4) << std::endl;
-    auto dt = config.at("Dicom-DateTruncation");
+    auto dadt = config.at("DataAnon").at("DateTruncation");
     auto tag_key = HexToKey(DecToHex(tag_code, 4));
-    if (dt.contains(tag_key)) {
-        return dt.at(tag_key).get<std::string>();
+    if (dadt.contains(tag_key)) {
+        return dadt.at(tag_key).get<std::string>();
     }
-    return dt.at("default").get<std::string>();
-    // todo: change config format to have: default truncation format, and tag_code keyed formats so that this can be tested
+    return dadt.at("default").get<std::string>();
+}
+json_kv PluginConfigurer::GetHardlinks() {
+    return hardlinks.items();
 }
