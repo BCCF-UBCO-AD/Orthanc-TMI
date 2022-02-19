@@ -3,6 +3,7 @@
 #include "gtest/gtest.h"
 
 TEST(functions, datetruncation){
+    std::cout << "Unit Test: functions datetruncation" << std::endl;
     std::string defvalue = "19990323";
     const char* tcase0 = "YYYYMMDD";
     const char* tcase1 = "YYYY0101";
@@ -30,5 +31,6 @@ TEST(functions, datetruncation){
     value = TruncateDate(defvalue, tcase4);
     std::cout << value << std::endl;
     ASSERT_EQ(value, "20000323");
+    std::cout << "Test Complete.\n" << std::endl;
 }
 

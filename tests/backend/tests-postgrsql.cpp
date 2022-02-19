@@ -7,6 +7,7 @@
 
 
 TEST(postgrsql, basicsqltest){
+    std::cout << "Unit Test: postgrsql basicsqltest" << std::endl;
     pqxx::connection c{"postgresql://postgres:example@localhost:5432"};
     pqxx::work txn{c};
     txn.exec0("CREATE TABLE IF NOT EXISTS public.team (id int, name varchar, age int, title varchar(4));");
@@ -27,5 +28,6 @@ TEST(postgrsql, basicsqltest){
     field  = row[0];
     txn.commit();
     ASSERT_STREQ(field.c_str(), "f");
+    std::cout << "Test Complete.\n" << std::endl;
 }
 
