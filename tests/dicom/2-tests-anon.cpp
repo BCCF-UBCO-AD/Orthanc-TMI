@@ -48,6 +48,7 @@ public:
 };
 
 TEST(dicom, anonymize) {
+    std::cout << "Unit Test: dicom anonymize" << std::endl;
     //fs::path config_path(GetProjRoot().string() + "/docker/orthanc/orthanc.json");
     nlm::json config = nlm::json::parse(static_config.c_str());
     std::cout << "Configuring.." << std::endl;
@@ -79,16 +80,15 @@ TEST(dicom, anonymize) {
         ASSERT_TRUE(dicom.IsValid());
 
         // Anonymize file
-        DicomFile filtered = anonymizer.Anonymize(dicom);
-        ASSERT_TRUE(filtered.IsValid());
+        ASSERT_TRUE(anonymizer.Anonymize(dicom));
 
         // Verify result
-        ASSERT_TRUE(TestAnonymizer::CheckOutput(filtered));
+        ASSERT_TRUE(TestAnonymizer::CheckOutput(dicom));
 
         files_passed++;
     };
     //test(GetProjRoot().string() + "/samples/0002.DCM");
     TestWithDicomFiles(test);
     std::cout << files_passed << "/" << files_total << " files passed" << std::endl;
-    std::cout << "Test Complete." << std::endl;
+    std::cout << "Test Complete.\n" << std::endl;
 }
