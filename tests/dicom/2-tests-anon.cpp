@@ -1,10 +1,10 @@
 #include "../common.h"
 #include <gtest/gtest.h>
-#include "plugin-configure.h"
-#include "dicom/dicom-anonymizer.h"
+#include <plugin-configure.h>
+#include <dicom-anonymizer.h>
+
 #include <iostream>
 #include <fstream>
-
 #include <cstdio>
 
 std::string static_config = "{\n"

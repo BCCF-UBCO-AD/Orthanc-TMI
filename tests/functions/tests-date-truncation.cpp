@@ -1,6 +1,6 @@
 #include "../common.h"
-#include "date-truncation.h"
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
+#include <date-truncation.h>
 
 TEST(functions, datetruncation){
     std::cout << "Unit Test: functions datetruncation" << std::endl;

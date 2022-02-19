@@ -1,6 +1,7 @@
-#include <gtest/gtest.h>
-#include "dicom/dicom-tag.h"
 #include "../common.h"
+#include <gtest/gtest.h>
+#include <dicom-tag.h>
+
 std::string group = "0002";
 std::string key = "0002,0003";
 std::string hex = "00030002";

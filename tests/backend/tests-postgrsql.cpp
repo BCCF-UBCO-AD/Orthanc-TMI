@@ -1,8 +1,7 @@
+#include "../common.h"
 #include <gtest/gtest.h>
 #include <pqxx/pqxx>
 #include <pqxx/field.hxx>
-#include <db-interface.h>
-#include "common.h"
 
 TEST(postgrsql, basicsqltest){
     std::cout << "Unit Test: postgrsql basicsqltest" << std::endl;

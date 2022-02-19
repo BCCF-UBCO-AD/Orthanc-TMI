@@ -1,8 +1,7 @@
-#include <gtest/gtest.h>
-#include "nlohmann/json.hpp"
-#include "pqxx/pqxx"
-#include "data/db-interface.h"
 #include "../common.h"
+#include <gtest/gtest.h>
+#include <nlohmann/json.hpp>
+#include <db-interface.h>
 
 //appears to be the form of a basic unit test
 // https://github.com/google/googletest/blob/master/googletest/samples/sample1_unittest.cc
