@@ -1,12 +1,10 @@
-#include <fstream>
 #include <string>
-#include <vector>
-#include <algorithm>
 #include "date-truncation.h"
 using namespace std;
 
-int get_days_for_month(int month, int year);
-bool isleap(int year);
+inline int get_days_for_month(int month, int year);
+inline bool isleap(int year);
+
 std::string TruncateDate(std::string date, std::string format) {
     if (format.length() != 8 || date.length() != 8) {
         return date;
@@ -27,40 +25,33 @@ std::string TruncateDate(std::string date, std::string format) {
     return truncated;
 }
 
-int get_days_for_month(int month, int year){
-    bool leap = isleap(year);
-
-    switch(month){
-        case 1: //January
-            return 31;
-        case 2: //February
-            return leap ? 29 : 28;
-        case 3: //March
-            return 31;
-        case 4: //April
-            return 30;
-        case 5: //May
-            return 31;
-        case 6: //June
-            return 30;
-        case 7: //July
-            return 31;
-        case 8: //August
-            return 31;
-        case 9: //September
-            return 30;
-        case 10: //October
-            return 31;
-        case 11: //November
-            return 30;
-        case 12: //December
-            return 31;
-        default:
-            return 0;
+inline int get_days_for_month(int month, int year){
+    static int months[] = {
+            0,  //NULL
+            31, //January
+            28, //February
+            31, //March
+            30, //April
+            31, //May
+            30, //June
+            31, //July
+            31, //August
+            30, //September
+            31, //October
+            30, //November
+            31  //December
+    };
+    if(month < 0 || month > 12){
+        return 0;
     }
+    if(month == 2 && isleap(year)){
+        // February in a leap year
+        return 29;
+    }
+    return months[month];
 }
 
-bool isleap(int year) {
+inline bool isleap(int year) {
     if (year % 4 == 0) {
         if (year % 100 == 0) {
             if (year % 400 == 0) {
