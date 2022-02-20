@@ -22,17 +22,17 @@ namespace globals {
 
 #define PLUGIN_ERRORS (-1)
 #define INFO 0
-#define VERBOSE_1 1
-#define VERBOSE_2 2
+#define DEBUG_1 1
+#define DEBUG_2 2
 
 #ifndef NDEBUG
-    #define LOGGING_LEVEL VERBOSE_1
+    #define LOGGING_LEVEL DEBUG_1
     #ifndef UNIT_TEST
      #define DEBUG_LOG(L,msg) if(globals::context && L <= LOGGING_LEVEL) switch(L){ \
         case PLUGIN_ERRORS: OrthancPluginLogError(globals::context, msg);break;     \
         case INFO: OrthancPluginLogWarning(globals::context, msg); break;           \
-        case VERBOSE_1:                                                             \
-        case VERBOSE_2: OrthancPluginLogInfo(globals::context, msg); break;         \
+        case DEBUG_1:                                                             \
+        case DEBUG_2: OrthancPluginLogInfo(globals::context, msg); break;         \
       }
     #else
      #undef LOGGING_LEVEL
