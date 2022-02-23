@@ -113,7 +113,7 @@ void DicomFile::MakeHardlinks(const fs::path &master_path){
         auto tag = HexToDec(KeyToHex(key));
         try {
             // todo: implement GetData(uuid,tag) and the presumed SetData(uuid,tag,value) with an integration somewhere in DicomAnonymizer
-            //hardlink_to("/"+groupby+"/", GetData(uuid,tag));
+            //hardlink_to(groupby, GetData(uuid,tag));
         } catch (const std::exception &e) {
             DEBUG_LOG(PLUGIN_ERRORS,"We failed to create a hard link. It may already exist.");
             std::cerr << e.what() << std::endl;
