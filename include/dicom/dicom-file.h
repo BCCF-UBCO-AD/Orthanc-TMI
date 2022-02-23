@@ -1,5 +1,6 @@
 #pragma once
 #include <core.h>
+#include <dicom-tag.h>
 #include <unordered_map>
 
 // an alias for a range as a std::pair
@@ -20,13 +21,12 @@ using Range = std::pair<size_t,size_t>;
 class DicomFile{
     friend class DicomAnonymizer;
     friend class TestAnonymizer;
-    using tag = uint64_t;
 private:
     std::shared_ptr<char[]> buffer;
     const void* data = nullptr;
     size_t size = 0;
 
-    std::vector<std::tuple<tag, Range>> elements;
+    std::vector<std::tuple<tag_uint64_t, Range>> elements;
     bool is_valid = true;
 protected:
     void MakeHardlinks(const fs::path &master_path);
@@ -39,4 +39,7 @@ public:
     bool Parse();
     bool IsValid() const { return is_valid; }
     OrthancPluginErrorCode Write(const fs::path &master_path);
+
+    static void CacheData(const char* uuid, tag_uint64_t tag, std::string value){}
+    static std::string GetCachedData(const char* uuid, tag_uint64_t tag){ return ""; }
 };

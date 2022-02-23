@@ -1,13 +1,13 @@
 #pragma once
 #include <string>
 #define GROUP_MASK ((1<<16)-1)
-using tag_code = uint64_t;
+using tag_uint64_t = uint64_t;
 
 // convert decimal to hex, and pad the string to size `2*bytes`
-extern std::string DecToHex(uint64_t value, uint8_t bytes = 1);
+extern std::string DecToHex(tag_uint64_t tag, uint8_t bytes = 4);
 
 // convert up to 8 bytes of hex to decimal
-extern uint64_t HexToDec(std::string hex);
+extern tag_uint64_t HexToDec(std::string hex);
 
 // convert hex tag to tag key (a0a0b0b0 => b0b0,a0a0)
 extern std::string HexToKey(std::string hex);

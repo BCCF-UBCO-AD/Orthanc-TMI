@@ -42,9 +42,9 @@ void PluginConfigurer::UnitTestInitialize(nlm::json &cfg) {
     }
 }
 
-std::string PluginConfigurer::GetDateFormat(uint64_t tag_code) {
+std::string PluginConfigurer::GetDateFormat(tag_uint64_t tag) {
     auto dadt = config.at("DataAnon").at("DateTruncation");
-    auto tag_key = HexToKey(DecToHex(tag_code, 4));
+    auto tag_key = HexToKey(DecToHex(tag, 4));
     if (dadt.contains(tag_key)) {
         return dadt.at(tag_key).get<std::string>();
     }

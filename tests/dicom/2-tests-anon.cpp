@@ -36,9 +36,9 @@ public:
     static bool CheckOutput(const DicomFile &dicom){
         auto &blacklist = DicomAnonymizer::blacklist;
         auto &whitelist = DicomAnonymizer::whitelist;
-        for (const auto &[tag_code, range]: dicom.elements) {
-            if (!whitelist.contains(tag_code)) {
-                if(blacklist.contains(tag_code) || blacklist.contains(tag_code&GROUP_MASK)){
+        for (const auto &[tag, range]: dicom.elements) {
+            if (!whitelist.contains(tag)) {
+                if(blacklist.contains(tag) || blacklist.contains(tag&GROUP_MASK)){
                     return false;
                 }
             } else {

@@ -17,13 +17,13 @@ bool DicomAnonymizer::Truncate(DicomElementView &view) {
 
 void DicomAnonymizer::debug() {
     std::cout << "blacklist: " << std::endl;
-    for (uint64_t tag_code: blacklist) {
-        auto hex = DecToHex(tag_code, 4);
+    for (tag_uint64_t tag: blacklist) {
+        auto hex = DecToHex(tag, 4);
         std::cout << (hex.length() > 4 ? HexToKey(hex) : hex) << std::endl;
     }
     std::cout << "whitelist: " << std::endl;
-    for (uint64_t tag_code: whitelist) {
-        auto hex = DecToHex(tag_code, 4);
+    for (tag_uint64_t tag: whitelist) {
+        auto hex = DecToHex(tag, 4);
         std::cout << (hex.length() > 4 ? HexToKey(hex) : hex) << std::endl;
     }
 }
@@ -33,11 +33,10 @@ size_t DicomAnonymizer::BuildWork(const DicomFile &file) {
     ++count;
     std::vector<Range> discard_list;
     // iterate the DICOM data elements (file.elements is in the same order as the binary file/data)
-    for (uint64_t removed = 0; const auto &[tag_code, range]: file.elements) {
+    for (size_t removed = 0; const auto &[tag, range]: file.elements) {
         const auto &[start, end] = range;
         // check what we need to do with this data element
-        std::string key = HexToKey(DecToHex(tag_code, 4));
-        if (Filter(tag_code)) {
+        if (Filter(tag)) {
             // redact data
             discard_list.push_back(range);
             removed += range.second - range.first;
@@ -46,7 +45,7 @@ size_t DicomAnonymizer::BuildWork(const DicomFile &file) {
             std::string date(std::string_view(view.GetValueHead(), view.value_length));
             if (!date.empty()) {
                 auto original = date;
-                date = TruncateDate(date, PluginConfigurer::GetDateFormat(tag_code));
+                date = TruncateDate(date, PluginConfigurer::GetDateFormat(tag));
                 if (date != original) {
                     dates.emplace(view.GetValueIndex() - removed, date);
                 }
@@ -137,18 +136,18 @@ int DicomAnonymizer::Configure(const nlohmann::json &config) {
         auto date_truncation = config.at("DataAnon").at("DateTruncation");
         for (const auto &iter: filter["blacklist"]) {
             // get tag string, convert to decimal
-            auto key = iter.get<std::string>();
-            if (key.length() == 9) {
+            auto tag_key = iter.get<std::string>();
+            if (tag_key.length() == 9) {
                 // register tag
-                uint64_t tag_code = HexToDec(KeyToHex(key));
-                blacklist.emplace(tag_code);
-                sprintf(msg_buffer, "DataAnon: blacklist registered tag: %s", key.c_str());
+                tag_uint64_t tag = HexToDec(KeyToHex(tag_key));
+                blacklist.emplace(tag);
+                sprintf(msg_buffer, "DataAnon: blacklist registered tag: %s", tag_key.c_str());
                 DEBUG_LOG(0, msg_buffer);
-            } else if (key.length() == 4) {
+            } else if (tag_key.length() == 4) {
                 // register group
-                uint64_t group_code = HexToDec(key);
+                uint64_t group_code = HexToDec(tag_key);
                 blacklist.emplace(group_code);
-                sprintf(msg_buffer, "DataAnon: blacklist registered group: %s", key.c_str());
+                sprintf(msg_buffer, "DataAnon: blacklist registered group: %s", tag_key.c_str());
                 DEBUG_LOG(0, msg_buffer);
             } else {
                 //bad format, we're gonna fail graciously and let the plugin keep moving
@@ -157,22 +156,23 @@ int DicomAnonymizer::Configure(const nlohmann::json &config) {
         }
         for (const auto &iter: filter["whitelist"]) {
             // get tag string, convert to decimal
-            auto key = iter.get<std::string>();
-            if (key.length() == 9) {
+            auto tag_key = iter.get<std::string>();
+            if (tag_key.length() == 9) {
                 // register tag
-                uint64_t tag_code = HexToDec(KeyToHex(key));
-                whitelist.emplace(tag_code);
-                sprintf(msg_buffer, "DataAnon: whitelist registered tag: %s", key.c_str());
+                tag_uint64_t tag = HexToDec(KeyToHex(tag_key));
+                whitelist.emplace(tag);
+                sprintf(msg_buffer, "DataAnon: whitelist registered tag: %s", tag_key.c_str());
                 DEBUG_LOG(0, msg_buffer);
             } else {
                 //bad format, we're gonna fail graciously and let the plugin keep moving
                 DEBUG_LOG(PLUGIN_ERRORS, "invalid entry in Dicom-Filter whitelist (must be 8 digits eg. '0017,0010')");
             }
         }
-        for (auto &[key, value]: date_truncation.items()) {
+        for (auto &[tag_key, value]: date_truncation.items()) {
             // we want dates configured to truncate to not be accidentally discarded, so we add them to the whitelist
-            if (key.length() == 9 && key.find(',') != std::string::npos) {
-                whitelist.emplace(HexToDec(KeyToHex(key)));
+            // one of these isn't a tag_key but rather "default", so this is how we check
+            if (tag_key.length() == 9 && tag_key.find(',') != std::string::npos) {
+                whitelist.emplace(HexToDec(KeyToHex(tag_key)));
             }
         }
     } catch (const std::exception &e) {

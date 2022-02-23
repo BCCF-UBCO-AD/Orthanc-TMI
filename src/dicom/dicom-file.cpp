@@ -50,8 +50,8 @@ bool DicomFile::Parse() {
         // parse next element
         DicomElementView element(readable_buffer, i);
         // print element info
-        std::string key = HexToKey(DecToHex(element.tag,4));
-        const char* kc = key.c_str();
+        std::string tag_key = HexToKey(DecToHex(element.tag));
+        const char* kc = tag_key.c_str();
         sprintf(msg_buffer,"[%s] (%s)->(%d)\n idx: %zu, next: %zu, size: %zu, value offset: %zu, length: %d",
                 element.VR.c_str(),
                 kc,
@@ -109,8 +109,8 @@ void DicomFile::MakeHardlinks(const fs::path &master_path){
         fs::create_hard_link(master_path, link);
         fs::permissions(link, globals::file_permissions);
     };
-    for(auto &[groupby,key] : PluginConfigurer::GetHardlinks()){
-        auto tag = HexToDec(KeyToHex(key));
+    for(auto &[groupby,tag_key] : PluginConfigurer::GetHardlinks()){
+        auto tag = HexToDec(KeyToHex(tag_key));
         try {
             // todo: implement GetData(uuid,tag) and the presumed SetData(uuid,tag,value) with an integration somewhere in DicomAnonymizer
             //hardlink_to(groupby, GetData(uuid,tag));
