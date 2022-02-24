@@ -1,13 +1,13 @@
+#include "../common.h"
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
-#include <pqxx/pqxx>
 #include <db-interface.h>
-#include "common.h"
 
 //appears to be the form of a basic unit test
 // https://github.com/google/googletest/blob/master/googletest/samples/sample1_unittest.cc
 // https://google.github.io/googletest/primer.html
-TEST(libraries, json_test) {
+TEST(libraries, json) {
+    std::cout << "Unit Test: libraries json" << std::endl;
     using json = nlohmann::json;
     // create an empty structure (null)
     json j;
@@ -47,9 +47,11 @@ TEST(libraries, json_test) {
     j["pi"]=3.1;
     //ASSERT_EQ(j,j2);
     ASSERT_NE(j,j2);
+    std::cout << "Test Complete.\n" << std::endl;
 }
 
-TEST(libraries, pqxx_test){
+TEST(libraries, pqxx){
+    std::cout << "Unit Test: libraries pqxx" << std::endl;
     //https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING
     //postgresql://[userspec@][hostspec][/dbname][?paramspec]
     //    where userspec is:
@@ -67,4 +69,5 @@ TEST(libraries, pqxx_test){
     DBInterface::connect("localhost", "example");
     ASSERT_TRUE(DBInterface::is_open());
     DBInterface::disconnect();
+    std::cout << "Test Complete.\n" << std::endl;
 }

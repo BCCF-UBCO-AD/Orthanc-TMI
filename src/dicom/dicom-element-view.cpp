@@ -25,13 +25,15 @@ uint32_t DicomElementView::CalcValueLength() {
 
     if (has_reserved) {
         // structure includes reserved bytes after the VR
-        value = *(uint32_t *) (buffer + idx + 8); // 4 bytes
+        std::memcpy(&value, buffer + idx + 8, sizeof(uint32_t)); // 4 bytes
     } else if(tag == DicomTag::Item){
         // structure has an implicit VR
-        value = *(uint32_t *) (buffer + idx + 4); // 4 bytes
+        std::memcpy(&value, buffer + idx + 4, sizeof(uint32_t)); // 4 bytes
     } else {
         // structure with an explicit VR but no reserved bytes
-        value = *(uint16_t *) (buffer + idx + 6); // 2 bytes
+        uint16_t t;
+        std::memcpy(&t, buffer + idx + 6, sizeof(uint16_t)); // 2 bytes
+        value = t;
     }
     return value;
 }
@@ -46,4 +48,8 @@ uint64_t DicomElementView::CalcElementSize() {
     return value_offset + value_length;
 }
 
-
+uint32_t DicomElementView::ReadTag() {
+    uint32_t result;
+    std::memcpy(&result, buffer + idx, sizeof(uint32_t));
+    return result;
+}

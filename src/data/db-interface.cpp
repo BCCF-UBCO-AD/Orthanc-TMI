@@ -7,7 +7,7 @@ pqxx::connection* con = nullptr;
 void DBInterface::connect(std::string host, std::string password) {
     if(!con) {
         char buffer[256];
-        //todo: we should build the connection string based on the json config
+        //todo: replace "postgres:"->"%s" and pass user to connect function
         sprintf(buffer, "postgresql://postgres:%s@%s:5432/orthanc", password.c_str(), host.c_str());
         try {
             static pqxx::connection c(buffer);
