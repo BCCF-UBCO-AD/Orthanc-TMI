@@ -3,11 +3,12 @@
 #include <iostream>
 
 nlm::json PluginConfigurer::config;
-DicomAnonymizer PluginConfigurer::filter;
 nlm::json PluginConfigurer::hardlinks;
 
 int PluginConfigurer::Initialize() {
     try {
+        auto status = DicomAnonymizer::Configure(config);
+        if (status != 0) return status;
         config = nlm::json::parse(OrthancPluginGetConfiguration(globals::context));
         hardlinks = config.at("DataAnon").at("Hardlinks");
         if (config["StorageDirectory"].is_string()) {
@@ -22,7 +23,7 @@ int PluginConfigurer::Initialize() {
         std::cerr << e.what() << std::endl;
         return -1;
     }
-    return DicomAnonymizer::Configure(config);
+    return 0;
 }
 
 void PluginConfigurer::UnitTestInitialize(nlm::json &cfg) {

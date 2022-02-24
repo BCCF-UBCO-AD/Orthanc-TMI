@@ -87,8 +87,6 @@ bool DicomAnonymizer::Anonymize(DicomFile &file) {
         return false;
     }
     // if the file has nothing to anonymize
-    keep_list.clear();
-    dates.clear();
     size_t size = BuildWork(file);
     if (size == 0) {
         DEBUG_LOG(0, "Anonymize: no changes");

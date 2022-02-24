@@ -59,8 +59,8 @@ TEST(dicom, anonymize) {
     nlm::json config = nlm::json::parse(static_config.c_str());
     std::cout << "Configuring.." << std::endl;
     PluginConfigurer::UnitTestInitialize(config);
-    DicomAnonymizer &anonymizer = PluginConfigurer::GetDicomFilter();
-    anonymizer.debug();
+    DicomAnonymizer::debug();
+    DicomAnonymizer anon;
     std::cout << " configured!" << std::endl;
 
     size_t files_passed = 0;
@@ -86,7 +86,7 @@ TEST(dicom, anonymize) {
         ASSERT_TRUE(dicom.IsValid());
 
         // Anonymize file
-        ASSERT_TRUE(anonymizer.Anonymize(dicom));
+        ASSERT_TRUE(anon.Anonymize(dicom));
 
         // Verify result
         ASSERT_TRUE(TestAnonymizer::CheckOutput(dicom));
