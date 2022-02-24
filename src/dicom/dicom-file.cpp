@@ -109,13 +109,20 @@ void DicomFile::MakeHardlinks(const fs::path &master_path){
         fs::create_hard_link(master_path, link);
         fs::permissions(link, globals::file_permissions);
     };
-    for(auto &[groupby,tag_key] : PluginConfigurer::GetHardlinks()) {
+    for(auto json_iter : PluginConfigurer::GetHardlinksJson().items()) {
+        std::string groupby,tag_key;
+        groupby = json_iter.key();
+        tag_key = json_iter.value().get<std::string>();
         auto tag = HexToDec(KeyToHex(tag_key));
         try {
             std::string data = GetData(tag);
             // We're not going to make a link if the data is blank
             if(data.find_first_not_of(' ') != std::string::npos) {
                 hardlink_to(groupby, data);
+            } else {
+                char msg[1024];
+                sprintf(msg,"Cannot group a hardlink of this DicomFile by (%s) because that element is empty or nonexistent.", tag_key.c_str());
+                DEBUG_LOG(PLUGIN_ERRORS, msg);
             }
         } catch (const std::exception &e) {
             DEBUG_LOG(PLUGIN_ERRORS, "We failed to create a hard link. It may already exist.");
