@@ -109,14 +109,33 @@ void DicomFile::MakeHardlinks(const fs::path &master_path){
         fs::create_hard_link(master_path, link);
         fs::permissions(link, globals::file_permissions);
     };
-    for(auto &[groupby,tag_key] : PluginConfigurer::GetHardlinks()){
+    for(auto &[groupby,tag_key] : PluginConfigurer::GetHardlinks()) {
         auto tag = HexToDec(KeyToHex(tag_key));
         try {
-            // todo: implement GetData(uuid,tag) and the presumed SetData(uuid,tag,value) with an integration somewhere in DicomAnonymizer
-            //hardlink_to(groupby, GetData(uuid,tag));
+            std::string data = GetData(tag);
+            // We're not going to make a link if the data is blank
+            if(data.find_first_not_of(' ') != std::string::npos) {
+                hardlink_to(groupby, data);
+            }
         } catch (const std::exception &e) {
-            DEBUG_LOG(PLUGIN_ERRORS,"We failed to create a hard link. It may already exist.");
+            DEBUG_LOG(PLUGIN_ERRORS, "We failed to create a hard link. It may already exist.");
             std::cerr << e.what() << std::endl;
         }
     }
+}
+
+std::string DicomFile::GetData(tag_uint64_t tag) {
+    auto iter = redacted_elements.find(tag);
+    if (iter != redacted_elements.end()){
+        return iter->second;
+    }
+    for(auto &[etag,range] : elements){
+        if(etag == tag) {
+            auto &[start, end] = range;
+            DicomElementView view(data, start);
+            std::string edata{std::string_view(view.GetValueHead(), view.value_length)};
+            return edata;
+        }
+    }
+    return "";
 }

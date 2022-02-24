@@ -35,12 +35,14 @@ size_t DicomAnonymizer::BuildWork(const DicomFile &file) {
     // iterate the DICOM data elements (file.elements is in the same order as the binary file/data)
     for (size_t removed = 0; const auto &[tag, range]: file.elements) {
         const auto &[start, end] = range;
+        DicomElementView view(file.data, start);
         // check what we need to do with this data element
         if (Filter(tag)) {
             // redact data
             discard_list.push_back(range);
             removed += range.second - range.first;
-        } else if (DicomElementView view(file.data, start); Truncate(view)) {
+            old_data.emplace(tag, std::string_view(view.GetValueHead(), view.value_length));
+        } else if (Truncate(view)) {
             // truncate date
             std::string date(std::string_view(view.GetValueHead(), view.value_length));
             if (!date.empty()) {
@@ -48,6 +50,7 @@ size_t DicomAnonymizer::BuildWork(const DicomFile &file) {
                 date = TruncateDate(date, PluginConfigurer::GetDateFormat(tag));
                 if (date != original) {
                     dates.emplace(view.GetValueIndex() - removed, date);
+                    old_data.emplace(tag, original);
                 }
             }
         }
@@ -121,6 +124,7 @@ bool DicomAnonymizer::Anonymize(DicomFile &file) {
     DicomFile filtered = DicomFile(buffer, size);
     if (filtered.IsValid()) {
         file = filtered;
+        file.redacted_elements = std::move(old_data);
         return true;
     }
     DEBUG_LOG(0, "Anonymize: invalid DICOM output");
