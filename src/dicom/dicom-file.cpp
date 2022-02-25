@@ -109,10 +109,7 @@ void DicomFile::MakeHardlinks(const fs::path &master_path){
         fs::create_hard_link(master_path, link);
         fs::permissions(link, globals::file_permissions);
     };
-    for(auto json_iter : PluginConfigurer::GetHardlinksJson().items()) {
-        std::string groupby,tag_key;
-        groupby = json_iter.key();
-        tag_key = json_iter.value().get<std::string>();
+    for(auto &[groupby,tag_key] : PluginConfigurer::GetHardlinksJson().items()) {
         auto tag = HexToDec(KeyToHex(tag_key));
         try {
             std::string data = GetData(tag);

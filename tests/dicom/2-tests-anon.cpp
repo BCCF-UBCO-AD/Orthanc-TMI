@@ -8,11 +8,11 @@
 #include <cstdio>
 
 std::string static_config = "{  \"DataAnon\": {\n"
-                            "    \"Hardlinks\": [\n"
-                            "      \"0008,0020\",\n"
-                            "      \"0010,0020\",\n"
-                            "      \"0010,0030\"\n"
-                            "    ],\n"
+                            "    \"Hardlinks\": {\n"
+                            "      \"/by-study-date/\": \"0008,0020\",\n"
+                            "      \"/by-pid/\": \"0010,0020\",\n"
+                            "      \"/by-dob/\": \"0010,0030\"\n"
+                            "    },\n"
                             "    \"DateTruncation\": {\n"
                             "      \"default\": \"YYYY0101\",\n"
                             "      \"0010,0030\": \"YYY00101\"\n"
