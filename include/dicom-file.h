@@ -35,4 +35,5 @@ public:
     //std::tuple<nlm::json,std::unique_ptr<char[]>,size_t> ApplyFilter(const DicomFilter &filter);
     bool IsValid() const { return is_valid; }
     void Write(const char* uuid);
+    const void* GetData() {return data; }
 };

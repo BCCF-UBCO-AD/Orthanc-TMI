@@ -5,9 +5,15 @@ OrthancPluginErrorCode OnStoredInstanceCallback(const OrthancPluginDicomInstance
     char msg[1024] = {0};
     sprintf(msg, "OnStored Instance Id: %s", instanceId);
     //update_checksum(instanceId);
-    DEBUG_LOG(0,msg);
-    DicomChecksum::update_checksum(instanceId);
+    DEBUG_LOG(1,msg);
+    //DicomChecksum::update_checksum(instanceId);
+    const void* instance_data = OrthancPluginGetInstanceData(globals::context, instance);
 
+    std::tuple<std::string, std::string> checksum = DicomChecksum::checksum_map.at(instance_data);
+    sprintf(msg, "UUID: %s, MD5: %s", std::get<0>(checksum).c_str(), std::get<1>(checksum).c_str());
+    DEBUG_LOG(1,msg);
+
+    DicomChecksum::checksum_map.erase(instance_data);
 
     /*
     const void* instance_data = OrthancPluginGetInstanceData(globals::context, instance);

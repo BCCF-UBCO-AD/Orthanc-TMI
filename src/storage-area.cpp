@@ -79,9 +79,9 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
                 // todo: probably a better error code
                 return OrthancPluginErrorCode_EmptyRequest;
             }
-
             // Compute MD5
-            DicomChecksum::calc_checksum(uuid, content.get(), size);
+            std::string md5 = OrthancPluginComputeMd5(globals::context, content.get(), size);
+            DicomChecksum::checksum_map.emplace(dicom.GetData(), std::make_tuple(std::string(uuid), md5));
 
             // write to disk
             fs::create_directories(master_path.parent_path());
@@ -151,6 +151,7 @@ OrthancPluginErrorCode StorageCreateCallback(const char *uuid,
         file.write((const char *) content, size);
         if (file.good()) {
             file.close();
+
             return OrthancPluginErrorCode_Success;
         }
         DEBUG_LOG(PLUGIN_ERRORS,"StorageCreateCallback: but write out appears bad");
