@@ -43,6 +43,7 @@ services:
       - orthanc.json
     environment:
       - ORTHANC_NAME=TMI
+      - ASAN_OPTIONS=verify_asan_link_order=0
     networks:
       - postgres-network
 
