@@ -60,12 +60,12 @@ TEST(dicom, anonymize) {
     std::cout << "Configuring.." << std::endl;
     PluginConfigurer::UnitTestInitialize(config);
     DicomAnonymizer::debug();
-    DicomAnonymizer anon;
     std::cout << " configured!" << std::endl;
 
     size_t files_passed = 0;
     size_t files_total = 0;
     auto test = [&](const fs::path &path){
+        DicomAnonymizer anon;
         char msg[1024] = {0};
         files_total++;
         // Allocate buffer
