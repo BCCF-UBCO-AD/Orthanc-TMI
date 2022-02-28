@@ -21,3 +21,19 @@ uint64_t HexToDec(std::string hex) {
     ss >> x;
     return x;
 }
+
+std::string HexToKey(std::string hex) {
+    hex.append(",");
+    hex.append(hex.substr(0,4));
+    hex.erase(0,4);
+    return hex;
+}
+
+std::string KeyToHex(std::string hex) {
+    if(hex.length() == 9){
+        hex.append(hex.substr(0, 4));
+        hex.erase(0, 5);
+        return hex;
+    }
+    return "";
+}

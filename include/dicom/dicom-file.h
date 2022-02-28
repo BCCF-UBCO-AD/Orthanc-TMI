@@ -1,6 +1,5 @@
 #pragma once
 #include <core.h>
-//#include <dicom-filter.h>
 #include <unordered_map>
 
 // an alias for a range as a std::pair
@@ -19,21 +18,26 @@ using Range = std::pair<size_t,size_t>;
  *   - to write to the dicom file to the default location (this may come in handy writing an update function to re-filter existing files with new specifications)
  */
 class DicomFile{
-    friend class DicomFilter;
-private:
+    friend class DicomAnonymizer;
+    friend class TestAnonymizer;
     using tag = uint64_t;
-    const OrthancPluginDicomInstance* instance = nullptr;
-    const void* data;
-    size_t size;
+private:
+    std::shared_ptr<char[]> buffer;
+    const void* data = nullptr;
+    size_t size = 0;
+
     std::vector<std::tuple<tag, Range>> elements;
     bool is_valid = true;
 protected:
-    bool parse_file();
+    void MakeHardlinks(const fs::path &master_path);
 public:
-    DicomFile(const OrthancPluginDicomInstance* instance);
+    DicomFile(std::shared_ptr<char[]> &buffer, size_t size);
     DicomFile(const void* data, size_t size);
-    //std::tuple<nlm::json,std::unique_ptr<char[]>,size_t> ApplyFilter(const DicomFilter &filter);
+    DicomFile()= default;
+
+    static bool Parse(void* data, size_t size);
+    bool Parse();
     bool IsValid() const { return is_valid; }
-    void Write(const char* uuid);
+    OrthancPluginErrorCode Write(const fs::path &master_path);
     const void* GetData() {return data; }
 };

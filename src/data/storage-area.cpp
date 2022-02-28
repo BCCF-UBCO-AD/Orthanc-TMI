@@ -1,6 +1,8 @@
 #include <dicom-file.h>
 #include <plugin-configure.h>
 #include <db-interface.h>
+//#include <job-queue.h>
+
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -57,6 +59,7 @@ const fs::path GetPath(OrthancPluginContentType type, const char* uuid){
     return path;
 }
 
+/*
 OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
     char msg[1024] = {0};
     sprintf(msg, "WriteDicomFile for uuid: %s", uuid);
@@ -131,20 +134,32 @@ OrthancPluginErrorCode WriteDicomFile(DicomFile dicom, const char *uuid){
     }
     return OrthancPluginErrorCode_BadFileFormat;
 }
+*/
 
 OrthancPluginErrorCode StorageCreateCallback(const char *uuid,
                                              const void *content,
                                              int64_t size,
                                              OrthancPluginContentType type) {
-    fs::path path;
+    char msg[1024] = {0};
+    sprintf(msg,"StorageCreateCallback:\nuuid: %s\ncontent: %zu\n", uuid, content);
+    DEBUG_LOG(1,msg)
+    fs::path path = GetPath(type, uuid);
     switch (type) {
-        case OrthancPluginContentType_Dicom:
-            return WriteDicomFile(DicomFile(content, size), uuid);
+        case OrthancPluginContentType_Dicom: {
+            DicomFile file(content, size);
+            if (PluginConfigurer::GetDicomFilter().Anonymize(file)) {
+                fs::create_directories(path.parent_path());
+                return file.Write(path);
+            }
+            DEBUG_LOG(PLUGIN_ERRORS, "StorageCreateCallback: unable to anonymize input");
+            return OrthancPluginErrorCode_CannotWriteFile;
+        }
+        // todo: do these require special processing? or is the content correct already?
+        case OrthancPluginContentType_Unknown:
         case OrthancPluginContentType_DicomAsJson:
         case OrthancPluginContentType_DicomUntilPixelData:
         case _OrthancPluginContentType_INTERNAL:
-        case OrthancPluginContentType_Unknown:
-            path = GetPath(type,uuid);
+            break;
     }
     std::fstream file(path, std::ios::out | std::ios::binary);
     if (file.is_open()) {
@@ -163,7 +178,6 @@ OrthancPluginErrorCode StorageReadWholeCallback(OrthancPluginMemoryBuffer64 *tar
                                                 const char *uuid,
                                                 OrthancPluginContentType type) {
     auto path = GetPath(type,uuid);
-    // todo: is the buffer ready? without this call..
     OrthancPluginCreateMemoryBuffer64(globals::context, target, fs::file_size(path));
     std::fstream file(path, std::ios::in | std::ios::binary);
     if(file.is_open()){
@@ -183,7 +197,6 @@ OrthancPluginErrorCode StorageReadRangeCallback(OrthancPluginMemoryBuffer64 *tar
                                                 OrthancPluginContentType type,
                                                 uint64_t rangeStart) {
     auto path = GetPath(type,uuid);
-    // todo: is the buffer ready? without this call..
     OrthancPluginCreateMemoryBuffer64(globals::context, target, fs::file_size(path));
     std::fstream file(path, std::ios::in | std::ios::binary);
     if(file.is_open()){
@@ -209,7 +222,8 @@ OrthancPluginErrorCode StorageRemoveCallback(const char *uuid, OrthancPluginCont
                     fs::remove(path);
                 }
             };
-            // todo: replace placeholders
+            // todo: replace placeholders, this requires database integration
+            // todo: follow lead of MakeHardlinks() for implementation of this, ie. rewrite the removal code below
             std::string DOB_placeholder;
             std::string PID_placeholder;
             std::string SD_placeholder;

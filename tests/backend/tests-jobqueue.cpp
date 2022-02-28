@@ -1,7 +1,7 @@
+#include "../common.h"
 #include <gtest/gtest.h>
 #include <thread>
 #include <job-queue.h>
-#include "common.h"
 
 TEST(jobqueue, complete_job) {
     std::thread job_thread = std::thread(&JobQueue::Process, &JobQueue::GetInstance());

@@ -23,8 +23,9 @@ services:
 
   orthanc:
     image: brianzhouzc/orthanc-tmi-plugins:latest
-    entrypoint: ['Orthanc']#, '--verbose']
+    entrypoint: ['Orthanc', '--verbose']
     container_name: orthanc-server
+    restart: always
     command: /run/secrets/  # Path to the configuration files (stored as secrets)
     depends_on:
       postgres:
@@ -45,6 +46,23 @@ services:
     networks:
       - postgres-network
 
+  orthanc_client:
+    image: jodogne/orthanc
+    container_name: orthanc-client
+    restart: always
+    command: /run/secrets/  # Path to the configuration files (stored as secrets)
+    depends_on:
+      - orthanc
+    ports:
+      - 4243:4243
+      - 8043:8043
+    secrets:
+      - orthanc_client.json
+    environment:
+      - ORTHANC_NAME=ORTHANC_CLIENT
+    networks:
+      - postgres-network
+
   adminer:
     image: adminer:latest
     container_name: adminer
@@ -61,3 +79,5 @@ networks:
 secrets:
   orthanc.json:
     file: ./docker/orthanc/orthanc.json
+  orthanc_client.json:
+    file: ./docker/orthanc/orthanc_client.json

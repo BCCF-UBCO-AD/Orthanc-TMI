@@ -26,7 +26,7 @@ void JobQueue::Process() {
     std::unique_lock<std::mutex> wait_lock(wait_mtx);
     // so long as this stays true we're gonna keep looping
     while(keep_running.load()){
-        if(!has_work.load()){
+        while(!has_work.load()){
             cv.wait(wait_lock);
         }
         queue_lock.lock();
@@ -38,7 +38,7 @@ void JobQueue::Process() {
         queue_lock.unlock();
         job();
     }
-    // todo: we can't leave unperformed jobs in the queue otherwise they will be forgotten, so we have to finish them before we can shut down fully
+    // we can't leave unperformed jobs in the queue otherwise they will be forgotten, so we have to finish them before we can shut down fully
     while(!jqueue.empty()){
         auto &job = jqueue.front();
         job();
