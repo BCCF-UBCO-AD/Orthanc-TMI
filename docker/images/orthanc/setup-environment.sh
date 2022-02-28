@@ -1,19 +1,18 @@
 #!/bin/bash
 
 # Install all dependencies
-pacman -Sy --noconfirm libpqxx gcc ninja cmake wget patch unzip python tzdata gzip
+pacman -Sy --noconfirm dos2unix libpqxx gcc ninja cmake wget patch unzip python tzdata gzip gcc-libs
 
-# Download and decompress Orthanc source
-cd ~
-wget https://www.orthanc-server.com/downloads/get.php?path=/orthanc/Orthanc-1.9.7.tar.gz -O orthanc-1.9.7.tar.gz
-tar -xvf orthanc-1.9.7.tar.gz
-cd Orthanc-1.9.7
+# Download Orthanc core
+cd /usr/bin
+wget https://lsb.orthanc-server.com/orthanc/1.10.0/Orthanc
+chmod +x ./Orthanc
 
-# Build and install Orthanc
-mkdir build
-cd build
-cmake -G Ninja -DSTATIC_BUILD=ON -DCMAKE_BUILD_TYPE=Release ../OrthancServer/
-ninja install
+# Download supporting libraries
+cd /usr/lib
+wget https://lsb.orthanc-server.com/orthanc/1.10.0/libConnectivityChecks.so
+wget https://lsb.orthanc-server.com/orthanc/1.10.0/libModalityWorklists.so
+wget https://lsb.orthanc-server.com/orthanc/1.10.0/libServeFolders.so
 
 # Link localtime
 ln -sf /usr/share/zoneinfo/Canada/Pacific /etc/localtime
@@ -37,8 +36,3 @@ sed 's/"AuthenticationEnabled" : false/"AuthenticationEnabled" : true/' -i $CONF
 
 # New since jodogne/orthanc:1.7.3
 sed 's/\("HttpsCACertificates" : \)".*"/\1"\/etc\/ssl\/certs\/ca-certificates.crt"/' -i $CONFIG
-
-# Cleanup
-cd ~
-rm orthanc-1.9.7.tar.gz
-rm -rf Orthanc-1.9.7

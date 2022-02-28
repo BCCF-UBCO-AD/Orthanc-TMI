@@ -7,9 +7,12 @@ nlm::json PluginConfigurer::hardlinks;
 
 int PluginConfigurer::Initialize() {
     try {
+        std::stringstream ss;
+        config = nlm::json::parse(OrthancPluginGetConfiguration(globals::context));
+        ss << config.dump(2);
+        DEBUG_LOG(DEBUG_2,ss.str().c_str());
         auto status = DicomAnonymizer::Configure(config);
         if (status != 0) return status;
-        config = nlm::json::parse(OrthancPluginGetConfiguration(globals::context));
         hardlinks = config.at("DataAnon").at("Hardlinks");
         if (config["StorageDirectory"].is_string()) {
             globals::storage_location = config["StorageDirectory"].get<std::string>();
