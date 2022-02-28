@@ -118,7 +118,7 @@ void DicomFile::MakeHardlinks(const fs::path &master_path){
                 hardlink_to(groupby, data);
             } else {
                 char msg[1024];
-                sprintf(msg,"Cannot group a hardlink of this DicomFile by (%s) because that element is empty or nonexistent.", tag_key.c_str());
+                sprintf(msg,"Cannot group a hardlink of this DicomFile by (%s) because that element is empty or nonexistent.", tag_key.get<std::string>().c_str());
                 DEBUG_LOG(PLUGIN_ERRORS, msg);
             }
         } catch (const std::exception &e) {
