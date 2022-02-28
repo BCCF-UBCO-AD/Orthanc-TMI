@@ -37,11 +37,17 @@
         - name: Build
           run: |
             cmake \
+              -DCMAKE_BUILD_TYPE=Release \
               -S . \
-              -B build \
+              -B build/release \
               -G Ninja
-            ninja -C build data-anonymizer
-            ninja -C build all-tests
+            cmake \
+              -DCMAKE_BUILD_TYPE=Debug \
+              -S . \
+              -B build/debug \
+              -G Ninja
+            ninja -C build/release data-anonymizer
+            ninja -C build/debug all-tests
         - name: Initialize PostgreSQL
           run: | 
             cd .github
@@ -63,4 +69,4 @@
             if echo $status | grep Up &>/dev/null; then :; else docker logs --details orthanc-server && exit 1; fi
         - name: Run Unit Tests
           run: |
-            build/bin/all-tests --gtest_output=xml:build/
+            build/debug/bin/all-tests --gtest_output=xml:build/
