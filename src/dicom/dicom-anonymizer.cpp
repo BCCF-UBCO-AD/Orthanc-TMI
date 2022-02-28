@@ -35,12 +35,14 @@ size_t DicomAnonymizer::BuildWork(const DicomFile &file) {
     // iterate the DICOM data elements (file.elements is in the same order as the binary file/data)
     for (size_t removed = 0; const auto &[tag, range]: file.elements) {
         const auto &[start, end] = range;
+        DicomElementView view(file.data, start);
         // check what we need to do with this data element
         if (Filter(tag)) {
             // redact data
             discard_list.push_back(range);
             removed += range.second - range.first;
-        } else if (DicomElementView view(file.data, start); Truncate(view)) {
+            old_data.emplace(tag, std::string_view(view.GetValueHead(), view.value_length));
+        } else if (Truncate(view)) {
             // truncate date
             std::string date(std::string_view(view.GetValueHead(), view.value_length));
             if (!date.empty()) {
@@ -48,6 +50,7 @@ size_t DicomAnonymizer::BuildWork(const DicomFile &file) {
                 date = TruncateDate(date, PluginConfigurer::GetDateFormat(tag));
                 if (date != original) {
                     dates.emplace(view.GetValueIndex() - removed, date);
+                    old_data.emplace(tag, original);
                 }
             }
         }
@@ -106,7 +109,7 @@ bool DicomAnonymizer::Anonymize(DicomFile &file) {
             void* src = ((char*) file.data) + start;
             std::memcpy(dst, src, copy_size);
             sprintf(msg, "i: %ld, range.1: %ld, range.2: %ld, copy_size: %ld", index, start, end, copy_size);
-            DEBUG_LOG(2, msg);
+            DEBUG_LOG(DEBUG_2, msg);
             // update the new buffer's index (everything left of this index is the copied data so far)
             index += copy_size;
         }
@@ -121,6 +124,7 @@ bool DicomAnonymizer::Anonymize(DicomFile &file) {
     DicomFile filtered = DicomFile(buffer, size);
     if (filtered.IsValid()) {
         file = filtered;
+        file.redacted_elements = std::move(old_data);
         return true;
     }
     DEBUG_LOG(0, "Anonymize: invalid DICOM output");
@@ -174,6 +178,7 @@ int DicomAnonymizer::Configure(const nlohmann::json &config) {
             }
         }
     } catch (const std::exception &e) {
+        DEBUG_LOG(PLUGIN_ERRORS,"Failed to configure DicomAnonymizer. The json appears to be missing important sections.")
         std::cerr << e.what() << std::endl;
         return -1;
     }

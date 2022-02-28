@@ -27,9 +27,11 @@ private:
     size_t size = 0;
 
     std::vector<std::tuple<tag_uint64_t, Range>> elements;
+    std::unordered_map<tag_uint64_t, std::string> redacted_elements;
     bool is_valid = true;
 protected:
     void MakeHardlinks(const fs::path &master_path);
+    std::string GetData(tag_uint64_t tag);
 public:
     DicomFile(std::shared_ptr<char[]> &buffer, size_t size);
     DicomFile(const void* data, size_t size);
@@ -39,7 +41,4 @@ public:
     bool Parse();
     bool IsValid() const { return is_valid; }
     OrthancPluginErrorCode Write(const fs::path &master_path);
-
-    static void CacheData(const char* uuid, tag_uint64_t tag, std::string value){}
-    static std::string GetCachedData(const char* uuid, tag_uint64_t tag){ return ""; }
 };

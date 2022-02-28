@@ -8,11 +8,11 @@
 #include <cstdio>
 
 std::string static_config = "{  \"DataAnon\": {\n"
-                            "    \"Hardlinks\": [\n"
-                            "      \"0008,0020\",\n"
-                            "      \"0010,0020\",\n"
-                            "      \"0010,0030\"\n"
-                            "    ],\n"
+                            "    \"Hardlinks\": {\n"
+                            "      \"/by-study-date/\": \"0008,0020\",\n"
+                            "      \"/by-pid/\": \"0010,0020\",\n"
+                            "      \"/by-dob/\": \"0010,0030\"\n"
+                            "    },\n"
                             "    \"DateTruncation\": {\n"
                             "      \"default\": \"YYYY0101\",\n"
                             "      \"0010,0030\": \"YYY00101\"\n"
@@ -74,7 +74,7 @@ TEST(dicom, anonymize) {
 
         // Load file into buffer
         sprintf(msg,"Loading %s\n", path.c_str());
-        DEBUG_LOG(1,msg);
+        DEBUG_LOG(DEBUG_1,msg);
         std::ifstream file(path, std::ios::binary | std::ios::in);
         ASSERT_TRUE(file.is_open());
         file.read(buffer.get(),size);

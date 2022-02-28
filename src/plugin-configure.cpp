@@ -54,6 +54,6 @@ std::string PluginConfigurer::GetDateFormat(tag_uint64_t tag) {
     }
     return dadt.at("default").get<std::string>();
 }
-json_kv PluginConfigurer::GetHardlinks() {
-    return hardlinks.items();
+const nlm::json& PluginConfigurer::GetHardlinksJson() {
+    return hardlinks;
 }
