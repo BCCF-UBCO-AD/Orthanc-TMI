@@ -39,5 +39,7 @@ public:
     bool Parse();
     bool IsValid() const { return is_valid; }
     OrthancPluginErrorCode Write(const fs::path &master_path);
+
     const void* GetData() {return data; }
+    size_t GetSize() {return size; }
 };

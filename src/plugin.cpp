@@ -4,7 +4,7 @@
 #include <nlohmann/json.hpp>
 #include <configuration.h>
 #include <storage-area.h>
-#include <on-stored.h>
+#include "data/on-stored.h"
 #include <plugin-configure.h>
 #include <job-queue.h>
 #include <thread>
@@ -64,11 +64,4 @@ extern "C" {
         job_thread.join();
         DBInterface::disconnect();
     }
-}
-
-OrthancPluginErrorCode OnStoredCallback(const OrthancPluginDicomInstance* instance, const char *instanceId) {
-    char msg[256] = {0};
-    sprintf(msg, "OnStoredCallback: %ld", instance);
-    DEBUG_LOG(0, msg);
-    return OrthancPluginErrorCode_Success;
 }

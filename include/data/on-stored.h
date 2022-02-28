@@ -1,5 +1,5 @@
 #pragma once
-#include <core.h>
+#include "core.h"
 
 extern OrthancPluginErrorCode OnStoredInstanceCallback(const OrthancPluginDicomInstance *instance,
                                                        const char *instanceId);
