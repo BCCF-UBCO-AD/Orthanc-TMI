@@ -22,7 +22,7 @@ services:
       retries: 5
 
   orthanc:
-    image: brianzhouzc/orthanc-tmi-plugins:latest
+    build: ./docker/images/orthanc
     entrypoint: ['Orthanc', '--verbose']
     container_name: orthanc-server
     restart: always
