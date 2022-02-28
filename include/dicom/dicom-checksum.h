@@ -1,5 +1,6 @@
 #pragma once
-#include "core.h"
+#include <core.h>
+#include <dicom-file.h>
 
 class DicomChecksum {
 public:
