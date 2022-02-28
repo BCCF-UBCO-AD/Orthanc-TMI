@@ -30,7 +30,7 @@ bool DicomFile::Parse() {
     const char* readable_buffer = (const char*)data;
     size_t preamble = 128;
     size_t prefix = 4;
-    DEBUG_LOG(1,"DicomFile: parsing dicom data");
+    DEBUG_LOG(DEBUG_1,"DicomFile: parsing dicom data");
     // there is no valid header if the file size is smaller than 132 bytes
     if(size <= preamble + prefix){
         DEBUG_LOG(PLUGIN_ERRORS,"DicomFile does not have a valid size, cannot continue parsing");
@@ -61,14 +61,14 @@ bool DicomFile::Parse() {
                 element.size,
                 element.value_offset,
                 (int)element.value_length);
-        DEBUG_LOG(2,msg_buffer);
+        DEBUG_LOG(DEBUG_2,msg_buffer);
         // save element range
         size_t j = element.GetNextIndex();
         elements.emplace_back(element.tag, std::make_pair(i,j));
         i = j;
     }
     sprintf(msg_buffer,"buffer size = %ld, read head idx = %ld", size, i);
-    DEBUG_LOG(1,msg_buffer);
+    DEBUG_LOG(DEBUG_1,msg_buffer);
     is_valid = i == size;
     return is_valid;
 }
@@ -81,7 +81,7 @@ OrthancPluginErrorCode DicomFile::Write(const fs::path &master_path) {
         std::fstream file(master_path, std::ios::binary | std::ios::out);
         file.write((const char*) data, size);
         file.close();
-        DEBUG_LOG(1, "DicomFile: write complete");
+        DEBUG_LOG(DEBUG_1, "DicomFile: write complete");
         if (!file.good()) {
             return OrthancPluginErrorCode_FileStorageCannotWrite;
         }

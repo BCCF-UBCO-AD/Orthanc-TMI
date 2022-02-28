@@ -74,7 +74,7 @@ TEST(dicom, anonymize) {
 
         // Load file into buffer
         sprintf(msg,"Loading %s\n", path.c_str());
-        DEBUG_LOG(1,msg);
+        DEBUG_LOG(DEBUG_1,msg);
         std::ifstream file(path, std::ios::binary | std::ios::in);
         ASSERT_TRUE(file.is_open());
         file.read(buffer.get(),size);

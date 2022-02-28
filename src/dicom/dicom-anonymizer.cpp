@@ -109,7 +109,7 @@ bool DicomAnonymizer::Anonymize(DicomFile &file) {
             void* src = ((char*) file.data) + start;
             std::memcpy(dst, src, copy_size);
             sprintf(msg, "i: %ld, range.1: %ld, range.2: %ld, copy_size: %ld", index, start, end, copy_size);
-            DEBUG_LOG(2, msg);
+            DEBUG_LOG(DEBUG_2, msg);
             // update the new buffer's index (everything left of this index is the copied data so far)
             index += copy_size;
         }
@@ -178,6 +178,7 @@ int DicomAnonymizer::Configure(const nlohmann::json &config) {
             }
         }
     } catch (const std::exception &e) {
+        DEBUG_LOG(PLUGIN_ERRORS,"Failed to configure DicomAnonymizer. The json appears to be missing important sections.")
         std::cerr << e.what() << std::endl;
         return -1;
     }
