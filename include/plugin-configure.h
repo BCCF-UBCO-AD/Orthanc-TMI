@@ -5,13 +5,12 @@
 class PluginConfigurer {
 private:
     static nlm::json config;
-    static std::unordered_map<tag_uint64_t,std::string> date_formats;
     static nlm::json hardlinks;
     static bool hardlinks_use_bins;
 protected:
 public:
     static int Initialize();
-    static void UnitTestInitialize(nlm::json &cfg);
+    static int Initialize_impl(nlm::json &cfg);
     static std::string GetDateFormat(tag_uint64_t tag = 0);
     static const nlm::json& GetHardlinksJson();
     static bool UseHashBins() { return hardlinks_use_bins; }

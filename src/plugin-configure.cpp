@@ -8,8 +8,18 @@ bool PluginConfigurer::hardlinks_use_bins = false;
 
 int PluginConfigurer::Initialize() {
     try {
+        nlm::json cfg = nlm::json::parse(OrthancPluginGetConfiguration(globals::context));
+        return Initialize_impl(cfg);
+    } catch (const std::exception &e) {
+        std::cerr << e.what() << std::endl;
+        return -1;
+    }
+}
+
+int PluginConfigurer::Initialize_impl(nlm::json &cfg) {
+    config = cfg;
+    try {
         std::stringstream ss;
-        config = nlm::json::parse(OrthancPluginGetConfiguration(globals::context));
         ss << config.dump(2);
         DEBUG_LOG(DEBUG_2,ss.str().c_str());
         auto status = DicomAnonymizer::Configure(config);
@@ -20,7 +30,13 @@ int PluginConfigurer::Initialize() {
             fs::create_directories(globals::storage_location);
             fs::permissions(globals::storage_location, globals::dir_permissions);
         } else {
-            DEBUG_LOG(PLUGIN_ERRORS, "Configuration json does not contain a StorageDirectory field.");
+            DEBUG_LOG(PLUGIN_ERRORS, "Configuration json does not contain a valid StorageDirectory field.");
+            return -1;
+        }
+        if (config["HardlinksUseHashBins"].is_boolean()){
+            hardlinks_use_bins = config["HardlinksUseHashBins"].get<bool>();
+        } else {
+            DEBUG_LOG(PLUGIN_ERRORS, "Configuration json does not contain a valid HardlinksUseHashBins field.");
             return -1;
         }
     } catch (const std::exception &e) {
@@ -28,23 +44,6 @@ int PluginConfigurer::Initialize() {
         return -1;
     }
     return 0;
-}
-
-void PluginConfigurer::UnitTestInitialize(nlm::json &cfg) {
-    DicomAnonymizer::Configure(cfg);
-    config = cfg;
-    try {
-        if (cfg["StorageDirectory"].is_string()) {
-            globals::storage_location = cfg["StorageDirectory"].get<std::string>();
-            fs::create_directories(globals::storage_location);
-            fs::permissions(globals::storage_location, globals::dir_permissions);
-        } else {
-            DEBUG_LOG(PLUGIN_ERRORS, "Configuration json does not contain a StorageDirectory field.");
-            return;
-        }
-    } catch (const std::exception &e) {
-        std::cerr << e.what() << std::endl;
-    }
 }
 
 std::string PluginConfigurer::GetDateFormat(tag_uint64_t tag) {
