@@ -1,13 +1,12 @@
 #include <dicom-file.h>
+#include <dicom-checksum.h>
 #include <plugin-configure.h>
-#include <db-interface.h>
+//#include <db-interface.h>
 //#include <job-queue.h>
 
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <job-queue.h>
-#include "dicom/dicom-checksum.h"
 
 namespace fs = std::filesystem;
 
