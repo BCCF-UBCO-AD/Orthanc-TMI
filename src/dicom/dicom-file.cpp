@@ -120,3 +120,11 @@ void DicomFile::MakeHardlinks(const fs::path &master_path){
         }
     }
 }
+
+std::string DicomFile::CalculateMd5() {
+    if (calculated){
+        return md5;
+    }
+    md5 = OrthancPluginComputeMd5(globals::context, data, size);
+    return md5;
+}

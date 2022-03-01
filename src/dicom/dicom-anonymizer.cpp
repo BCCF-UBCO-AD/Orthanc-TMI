@@ -124,6 +124,7 @@ bool DicomAnonymizer::Anonymize(DicomFile &file) {
     DicomFile filtered = DicomFile(buffer, size);
     if (filtered.IsValid()) {
         file = filtered;
+        file.calculated = false; // probably redundant, just doing it to be sure
         return true;
     }
     DEBUG_LOG(0, "Anonymize: invalid DICOM output");
