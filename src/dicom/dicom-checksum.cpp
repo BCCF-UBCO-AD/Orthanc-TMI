@@ -1,8 +1,6 @@
-#include "core.h"
-#include "data/db-interface.h"
+#include <dicom-checksum.h>
+#include <db-interface.h>
 #include <string>
-#include "dicom-checksum.h"
-#include "dicom-file.h"
 
 std::unordered_map<const void *, std::tuple<const char *, char *>> DicomChecksum::checksum_map;
 
