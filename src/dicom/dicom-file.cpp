@@ -30,7 +30,7 @@ bool DicomFile::Parse() {
     const char* readable_buffer = (const char*)data;
     size_t preamble = 128;
     size_t prefix = 4;
-    DEBUG_LOG(1,"DicomFile: parsing dicom data");
+    DEBUG_LOG(DEBUG_1,"DicomFile: parsing dicom data");
     // there is no valid header if the file size is smaller than 132 bytes
     if(size <= preamble + prefix){
         DEBUG_LOG(PLUGIN_ERRORS,"DicomFile does not have a valid size, cannot continue parsing");
@@ -50,8 +50,8 @@ bool DicomFile::Parse() {
         // parse next element
         DicomElementView element(readable_buffer, i);
         // print element info
-        std::string key = HexToKey(DecToHex(element.tag,4));
-        const char* kc = key.c_str();
+        std::string tag_key = HexToKey(DecToHex(element.tag));
+        const char* kc = tag_key.c_str();
         sprintf(msg_buffer,"[%s] (%s)->(%d)\n idx: %zu, next: %zu, size: %zu, value offset: %zu, length: %d",
                 element.VR.c_str(),
                 kc,
@@ -61,14 +61,14 @@ bool DicomFile::Parse() {
                 element.size,
                 element.value_offset,
                 (int)element.value_length);
-        DEBUG_LOG(2,msg_buffer);
+        DEBUG_LOG(DEBUG_2,msg_buffer);
         // save element range
         size_t j = element.GetNextIndex();
         elements.emplace_back(element.tag, std::make_pair(i,j));
         i = j;
     }
     sprintf(msg_buffer,"buffer size = %ld, read head idx = %ld", size, i);
-    DEBUG_LOG(1,msg_buffer);
+    DEBUG_LOG(DEBUG_1,msg_buffer);
     is_valid = i == size;
     return is_valid;
 }
@@ -81,7 +81,7 @@ OrthancPluginErrorCode DicomFile::Write(const fs::path &master_path) {
         std::fstream file(master_path, std::ios::binary | std::ios::out);
         file.write((const char*) data, size);
         file.close();
-        DEBUG_LOG(1, "DicomFile: write complete");
+        DEBUG_LOG(DEBUG_1, "DicomFile: write complete");
         if (!file.good()) {
             return OrthancPluginErrorCode_FileStorageCannotWrite;
         }
@@ -109,14 +109,37 @@ void DicomFile::MakeHardlinks(const fs::path &master_path){
         fs::create_hard_link(master_path, link);
         fs::permissions(link, globals::file_permissions);
     };
-    for(auto &[groupby,key] : PluginConfigurer::GetHardlinks()){
-        auto tag = HexToDec(KeyToHex(key));
+    for(auto &[groupby,tag_key] : PluginConfigurer::GetHardlinksJson().items()) {
+        auto tag = HexToDec(KeyToHex(tag_key));
         try {
-            // todo: implement GetData(uuid,tag) and the presumed SetData(uuid,tag,value) with an integration somewhere in DicomAnonymizer
-            //hardlink_to("/"+groupby+"/", GetData(uuid,tag));
+            std::string data = GetElementValue(tag);
+            // We're not going to make a link if the data is blank
+            if(data.find_first_not_of(' ') != std::string::npos) {
+                hardlink_to(groupby, data);
+            } else {
+                char msg[1024];
+                sprintf(msg,"Cannot group a hardlink of this DicomFile by (%s) because that element is empty or nonexistent.", tag_key.get<std::string>().c_str());
+                DEBUG_LOG(PLUGIN_ERRORS, msg);
+            }
         } catch (const std::exception &e) {
-            DEBUG_LOG(PLUGIN_ERRORS,"We failed to create a hard link. It may already exist.");
+            DEBUG_LOG(PLUGIN_ERRORS, "We failed to create a hard link. It may already exist.");
             std::cerr << e.what() << std::endl;
         }
     }
+}
+
+std::string DicomFile::GetElementValue(tag_uint64_t tag) {
+    auto iter = redacted_elements.find(tag);
+    if (iter != redacted_elements.end()){
+        return iter->second;
+    }
+    for(auto &[etag,range] : elements){
+        if(etag == tag) {
+            auto &[start, end] = range;
+            DicomElementView view(data, start);
+            std::string value{std::string_view(view.GetValueHead(), view.value_length)};
+            return value;
+        }
+    }
+    return "";
 }

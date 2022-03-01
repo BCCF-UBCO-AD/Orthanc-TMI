@@ -21,16 +21,16 @@ class DicomAnonymizer {
 
 private:
     using idx = size_t;
-    static std::unordered_set<tag_code> blacklist;
-    static std::unordered_set<tag_code> whitelist;
+    static std::unordered_set<tag_uint64_t> blacklist;
+    static std::unordered_set<tag_uint64_t> whitelist;
     std::unordered_map<idx, std::string> dates;
     std::vector<Range> keep_list;
+    std::unordered_map<tag_uint64_t, std::string> old_data;
 protected:
     static int Configure(const nlm::json &config);
-    static bool Filter(tag_code tag);
+    static bool Filter(tag_uint64_t tag);
     static bool Truncate(DicomElementView &view);
     size_t BuildWork(const DicomFile &file);
-    DicomAnonymizer() = default;
 public:
     bool Anonymize(DicomFile &file);
     static void debug();

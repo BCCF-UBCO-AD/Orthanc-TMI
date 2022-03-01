@@ -1,5 +1,6 @@
 #pragma once
 #include <core.h>
+#include <dicom-tag.h>
 #include <unordered_map>
 
 // an alias for a range as a std::pair
@@ -20,16 +21,17 @@ using Range = std::pair<size_t,size_t>;
 class DicomFile{
     friend class DicomAnonymizer;
     friend class TestAnonymizer;
-    using tag = uint64_t;
 private:
     std::shared_ptr<char[]> buffer;
     const void* data = nullptr;
     size_t size = 0;
 
-    std::vector<std::tuple<tag, Range>> elements;
+    std::vector<std::tuple<tag_uint64_t, Range>> elements;
+    std::unordered_map<tag_uint64_t, std::string> redacted_elements;
     bool is_valid = true;
 protected:
     void MakeHardlinks(const fs::path &master_path);
+    std::string GetElementValue(tag_uint64_t tag);
 public:
     DicomFile(std::shared_ptr<char[]> &buffer, size_t size);
     DicomFile(const void* data, size_t size);
