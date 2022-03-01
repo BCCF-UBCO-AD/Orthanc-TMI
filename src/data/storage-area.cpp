@@ -71,8 +71,8 @@ OrthancPluginErrorCode StorageCreateCallback(const char *uuid,
         case OrthancPluginContentType_Dicom: {
             DicomFile file(content, size);
             if (PluginConfigurer::GetDicomFilter().Anonymize(file)) {
-                DicomChecksum::CalculateChecksum(uuid, file);
-
+                std::string md5 = OrthancPluginComputeMd5(globals::context, file.GetData(), file.GetSize());
+                DicomChecksum::SaveChecksum(content, uuid, md5, file.GetSize());
                 fs::create_directories(path.parent_path());
                 return file.Write(path);
             }
@@ -91,7 +91,6 @@ OrthancPluginErrorCode StorageCreateCallback(const char *uuid,
         file.write((const char *) content, size);
         if (file.good()) {
             file.close();
-
             return OrthancPluginErrorCode_Success;
         }
         DEBUG_LOG(PLUGIN_ERRORS,"StorageCreateCallback: but write out appears bad");
