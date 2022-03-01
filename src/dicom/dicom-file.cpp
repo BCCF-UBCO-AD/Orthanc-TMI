@@ -126,5 +126,6 @@ std::string DicomFile::CalculateMd5() {
         return md5;
     }
     md5 = OrthancPluginComputeMd5(globals::context, data, size);
+    calculated = true;
     return md5;
 }
