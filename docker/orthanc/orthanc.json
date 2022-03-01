@@ -16,9 +16,9 @@
   },
   "DataAnon": {
     "Hardlinks": {
-      "by-study-date": "0008,0020",
-      "by-pid": "0010,0020",
-      "by-dob": "0010,0030"
+      "/by-study-date/": "0008,0020",
+      "/by-pid/": "0010,0020",
+      "/by-dob/": "0010,0030"
     },
     "DateTruncation": {
       "default": "YYYYMM01",

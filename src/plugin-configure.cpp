@@ -3,12 +3,16 @@
 #include <iostream>
 
 nlm::json PluginConfigurer::config;
-DicomAnonymizer PluginConfigurer::filter;
 nlm::json PluginConfigurer::hardlinks;
 
 int PluginConfigurer::Initialize() {
     try {
+        std::stringstream ss;
         config = nlm::json::parse(OrthancPluginGetConfiguration(globals::context));
+        ss << config.dump(2);
+        DEBUG_LOG(DEBUG_2,ss.str().c_str());
+        auto status = DicomAnonymizer::Configure(config);
+        if (status != 0) return status;
         hardlinks = config.at("DataAnon").at("Hardlinks");
         if (config["StorageDirectory"].is_string()) {
             globals::storage_location = config["StorageDirectory"].get<std::string>();
@@ -22,7 +26,7 @@ int PluginConfigurer::Initialize() {
         std::cerr << e.what() << std::endl;
         return -1;
     }
-    return DicomAnonymizer::Configure(config);
+    return 0;
 }
 
 void PluginConfigurer::UnitTestInitialize(nlm::json &cfg) {
@@ -42,14 +46,14 @@ void PluginConfigurer::UnitTestInitialize(nlm::json &cfg) {
     }
 }
 
-std::string PluginConfigurer::GetDateFormat(uint64_t tag_code) {
+std::string PluginConfigurer::GetDateFormat(tag_uint64_t tag) {
     auto dadt = config.at("DataAnon").at("DateTruncation");
-    auto tag_key = HexToKey(DecToHex(tag_code, 4));
+    auto tag_key = HexToKey(DecToHex(tag, 4));
     if (dadt.contains(tag_key)) {
         return dadt.at(tag_key).get<std::string>();
     }
     return dadt.at("default").get<std::string>();
 }
-json_kv PluginConfigurer::GetHardlinks() {
-    return hardlinks.items();
+const nlm::json& PluginConfigurer::GetHardlinksJson() {
+    return hardlinks;
 }

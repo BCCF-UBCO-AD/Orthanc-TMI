@@ -64,12 +64,13 @@ OrthancPluginErrorCode StorageCreateCallback(const char *uuid,
                                              OrthancPluginContentType type) {
     char msg[1024] = {0};
     sprintf(msg,"StorageCreateCallback:\nuuid: %s\ncontent: %zu\n", uuid, content);
-    DEBUG_LOG(1,msg)
+    DEBUG_LOG(DEBUG_1,msg)
     fs::path path = GetPath(type, uuid);
     switch (type) {
         case OrthancPluginContentType_Dicom: {
             DicomFile file(content, size);
-            if (PluginConfigurer::GetDicomFilter().Anonymize(file)) {
+            DicomAnonymizer anon;
+            if (anon.Anonymize(file)) {
                 DicomChecksum::SaveChecksum(content, uuid, file.CalculateMd5(), file.GetSize());
                 fs::create_directories(path.parent_path());
                 return file.Write(path);

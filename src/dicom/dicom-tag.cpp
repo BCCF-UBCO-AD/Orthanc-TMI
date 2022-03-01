@@ -1,9 +1,9 @@
 #include <dicom-tag.h>
 #include <sstream>
 
-std::string DecToHex(uint64_t value, uint8_t bytes) {
+std::string DecToHex(tag_uint64_t tag, uint8_t bytes) {
     std::stringstream stream;
-    stream << std::hex << value;
+    stream << std::hex << tag;
     std::string ret = std::string(stream.str());
     if(ret.size() & 1){
         ret.insert(0,"0");
@@ -14,8 +14,8 @@ std::string DecToHex(uint64_t value, uint8_t bytes) {
     }
     return ret;
 }
-uint64_t HexToDec(std::string hex) {
-    uint64_t x;
+tag_uint64_t HexToDec(std::string hex) {
+    tag_uint64_t x;
     std::stringstream ss;
     ss << std::hex << hex;
     ss >> x;

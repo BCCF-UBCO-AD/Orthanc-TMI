@@ -4,7 +4,7 @@
 #include <nlohmann/json.hpp>
 #include <configuration.h>
 #include <storage-area.h>
-#include "data/on-stored.h"
+#include <on-stored.h>
 #include <plugin-configure.h>
 #include <job-queue.h>
 #include <thread>
@@ -18,7 +18,6 @@ namespace globals {
 }
 
 static std::thread job_thread;
-OrthancPluginErrorCode OnStoredCallback(const OrthancPluginDicomInstance* instance, const char *instanceId);
 
 // plugin foundation
 extern "C" {
@@ -31,10 +30,10 @@ extern "C" {
         // todo: obtain connection details from json
         DBInterface::connect("postgres", "example");
         if(!DBInterface::is_open()){
-            OrthancPluginLogError(context, "DBInterface failed to connect to DB.");
+            DEBUG_LOG(PLUGIN_ERRORS, "DBInterface failed to connect to DB.");
             return -1;
         }
-        DEBUG_LOG(0, "DBInterface: connection successful.");
+        DEBUG_LOG(DEBUG_1, "DBInterface: connection successful.");
         DBInterface::CreateTables();
 
         /* Check the version of the Orthanc core */
@@ -48,7 +47,9 @@ extern "C" {
             DEBUG_LOG(PLUGIN_ERRORS, info);
             return -1;
         }
+        DEBUG_LOG(DEBUG_1,"Configuring plugin..");
         if (PluginConfigurer::Initialize() != 0) {
+            DEBUG_LOG(PLUGIN_ERRORS,"Failed to initialize plugin. Configuration failed.");
             return -1;
         }
         OrthancPluginRegisterStorageArea2(context, StorageCreateCallback, StorageReadWholeCallback,

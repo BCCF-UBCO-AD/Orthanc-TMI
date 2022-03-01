@@ -8,11 +8,11 @@
 #include <cstdio>
 
 std::string static_config = "{  \"DataAnon\": {\n"
-                            "    \"Hardlinks\": [\n"
-                            "      \"0008,0020\",\n"
-                            "      \"0010,0020\",\n"
-                            "      \"0010,0030\"\n"
-                            "    ],\n"
+                            "    \"Hardlinks\": {\n"
+                            "      \"/by-study-date/\": \"0008,0020\",\n"
+                            "      \"/by-pid/\": \"0010,0020\",\n"
+                            "      \"/by-dob/\": \"0010,0030\"\n"
+                            "    },\n"
                             "    \"DateTruncation\": {\n"
                             "      \"default\": \"YYYY0101\",\n"
                             "      \"0010,0030\": \"YYY00101\"\n"
@@ -36,9 +36,9 @@ public:
     static bool CheckOutput(const DicomFile &dicom){
         auto &blacklist = DicomAnonymizer::blacklist;
         auto &whitelist = DicomAnonymizer::whitelist;
-        for (const auto &[tag_code, range]: dicom.elements) {
-            if (!whitelist.contains(tag_code)) {
-                if(blacklist.contains(tag_code) || blacklist.contains(tag_code&GROUP_MASK)){
+        for (const auto &[tag, range]: dicom.elements) {
+            if (!whitelist.contains(tag)) {
+                if(blacklist.contains(tag) || blacklist.contains(tag&GROUP_MASK)){
                     return false;
                 }
             } else {
@@ -59,13 +59,13 @@ TEST(dicom, anonymize) {
     nlm::json config = nlm::json::parse(static_config.c_str());
     std::cout << "Configuring.." << std::endl;
     PluginConfigurer::UnitTestInitialize(config);
-    DicomAnonymizer &anonymizer = PluginConfigurer::GetDicomFilter();
-    anonymizer.debug();
+    DicomAnonymizer::debug();
     std::cout << " configured!" << std::endl;
 
     size_t files_passed = 0;
     size_t files_total = 0;
     auto test = [&](const fs::path &path){
+        DicomAnonymizer anon;
         char msg[1024] = {0};
         files_total++;
         // Allocate buffer
@@ -74,7 +74,7 @@ TEST(dicom, anonymize) {
 
         // Load file into buffer
         sprintf(msg,"Loading %s\n", path.c_str());
-        DEBUG_LOG(1,msg);
+        DEBUG_LOG(DEBUG_1,msg);
         std::ifstream file(path, std::ios::binary | std::ios::in);
         ASSERT_TRUE(file.is_open());
         file.read(buffer.get(),size);
@@ -86,7 +86,7 @@ TEST(dicom, anonymize) {
         ASSERT_TRUE(dicom.IsValid());
 
         // Anonymize file
-        ASSERT_TRUE(anonymizer.Anonymize(dicom));
+        ASSERT_TRUE(anon.Anonymize(dicom));
 
         // Verify result
         ASSERT_TRUE(TestAnonymizer::CheckOutput(dicom));
