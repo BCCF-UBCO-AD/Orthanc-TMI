@@ -22,7 +22,7 @@ services:
       retries: 5
 
   orthanc:
-    image: brianzhouzc/orthanc-tmi-plugins:latest
+    build: ./docker/images/orthanc
     entrypoint: ['Orthanc', '--verbose']
     container_name: orthanc-server
     restart: always
@@ -43,6 +43,7 @@ services:
       - orthanc.json
     environment:
       - ORTHANC_NAME=TMI
+      - ASAN_OPTIONS=verify_asan_link_order=0
     networks:
       - postgres-network
 
