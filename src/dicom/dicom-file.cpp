@@ -100,11 +100,22 @@ void DicomFile::MakeHardlinks(const fs::path &master_path){
     std::string uuid = master_path.filename();
     // create hard links
     auto hardlink_to = [&](std::string groupby, std::string group) {
-        fs::path link = fs::path(storage_root)
-                .append(groupby)
-                .append(group)
-                .append(uuid)
-                .append(".DCM");
+        fs::path link;
+        if (PluginConfigurer::UseHashBins()) {
+            std::string b1 = std::string(std::string_view(uuid.c_str(), 2)) + "/";
+            link = fs::path(storage_root)
+                    .append(groupby)
+                    .append(group)
+                    .append(b1)
+                    .append(uuid)
+                    .append(".DCM");
+        } else {
+            link = fs::path(storage_root)
+                    .append(groupby)
+                    .append(group)
+                    .append(uuid)
+                    .append(".DCM");
+        }
         fs::create_directories(link);
         fs::create_hard_link(master_path, link);
         fs::permissions(link, globals::file_permissions);

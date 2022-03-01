@@ -4,6 +4,7 @@
 
 nlm::json PluginConfigurer::config;
 nlm::json PluginConfigurer::hardlinks;
+bool PluginConfigurer::hardlinks_use_bins = false;
 
 int PluginConfigurer::Initialize() {
     try {
