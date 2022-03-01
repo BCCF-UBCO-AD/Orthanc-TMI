@@ -95,30 +95,41 @@ OrthancPluginErrorCode DicomFile::Write(const fs::path &master_path) {
     return OrthancPluginErrorCode_CorruptedFile;
 }
 
-void DicomFile::MakeHardlinks(const fs::path &master_path){
+void DicomFile::MakeHardlinks(const fs::path &master_path) {
     const fs::path storage_root(globals::storage_location);
     std::string uuid = master_path.filename();
     // create hard links
     auto hardlink_to = [&](std::string groupby, std::string group) {
-        fs::path link = fs::path(storage_root)
-                .append(groupby)
-                .append(group)
-                .append(uuid)
-                .append(".DCM");
+        fs::path link;
+        if (PluginConfigurer::UseHashBins()) {
+            std::string b1 = std::string(std::string_view(uuid.c_str(), 2)) + "/";
+            link = fs::path(storage_root)
+                    .append(groupby)
+                    .append(group)
+                    .append(b1)
+                    .append(uuid)
+                    .append(".DCM");
+        } else {
+            link = fs::path(storage_root)
+                    .append(groupby)
+                    .append(group)
+                    .append(uuid)
+                    .append(".DCM");
+        }
         fs::create_directories(link);
         fs::create_hard_link(master_path, link);
         fs::permissions(link, globals::file_permissions);
     };
-    for(auto &[groupby,tag_key] : PluginConfigurer::GetHardlinksJson().items()) {
+    for (auto &[group_by, tag_key]: PluginConfigurer::GetHardlinksJson().items()) {
         auto tag = HexToDec(KeyToHex(tag_key));
         try {
-            std::string data = GetElementValue(tag);
+            std::string group = GetElementValue(tag) + "/";
             // We're not going to make a link if the data is blank
-            if(data.find_first_not_of(' ') != std::string::npos) {
-                hardlink_to(groupby, data);
+            if (group.find_first_not_of(' ') != std::string::npos) {
+                hardlink_to(group_by, group);
             } else {
                 char msg[1024];
-                sprintf(msg,"Cannot group a hardlink of this DicomFile by (%s) because that element is empty or nonexistent.", tag_key.get<std::string>().c_str());
+                sprintf(msg, "Cannot group a hardlink of this DicomFile by (%s) because that element is empty or nonexistent.", tag_key.get<std::string>().c_str());
                 DEBUG_LOG(PLUGIN_ERRORS, msg);
             }
         } catch (const std::exception &e) {
