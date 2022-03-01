@@ -112,7 +112,7 @@ void DicomFile::MakeHardlinks(const fs::path &master_path){
     for(auto &[groupby,tag_key] : PluginConfigurer::GetHardlinksJson().items()) {
         auto tag = HexToDec(KeyToHex(tag_key));
         try {
-            std::string data = GetData(tag);
+            std::string data = GetElementValue(tag);
             // We're not going to make a link if the data is blank
             if(data.find_first_not_of(' ') != std::string::npos) {
                 hardlink_to(groupby, data);
@@ -128,7 +128,7 @@ void DicomFile::MakeHardlinks(const fs::path &master_path){
     }
 }
 
-std::string DicomFile::GetData(tag_uint64_t tag) {
+std::string DicomFile::GetElementValue(tag_uint64_t tag) {
     auto iter = redacted_elements.find(tag);
     if (iter != redacted_elements.end()){
         return iter->second;
@@ -137,8 +137,8 @@ std::string DicomFile::GetData(tag_uint64_t tag) {
         if(etag == tag) {
             auto &[start, end] = range;
             DicomElementView view(data, start);
-            std::string edata{std::string_view(view.GetValueHead(), view.value_length)};
-            return edata;
+            std::string value{std::string_view(view.GetValueHead(), view.value_length)};
+            return value;
         }
     }
     return "";

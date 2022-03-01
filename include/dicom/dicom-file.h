@@ -31,7 +31,7 @@ private:
     bool is_valid = true;
 protected:
     void MakeHardlinks(const fs::path &master_path);
-    std::string GetData(tag_uint64_t tag);
+    std::string GetElementValue(tag_uint64_t tag);
 public:
     DicomFile(std::shared_ptr<char[]> &buffer, size_t size);
     DicomFile(const void* data, size_t size);
