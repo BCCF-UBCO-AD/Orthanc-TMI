@@ -68,15 +68,10 @@ OrthancPluginErrorCode StorageCreateCallback(const char *uuid,
     fs::path path = GetPath(type, uuid);
     switch (type) {
         case OrthancPluginContentType_Dicom: {
-            DicomFile file(content, size);
-            DicomAnonymizer anon;
-            if (anon.Anonymize(file)) {
-                DataTransport::Emplace(content, uuid);
-                fs::create_directories(path.parent_path());
-                return file.Write(path);
-            }
-            DEBUG_LOG(PLUGIN_ERRORS, "StorageCreateCallback: unable to anonymize input");
-            return OrthancPluginErrorCode_CannotWriteFile;
+            DicomFile file = DataTransport::PopFile(content);
+            DataTransport::Emplace(content, uuid);
+            fs::create_directories(path.parent_path());
+            return file.Write(path);
         }
         // todo: do these require special processing? or is the content correct already?
         case OrthancPluginContentType_Unknown:
