@@ -1,3 +1,4 @@
+/*
 #include <job-queue.h>
 #include <thread>
 
@@ -49,3 +50,4 @@ void JobQueue::Process() {
 void JobQueue::Stop() {
     keep_running = false;
 }
+/**/

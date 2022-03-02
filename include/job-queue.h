@@ -1,4 +1,5 @@
 #pragma once
+/*
 #include <mutex>
 #include <atomic>
 #include <queue>
@@ -20,3 +21,4 @@ public:
     void Process();
     void Stop();
 };
+/**/
