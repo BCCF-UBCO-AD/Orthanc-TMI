@@ -43,7 +43,7 @@ DicomFile DataTransport::PopFile(const void* instance_data) {
         DicomFile file = iter->second;
         file_map.erase(iter);
         file_lock.unlock();
-        
+
         std::string md5 = file.CalculateMd5();
         hashes_lock.lock();
         hashes_map.erase(md5);

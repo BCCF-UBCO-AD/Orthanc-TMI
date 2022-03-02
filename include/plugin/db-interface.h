@@ -15,7 +15,7 @@ public:
         static DBInterface instance;
         return instance;
     }
-    void Connect(std::string database, std::string host, std::string port, std::string username, std::string password);
+    void Connect(std::string database, std::string host, uint16_t port, std::string username, std::string password);
     bool IsOpen();
     
     //static void UpdateChecksum(std::string uuid, int64_t size, char *hash);

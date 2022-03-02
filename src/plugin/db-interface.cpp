@@ -15,9 +15,9 @@
 //  postgresql://user:secret@localhost
 //  postgresql://other@localhost/otherdb?connect_timeout=10&application_name=myapp
 //  postgresql://host1:123,host2:456/somedb?target_session_attrs=any&application_name=myapp
-void DBInterface::Connect(std::string database, std::string host, std::string port, std::string username, std::string password) {
+void DBInterface::Connect(std::string database, std::string host, uint16_t port, std::string username, std::string password) {
     char buffer[256];
-    sprintf(buffer, "postgresql://%s:%s@%s:%s/%s", username.c_str(), password.c_str(), host.c_str(), port.c_str(), database.c_str());
+    sprintf(buffer, "postgresql://%s:%s@%s:%hu/%s", username.c_str(), password.c_str(), host.c_str(), port, database.c_str());
     try {
         con = pqxx::connection(buffer);
 //            con.prepare(
