@@ -51,6 +51,7 @@
         - name: Initialize PostgreSQL
           run: | 
             cd .github
+            ls
             docker-compose up -d postgres && sleep 60s
             docker logs --details postgres
             docker-compose down && sleep 10s
