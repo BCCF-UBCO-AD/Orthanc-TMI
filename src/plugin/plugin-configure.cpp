@@ -17,7 +17,7 @@ int PluginConfigurer::InitializePlugin() {
         //todo: document these as requirements
         //todo: add secret option? presumably the PostgreSQL plugin supports it.. we shouldn't break if the user uses it
         std::string database = cfg["PostgreSQL"]["Database"].get<std::string>();
-        std::string host = cfg["PostgreSQL"]["Host"].get<std::string>();
+        std::string host = "localhost";//cfg["PostgreSQL"]["Host"].get<std::string>();
         uint16_t port = cfg["PostgreSQL"]["Port"].get<uint16_t>();
         std::string username = cfg["PostgreSQL"]["Username"].get<std::string>();
         std::string password = cfg["PostgreSQL"]["Password"].get<std::string>();
