@@ -48,12 +48,6 @@
               -G Ninja
             ninja -C build/release data-anonymizer
             ninja -C build/debug all-tests
-        - name: Initialize PostgreSQL
-          run: | 
-            cd .github
-            docker-compose up -d postgres && sleep 60s
-            docker logs --details postgres
-            docker-compose down && sleep 10s
         - name: Launch Docker Compose
           run: |
             cd .github
