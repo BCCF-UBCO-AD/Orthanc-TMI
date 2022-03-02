@@ -16,7 +16,7 @@ pqxx::connection* con = nullptr;
 //  postgresql://user:secret@localhost
 //  postgresql://other@localhost/otherdb?connect_timeout=10&application_name=myapp
 //  postgresql://host1:123,host2:456/somedb?target_session_attrs=any&application_name=myapp
-void DBInterface::connect(std::string database, std::string host, std::string port, std::string username, std::string password) {
+void DBInterface::Connect(std::string database, std::string host, std::string port, std::string username, std::string password) {
     if(!con) {
         char buffer[256];
         sprintf(buffer, "postgresql://%s:%s@%s:%s/%s", username.c_str(), password.c_str(), host.c_str(), port.c_str(), database.c_str());
@@ -47,7 +47,7 @@ void DBInterface::disconnect() {
     }
 }
 
-bool DBInterface::is_open() {
+bool DBInterface::IsOpen() {
     return con && con->is_open();
 }
 

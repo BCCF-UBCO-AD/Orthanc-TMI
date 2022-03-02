@@ -1,13 +1,10 @@
 #define IMPLEMENTS_GLOBALS
 #include <core.h>
-#include <db-interface.h>
-#include <nlohmann/json.hpp>
 #include <configuration.h>
-#include <storage-area.h>
-#include <on-stored.h>
 #include <plugin-configure.h>
-#include <job-queue.h>
-#include <thread>
+#include <callbacks.h>
+//#include <job-queue.h>
+//#include <thread>
 
 namespace fs = std::filesystem;
 namespace globals {
@@ -17,7 +14,7 @@ namespace globals {
     fs::perms file_permissions = fs::perms::owner_all | fs::perms::group_all | fs::perms::others_read;
 }
 
-static std::thread job_thread;
+//static std::thread job_thread;
 
 // plugin foundation
 extern "C" {
@@ -26,16 +23,6 @@ extern "C" {
 
     int32_t OrthancPluginInitialize(OrthancPluginContext* context) {
         globals::context = context;
-        /* Connect with database interface. */
-        // todo: obtain connection details from json
-        DBInterface::connect("postgres", "example");
-        if(!DBInterface::is_open()){
-            DEBUG_LOG(PLUGIN_ERRORS, "DBInterface failed to connect to DB.");
-            return -1;
-        }
-        DEBUG_LOG(DEBUG_1, "DBInterface: connection successful.");
-        DBInterface::CreateTables();
-
         /* Check the version of the Orthanc core */
         if (OrthancPluginCheckVersion(context) == 0) {
             char info[256];
@@ -48,21 +35,20 @@ extern "C" {
             return -1;
         }
         DEBUG_LOG(DEBUG_1,"Configuring plugin..");
-        if (PluginConfigurer::Initialize() != 0) {
+        if (PluginConfigurer::InitializePlugin() != 0) {
             DEBUG_LOG(PLUGIN_ERRORS,"Failed to initialize plugin. Configuration failed.");
             return -1;
         }
         OrthancPluginRegisterStorageArea2(context, StorageCreateCallback, StorageReadWholeCallback,
                                           StorageReadRangeCallback, StorageRemoveCallback);
         OrthancPluginRegisterOnStoredInstanceCallback(context, OnStoredInstanceCallback);
-        //OrthancPluginRegisterIncomingDicomInstanceFilter(context, FilterCallback);
-        job_thread = std::thread(&JobQueue::Process, &JobQueue::GetInstance());
+        OrthancPluginRegisterIncomingDicomInstanceFilter(context, FilterCallback);
+        //job_thread = std::thread(&JobQueue::Process, &JobQueue::GetInstance());
         return 0;
     }
 
     void OrthancPluginFinalize(){
-        JobQueue::GetInstance().Stop();
-        job_thread.join();
-        DBInterface::disconnect();
+        //JobQueue::GetInstance().Stop();
+        //job_thread.join();
     }
 }

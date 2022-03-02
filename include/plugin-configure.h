@@ -9,7 +9,7 @@ private:
     static bool hardlinks_use_bins;
 protected:
 public:
-    static int Initialize();
+    static int InitializePlugin();
     static int Initialize_impl(nlm::json &cfg);
     static std::string GetDateFormat(tag_uint64_t tag = 0);
     static const nlm::json& GetHardlinksJson();

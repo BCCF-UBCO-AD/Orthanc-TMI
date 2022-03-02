@@ -1,4 +1,5 @@
 #include <plugin-configure.h>
+#include <db-interface.h>
 #include <dicom-tag.h>
 #include <iostream>
 
@@ -6,10 +7,27 @@ nlm::json PluginConfigurer::config;
 nlm::json PluginConfigurer::hardlinks;
 bool PluginConfigurer::hardlinks_use_bins = false;
 
-int PluginConfigurer::Initialize() {
+int PluginConfigurer::InitializePlugin() {
     try {
         nlm::json cfg = nlm::json::parse(OrthancPluginGetConfiguration(globals::context));
-        return Initialize_impl(cfg);
+        int status = Initialize_impl(cfg);
+        if(status != 0) {
+            return status;
+        }
+        //todo: document these as requirements
+        //todo: add secret option? presumably the PostgreSQL plugin supports it.. we shouldn't break if the user uses it
+        std::string database = cfg["PostgreSQL"]["Database"].get<std::string>();
+        std::string host = cfg["PostgreSQL"]["Host"].get<std::string>();
+        std::string port = cfg["PostgreSQL"]["Port"].get<std::string>();
+        std::string username = cfg["PostgreSQL"]["Username"].get<std::string>();
+        std::string password = cfg["PostgreSQL"]["Password"].get<std::string>();
+        DBInterface::GetInstance().Connect(database, host, port, username, password);
+        if(!DBInterface::GetInstance().IsOpen()){
+            DEBUG_LOG(PLUGIN_ERRORS, "DBInterface failed to connect to DB.");
+            return -1;
+        }
+        DEBUG_LOG(DEBUG_1, "DBInterface: connection successful.");
+        DBInterface::GetInstance().CreateTables();
     } catch (const std::exception &e) {
         std::cerr << e.what() << std::endl;
         return -1;
