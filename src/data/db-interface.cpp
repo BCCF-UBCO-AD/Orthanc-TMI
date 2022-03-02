@@ -12,12 +12,23 @@ void DBInterface::connect(std::string host, std::string password) {
         try {
             static pqxx::connection c(buffer);
             con = &c;
+//            con->prepare(
+//                    "get_uuid_from_instanceid",
+//                    "SELECT a.uuid "
+//                    "FROM attachedfiles a, resources r "
+//                    "WHERE r.internalid = a.id AND r.publicid = $1;"
+//                    );
+            con->prepare(
+                    "UpdateChecksum",
+                    "UPDATE attachedfiles "
+                    "SET uncompressedsize = $1, compressedsize = $2, uncompressedhash = $3, compressedhash = $4 "
+                    "WHERE uuid = $5;"
+                    );
         } catch (const std::exception &e){
             std::cerr << e.what() << std::endl;
         }
     }
 }
-
 
 void DBInterface::disconnect() {
     if(con && con->is_open()){
@@ -29,11 +40,37 @@ bool DBInterface::is_open() {
     return con && con->is_open();
 }
 
-void DBInterface::HandlePHI(const DicomFile &dicom) {
+//std::string DBInterface::get_uuid_from_instanceid(const char* instanceid) {
+//    pqxx::work w( *con);
+//    pqxx::result r = w.exec_prepared("get_uuid_from_instanceid", instanceid);
+//
+//    const pqxx::row row = r[0];
+//    const pqxx::field field = row[0];
+//    return std::string(field.c_str());
+//}
 
+
+void DBInterface::UpdateChecksum(std::string uuid, int64_t size, const char* hash) {
+    pqxx::work w( *con);
+    w.exec_prepared("UpdateChecksum", size, size, hash, hash, uuid);
+    w.commit();
+    /*
+    pqxx::result r = w.exec("SELECT * FROM attachedfiles;");
+    DEBUG_LOG(1, "Current checksum in database: ");
+    DEBUG_LOG(1, "| id | filetype | uuid | compressedsize | uncompressedsize | compressiontype | uncompressedhash | compressedhash | revision |");
+    for (auto const &row: r)
+    {
+        std::string rs = "| ";
+        for (auto const &field: row) {
+            rs += field.c_str();
+            rs += " | ";
+        }
+        DEBUG_LOG(1, rs.c_str());
+    }*/
 }
 
-void DBInterface::create_tables() {
+
+void DBInterface::CreateTables() {
     pqxx::work w( *con);
     w.exec0("CREATE SEQUENCE IF NOT EXISTS public.id_sequence\n"
             "INCREMENT 1\n"

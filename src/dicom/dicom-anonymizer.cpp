@@ -125,6 +125,7 @@ bool DicomAnonymizer::Anonymize(DicomFile &file) {
     if (filtered.IsValid()) {
         file = filtered;
         file.redacted_elements = std::move(old_data);
+        file.calculated = false; // probably redundant, just doing it to be sure
         return true;
     }
     DEBUG_LOG(0, "Anonymize: invalid DICOM output");

@@ -1,11 +1,12 @@
-#include <core.h>
 #include <dicom-file.h>
+#include <dicom-checksum.h>
 #include <plugin-configure.h>
-#include <db-interface.h>
+//#include <db-interface.h>
 //#include <job-queue.h>
 
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 
 namespace fs = std::filesystem;
 
@@ -70,6 +71,7 @@ OrthancPluginErrorCode StorageCreateCallback(const char *uuid,
             DicomFile file(content, size);
             DicomAnonymizer anon;
             if (anon.Anonymize(file)) {
+                DicomChecksum::SaveChecksum(content, uuid, file.CalculateMd5(), file.GetSize());
                 fs::create_directories(path.parent_path());
                 return file.Write(path);
             }

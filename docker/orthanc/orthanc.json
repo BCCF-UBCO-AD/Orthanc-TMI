@@ -15,6 +15,7 @@
     "IndexConnectionsCount": 2
   },
   "DataAnon": {
+    "HardlinksUseHashBins" : true,
     "Hardlinks": {
       "/by-study-date/": "0008,0020",
       "/by-pid/": "0010,0020",

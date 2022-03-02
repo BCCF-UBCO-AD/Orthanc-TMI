@@ -4,6 +4,7 @@
 #include <nlohmann/json.hpp>
 #include <configuration.h>
 #include <storage-area.h>
+#include <on-stored.h>
 #include <plugin-configure.h>
 #include <job-queue.h>
 #include <thread>
@@ -17,7 +18,6 @@ namespace globals {
 }
 
 static std::thread job_thread;
-OrthancPluginErrorCode OnStoredCallback(const OrthancPluginDicomInstance* instance, const char *instanceId);
 
 // plugin foundation
 extern "C" {
@@ -34,7 +34,7 @@ extern "C" {
             return -1;
         }
         DEBUG_LOG(DEBUG_1, "DBInterface: connection successful.");
-        DBInterface::create_tables();
+        DBInterface::CreateTables();
 
         /* Check the version of the Orthanc core */
         if (OrthancPluginCheckVersion(context) == 0) {
@@ -54,7 +54,8 @@ extern "C" {
         }
         OrthancPluginRegisterStorageArea2(context, StorageCreateCallback, StorageReadWholeCallback,
                                           StorageReadRangeCallback, StorageRemoveCallback);
-        OrthancPluginRegisterOnStoredInstanceCallback(context, OnStoredCallback);
+        OrthancPluginRegisterOnStoredInstanceCallback(context, OnStoredInstanceCallback);
+        //OrthancPluginRegisterIncomingDicomInstanceFilter(context, FilterCallback);
         job_thread = std::thread(&JobQueue::Process, &JobQueue::GetInstance());
         return 0;
     }
@@ -64,11 +65,4 @@ extern "C" {
         job_thread.join();
         DBInterface::disconnect();
     }
-}
-
-OrthancPluginErrorCode OnStoredCallback(const OrthancPluginDicomInstance* instance, const char *instanceId) {
-    char msg[256] = {0};
-    sprintf(msg, "OnStoredCallback: %ld", instance);
-    DEBUG_LOG(0, msg);
-    return OrthancPluginErrorCode_Success;
 }

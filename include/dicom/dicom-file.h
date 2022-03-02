@@ -25,6 +25,8 @@ private:
     std::shared_ptr<char[]> buffer;
     const void* data = nullptr;
     size_t size = 0;
+    std::string md5;
+    bool calculated = false;
 
     std::vector<std::tuple<tag_uint64_t, Range>> elements;
     std::unordered_map<tag_uint64_t, std::string> redacted_elements;
@@ -41,4 +43,6 @@ public:
     bool Parse();
     bool IsValid() const { return is_valid; }
     OrthancPluginErrorCode Write(const fs::path &master_path);
+    std::string CalculateMd5();
+    [[nodiscard]] size_t GetSize() const { return size; }
 };

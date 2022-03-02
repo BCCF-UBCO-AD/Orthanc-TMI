@@ -58,7 +58,7 @@ TEST(dicom, anonymize) {
     //fs::path config_path(GetProjRoot().string() + "/docker/orthanc/orthanc.json");
     nlm::json config = nlm::json::parse(static_config.c_str());
     std::cout << "Configuring.." << std::endl;
-    PluginConfigurer::UnitTestInitialize(config);
+    PluginConfigurer::Initialize_impl(config);
     DicomAnonymizer::debug();
     std::cout << " configured!" << std::endl;
 
