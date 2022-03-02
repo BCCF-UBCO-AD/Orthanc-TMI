@@ -7,8 +7,6 @@ services:
     ports:
       - 5432:5432
     volumes:
-      #  WARNING: FOR WSL USE THE FOLLOWING LINE INSTEAD:
-      #- ~/docker/postgres/data:/var/lib/postgresql/data
       - ./postgres:/var/lib/postgresql/data
       - ../docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql # Create database for Orthanc
     environment:
@@ -34,10 +32,6 @@ services:
       - 4242:4242
       - 8042:8042
     volumes:
-      #  WARNING: FOR WSL USE THE FOLLOWING LINE INSTEAD:
-      #- ~/docker/orthanc/db:/var/lib/orthanc/db
-      - ../docker/orthanc/db:/var/lib/orthanc/db
-      - ../docker/orthanc/storage:/var/lib/orthanc/dicom
       - ../docker/orthanc/plugins:/usr/share/orthanc/plugins
     secrets:
       - orthanc.json
