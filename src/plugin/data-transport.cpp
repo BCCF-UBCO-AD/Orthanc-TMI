@@ -1,24 +1,24 @@
-#include <dicom-checksum.h>
+#include <data-transport.h>
 #include <db-interface.h>
 
-std::unordered_map<const void *, std::tuple<std::string, size_t>> DicomChecksum::checksum_map;
-std::unordered_map<const void *, std::string> DicomChecksum::uuid_map;
-std::mutex DicomChecksum::checksum_lock;
-std::mutex DicomChecksum::uuid_lock;
+std::unordered_map<const void *, std::tuple<std::string, size_t>> DataTransport::checksum_map;
+std::unordered_map<const void *, std::string> DataTransport::uuid_map;
+std::mutex DataTransport::checksum_lock;
+std::mutex DataTransport::uuid_lock;
 
-void DicomChecksum::Emplace(const void* instance_data, std::string md5, size_t size) {
+void DataTransport::Emplace(const void* instance_data, std::string md5, size_t size) {
     checksum_lock.lock();
     checksum_map.emplace(instance_data, std::make_tuple(md5, size));
     checksum_lock.unlock();
 }
 
-void DicomChecksum::Emplace(const void* instance_data, std::string uuid) {
+void DataTransport::Emplace(const void* instance_data, std::string uuid) {
     uuid_lock.lock();
     uuid_map.emplace(instance_data, uuid);
     uuid_lock.unlock();
 }
 
-bool DicomChecksum::UpdateDatabase(const void* instance_data) {
+bool DataTransport::UpdateDatabase(const void* instance_data) {
     char msg[1024];
     checksum_lock.lock();
     auto checksum_iter = checksum_map.find(instance_data);

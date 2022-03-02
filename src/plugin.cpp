@@ -1,7 +1,7 @@
 #define IMPLEMENTS_GLOBALS
 #include <core.h>
 #include <configuration.h>
-#include "plugin/plugin-configure.h"
+#include <plugin-configure.h>
 #include <callbacks.h>
 //#include <job-queue.h>
 //#include <thread>

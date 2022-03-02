@@ -7,7 +7,7 @@
 using Uuid = std::string;
 using Md5 = std::string;
 
-class DicomChecksum {
+class DataTransport {
 private:
     static std::mutex checksum_lock;
     static std::mutex uuid_lock;

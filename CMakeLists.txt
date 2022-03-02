@@ -34,6 +34,7 @@ include_directories(include)
 include_directories(include/dicom)
 include_directories(include/data)
 include_directories(include/plugin)
+include_directories(include/functions)
 include_directories(extern/nlohmann-json/single_include/)
 
 # test targets

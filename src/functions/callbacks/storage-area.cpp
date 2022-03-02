@@ -1,5 +1,5 @@
 #include <dicom-file.h>
-#include <dicom-checksum.h>
+#include <data-transport.h>
 #include <dicom-anonymizer.h>
 //#include <db-interface.h>
 //#include <job-queue.h>
@@ -71,7 +71,7 @@ OrthancPluginErrorCode StorageCreateCallback(const char *uuid,
             DicomFile file(content, size);
             DicomAnonymizer anon;
             if (anon.Anonymize(file)) {
-                DicomChecksum::Emplace(content, uuid);
+                DataTransport::Emplace(content, uuid);
                 fs::create_directories(path.parent_path());
                 return file.Write(path);
             }
