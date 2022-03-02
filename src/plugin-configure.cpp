@@ -24,7 +24,8 @@ int PluginConfigurer::Initialize_impl(nlm::json &cfg) {
         DEBUG_LOG(DEBUG_2,ss.str().c_str());
         auto status = DicomAnonymizer::Configure(config);
         if (status != 0) return status;
-        hardlinks = config.at("DataAnon").at("Hardlinks");
+        auto da_cfg = config.at("DataAnon");
+        hardlinks = da_cfg.at("Hardlinks");
         if (config["StorageDirectory"].is_string()) {
             globals::storage_location = config["StorageDirectory"].get<std::string>();
             fs::create_directories(globals::storage_location);
@@ -33,8 +34,8 @@ int PluginConfigurer::Initialize_impl(nlm::json &cfg) {
             DEBUG_LOG(PLUGIN_ERRORS, "Configuration json does not contain a valid StorageDirectory field.");
             return -1;
         }
-        if (config["HardlinksUseHashBins"].is_boolean()){
-            hardlinks_use_bins = config["HardlinksUseHashBins"].get<bool>();
+        if (da_cfg["HardlinksUseHashBins"].is_boolean()){
+            hardlinks_use_bins = da_cfg["HardlinksUseHashBins"].get<bool>();
         } else {
             DEBUG_LOG(PLUGIN_ERRORS, "Configuration json does not contain a valid HardlinksUseHashBins field.");
             return -1;
