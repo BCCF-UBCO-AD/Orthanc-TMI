@@ -5,7 +5,7 @@
 // todo: name better?
 class DBInterface { // not an 'interface'
 public:
-    static void connect(std::string host, std::string password);
+    static void connect(std::string database, std::string host, std::string port, std::string username, std::string password);
     static void disconnect();
     static bool is_open();
     

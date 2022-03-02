@@ -4,11 +4,22 @@
 
 pqxx::connection* con = nullptr;
 
-void DBInterface::connect(std::string host, std::string password) {
+//https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING
+//postgresql://[userspec@][hostspec][/dbname][?paramspec]
+//    where userspec is:
+//     user[:password]
+//    and hostspec is:
+//     [host][:port][,...]
+//    and paramspec is:
+//     name=value[&...]
+// ex:
+//  postgresql://user:secret@localhost
+//  postgresql://other@localhost/otherdb?connect_timeout=10&application_name=myapp
+//  postgresql://host1:123,host2:456/somedb?target_session_attrs=any&application_name=myapp
+void DBInterface::connect(std::string database, std::string host, std::string port, std::string username, std::string password) {
     if(!con) {
         char buffer[256];
-        //todo: replace "postgres:"->"%s" and pass user to connect function
-        sprintf(buffer, "postgresql://postgres:%s@%s:5432/orthanc", password.c_str(), host.c_str());
+        sprintf(buffer, "postgresql://%s:%s@%s:%s/%s", username.c_str(), password.c_str(), host.c_str(), port.c_str(), database.c_str());
         try {
             static pqxx::connection c(buffer);
             con = &c;
