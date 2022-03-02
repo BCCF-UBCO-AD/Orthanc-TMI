@@ -1,10 +1,10 @@
 #pragma once
 #include <pqxx/pqxx>
-#include <dicom-file.h>
 
 // todo: name better?
 class DBInterface { // not an 'interface'
 private:
+    pqxx::connection con;
     DBInterface() = default;
     void disconnect();
 public:

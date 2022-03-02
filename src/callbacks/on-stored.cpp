@@ -1,5 +1,5 @@
-#include <on-stored.h>
-#include <dicom-checksum.h>
+#include "callbacks.h"
+#include "dicom/dicom-checksum.h"
 
 OrthancPluginErrorCode OnStoredInstanceCallback(const OrthancPluginDicomInstance *instance, const char *instanceId) {
     char msg[1024] = {0};

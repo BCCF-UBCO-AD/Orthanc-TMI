@@ -1,6 +1,6 @@
 #include <plugin-configure.h>
 #include <db-interface.h>
-#include <dicom-tag.h>
+#include <dicom-anonymizer.h>
 #include <iostream>
 
 nlm::json PluginConfigurer::config;
@@ -29,9 +29,11 @@ int PluginConfigurer::InitializePlugin() {
         DEBUG_LOG(DEBUG_1, "DBInterface: connection successful.");
         DBInterface::GetInstance().CreateTables();
     } catch (const std::exception &e) {
+        DEBUG_LOG(PLUGIN_ERRORS,"Failed inside PluginConfigurer::InitializePlugin");
         std::cerr << e.what() << std::endl;
         return -1;
     }
+    return 0;
 }
 
 int PluginConfigurer::Initialize_impl(nlm::json &cfg) {
@@ -59,6 +61,7 @@ int PluginConfigurer::Initialize_impl(nlm::json &cfg) {
             return -1;
         }
     } catch (const std::exception &e) {
+        DEBUG_LOG(PLUGIN_ERRORS,"Failed inside PluginConfigurer::Initialize_impl");
         std::cerr << e.what() << std::endl;
         return -1;
     }

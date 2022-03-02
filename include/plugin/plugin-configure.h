@@ -1,6 +1,7 @@
 #pragma once
 #include <core.h>
-#include <dicom-anonymizer.h>
+#include <json.h>
+#include <dicom-tag.h>
 
 class PluginConfigurer {
 private:
