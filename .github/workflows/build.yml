@@ -48,23 +48,10 @@
               -G Ninja
             ninja -C build/release data-anonymizer
             ninja -C build/debug all-tests
-        - name: Cache PostgreSQL
-          id: cache-postgres
-          uses: actions/cache@v2
-          with:
-            path: .github/postgres
-            key: ${{ runner.os }}-postgres
-        - name: Initialize PostgreSQL
-          if: steps.cache-postgres.outputs.cache-hit != 'true'
-          run: |
-            cd .github
-            docker-compose up -d postgres && sleep 60s
-            docker logs --details postgres
-            docker-compose down && sleep 10s
         - name: Launch Docker Compose
           run: |
             cd .github
-            docker-compose up -d && sleep 25s
+            docker-compose up -d && sleep 60s
         - name: Check PostgreSQL
           run: |
             status=$(docker ps --all --filter name=postgres --format '{{.Status}}')
