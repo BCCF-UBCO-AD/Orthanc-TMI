@@ -38,7 +38,7 @@
           run: |
             cmake \
               -S . \
-              -B build/release \
+              -B build \
               -G Ninja
             ninja -C build
         - name: Launch Docker Compose
