@@ -51,7 +51,7 @@
         - name: Launch Docker Compose
           run: |
             cd .github
-            docker-compose up -d && sleep 25s
+            docker-compose up -d && sleep 8s
         - name: Check PostgreSQL
           run: |
             status=$(docker ps --all --filter name=postgres --format '{{.Status}}')
