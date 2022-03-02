@@ -51,12 +51,12 @@
         - name: Initialize PostgreSQL
           run: | 
             cd .github
-            ls
             docker-compose up -d postgres && sleep 60s
             docker logs --details postgres
             docker-compose down && sleep 10s
         - name: Launch Docker Compose
           run: |
+            cd .github
             docker-compose up -d && sleep 25s
         - name: Check PostgreSQL
           run: |
