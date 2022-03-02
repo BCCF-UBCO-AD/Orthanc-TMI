@@ -1,7 +1,7 @@
-#include "db-interface.h"
-#include "pqxx/except.hxx"
-#include "iostream"
-
+#include <core.h>
+#include <db-interface.h>
+#include <pqxx/except.hxx>
+#include <iostream>
 pqxx::connection* con = nullptr;
 
 //https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING

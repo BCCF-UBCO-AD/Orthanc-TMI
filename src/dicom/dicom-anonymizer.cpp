@@ -1,6 +1,6 @@
 #include <dicom-anonymizer.h>
 #include <dicom-tag.h>
-#include <plugin-configure.h>
+#include "plugin/plugin-configure.h"
 #include <date-truncation.h>
 #include <iostream>
 

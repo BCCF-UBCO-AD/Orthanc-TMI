@@ -1,7 +1,6 @@
 #include <dicom-file.h>
 #include <dicom-element-view.h>
 #include <plugin-configure.h>
-#include <vector>
 #include <fstream>
 #include <iostream>
 

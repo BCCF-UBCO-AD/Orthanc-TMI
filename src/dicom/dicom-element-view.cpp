@@ -1,5 +1,6 @@
 #include <dicom-element-view.h>
 #include <dicom-tag.h>
+#include <cstring>
 
 uint64_t DicomElementView::CalcValueOffset() {
     // length width, and location must be deduced

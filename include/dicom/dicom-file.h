@@ -1,6 +1,8 @@
 #pragma once
 #include <core.h>
 #include <dicom-tag.h>
+
+#include <vector>
 #include <unordered_map>
 
 // an alias for a range as a std::pair

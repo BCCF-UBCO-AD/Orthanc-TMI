@@ -1,5 +1,5 @@
 #pragma once
-#include "core.h"
+#include <core.h>
 
 // incoming callback prototype
 extern int32_t FilterCallback(const OrthancPluginDicomInstance *instance);
