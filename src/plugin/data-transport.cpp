@@ -76,7 +76,7 @@ bool DataTransport::UpdateDatabase(const void* instance_data) {
     }
     // Checksum not found in checksum_map
     checksum_lock.unlock();
-    sprintf(msg, "DicomChecksum::UpdateDatabase: Failure! No checksum was found for %zu.", instance_data);
+    sprintf(msg, "DicomChecksum::UpdateDatabase: Failure! No checksum was found for %zu.", (size_t)instance_data);
     DEBUG_LOG(PLUGIN_ERRORS, msg);
     return false;
 }

@@ -63,7 +63,7 @@ OrthancPluginErrorCode StorageCreateCallback(const char *uuid,
                                              int64_t size,
                                              OrthancPluginContentType type) {
     char msg[1024] = {0};
-    sprintf(msg,"StorageCreateCallback:\nuuid: %s\ncontent: %zu\n", uuid, content);
+    sprintf(msg,"StorageCreateCallback:\nuuid: %s\ncontent: %zu\n", uuid, (size_t)content);
     DEBUG_LOG(DEBUG_1,msg)
     fs::path path = GetPath(type, uuid);
     switch (type) {
