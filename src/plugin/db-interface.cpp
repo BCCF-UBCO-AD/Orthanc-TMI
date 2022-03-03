@@ -16,17 +16,13 @@
 //  postgresql://other@localhost/otherdb?connect_timeout=10&application_name=myapp
 //  postgresql://host1:123,host2:456/somedb?target_session_attrs=any&application_name=myapp
 void DBInterface::Connect(std::string database, std::string host, uint16_t port, std::string username, std::string password) {
-    char buffer[256];
-    sprintf(buffer, "postgresql://%s:%s@%s:%hu/%s", username.c_str(), password.c_str(), host.c_str(), port, database.c_str());
     try {
-        con = pqxx::connection(buffer);
-//            con.prepare(
-//                    "get_uuid_from_instanceid",
-//                    "SELECT a.uuid "
-//                    "FROM attachedfiles a, resources r "
-//                    "WHERE r.internalid = a.id AND r.publicid = $1;"
-//                    );
-        con.prepare(
+        char buffer[1024];
+        DEBUG_LOG(DEBUG_2, "Preparing connection string");
+        sprintf(buffer, "postgresql://%s:%s@%s:%hu/%s", username.c_str(), password.c_str(), host.c_str(), port, database.c_str());
+        DEBUG_LOG(DEBUG_2, buffer);
+        con = new pqxx::connection(buffer); // not using a pointer causes the function to throw an exception when invoked.. doesn't make any sense.. but let's just leave it as is
+        con->prepare(
                 "UpdateChecksum",
                 "UPDATE attachedfiles "
                 "SET uncompressedsize = $1, compressedsize = $2, uncompressedhash = $3, compressedhash = $4 "
@@ -39,13 +35,15 @@ void DBInterface::Connect(std::string database, std::string host, uint16_t port,
 }
 
 void DBInterface::disconnect() {
-    if(con.is_open()){
-        con.close();
+    if(con->is_open()){
+        con->close();
+        delete con;
+        con = nullptr;
     }
 }
 
 bool DBInterface::IsOpen() {
-    return con.is_open();
+    return con && con->is_open();
 }
 
 //std::string DBInterface::get_uuid_from_instanceid(const char* instanceid) {
@@ -59,8 +57,8 @@ bool DBInterface::IsOpen() {
 
 
 void DBInterface::UpdateChecksum(std::string uuid, int64_t size, const char* hash) {
-    if(con.is_open()) {
-        pqxx::work w(con);
+    if(con && con->is_open()) {
+        pqxx::work w(*con);
         w.exec_prepared("UpdateChecksum", size, size, hash, hash, uuid);
         w.commit();
     }
@@ -81,8 +79,8 @@ void DBInterface::UpdateChecksum(std::string uuid, int64_t size, const char* has
 
 
 void DBInterface::CreateTables() {
-    if(con.is_open()) {
-        pqxx::work w(con);
+    if(con && con->is_open()) {
+        pqxx::work w(*con);
         w.exec0("CREATE SEQUENCE IF NOT EXISTS public.id_sequence\n"
                 "INCREMENT 1\n"
                 "START 1\n"

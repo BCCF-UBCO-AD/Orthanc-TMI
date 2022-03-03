@@ -4,7 +4,7 @@
 // todo: name better?
 class DBInterface { // not an 'interface'
 private:
-    pqxx::connection con;
+    pqxx::connection* con = nullptr;
     DBInterface() = default;
     void disconnect();
 public:
