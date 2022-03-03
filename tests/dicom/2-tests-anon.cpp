@@ -1,6 +1,6 @@
 #include "../common.h"
 #include <gtest/gtest.h>
-#include "plugin/plugin-configure.h"
+#include <plugin-configure.h>
 #include <dicom-anonymizer.h>
 
 #include <iostream>
