@@ -12,6 +12,7 @@ int32_t FilterCallback(const OrthancPluginDicomInstance *instance) {
     if(anon.Anonymize(file)) {
         if(!DataTransport::Emplace(file.CalculateMd5())){
             // this is a duplicate DICOM instance
+            DEBUG_LOG(INFO, "Received a duplicate DICOM file. Duplicate rejected.")
             return 0;
         }
         DataTransport::Emplace(instance_data, file.CalculateMd5(), file.GetSize());
