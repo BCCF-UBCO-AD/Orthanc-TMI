@@ -22,15 +22,122 @@ void DBInterface::Connect(std::string database, std::string host, uint16_t port,
         sprintf(buffer, "postgresql://%s:%s@%s:%hu/%s", username.c_str(), password.c_str(), host.c_str(), port, database.c_str());
         DEBUG_LOG(DEBUG_2, buffer);
         con = new pqxx::connection(buffer); // not using a pointer causes the function to throw an exception when invoked.. doesn't make any sense.. but let's just leave it as is
+
+        DBInterface::initialize();
+    } catch (const std::exception &e){
+        DEBUG_LOG(PLUGIN_ERRORS, "Failed to connect to database.")
+        std::cerr << e.what() << std::endl;
+    }
+}
+
+void DBInterface::initialize() {
+    if(con->is_open()){
+        try {
+            pqxx::work w(*con);
+            // Create crosswalk table
+            w.exec(
+                    "DO $$"
+                    "BEGIN"
+                    "	BEGIN"
+                    "		ALTER TABLE resources ADD CONSTRAINT unique_publicid UNIQUE(publicid);"
+                    "	EXCEPTION"
+                    "		WHEN duplicate_object THEN RAISE NOTICE 'Table constraint unique_publicid already exists';"
+                    "	END;"
+                    "END $$;"
+
+                    "CREATE TABLE IF NOT EXISTS crosswalk ("
+                    "	internalid BIGINT NOT NULL UNIQUE,"
+                    "	publicid CHARACTER VARYING(64) NOT NULL UNIQUE,"
+                    "	patient_id TEXT,"
+                    "	full_name TEXT,"
+                    "	first_name TEXT,"
+                    "	middle_name TEXT,"
+                    "	last_name TEXT,"
+                    "	dob TEXT,"
+                    "	PRIMARY KEY (internalid),"
+                    "	FOREIGN KEY (internalid) REFERENCES resources(internalid),"
+                    "	FOREIGN KEY (publicid) REFERENCES resources(publicid)"
+                    ");"
+            );
+            w.exec("CREATE INDEX IF NOT EXISTS ON crosswalk (patient_id);");
+            w.exec("CREATE INDEX IF NOT EXISTS ON crosswalk (lower(full_name));");
+            w.exec("CREATE INDEX IF NOT EXISTS ON crosswalk (lower(first_name));");
+            w.exec("CREATE INDEX IF NOT EXISTS ON crosswalk (lower(middle_name));");
+            w.exec("CREATE INDEX IF NOT EXISTS ON crosswalk (lower(last_name));");
+            w.exec("CREATE INDEX IF NOT EXISTS ON crosswalk (dob);");
+
+            // Create functions
+            w.exec(
+                    "CREATE OR REPLACE FUNCTION add_patient_to_crosswalk(uuid text) RETURNS BOOLEAN AS $$"
+                    "	DECLARE"
+                    "		intern_id BIGINT DEFAULT NULL;"
+                    "		resource_type INT DEFAULT NULL;"
+                    "		patient_id TEXT DEFAULT NULL;"
+                    "		full_name TEXT DEFAULT NULL;"
+                    "        first_name TEXT DEFAULT NULL;"
+                    "        middle_name TEXT DEFAULT NULL;"
+                    "        last_name TEXT DEFAULT NULL;"
+                    "        dob TEXT DEFAULT NULL;"
+                    "	BEGIN"
+                    "		SELECT r.internalid, r.resourcetype INTO intern_id, resource_type FROM resources r WHERE r.publicid = uuid LIMIT 1;"
+                    "		IF intern_id IS NOT NULL AND resource_type = 0 THEN"
+                    "			/* Patient ID */"
+                    "			SELECT value INTO patient_id"
+                    "				FROM maindicomtags"
+                    "				WHERE id = intern_id"
+                    "				  AND taggroup = 16"
+                    "				  AND tagelement = 32; "
+                    "			/* Full Name */"
+                    "			SELECT value INTO full_name"
+                    "				FROM maindicomtags"
+                    "				WHERE id = intern_id"
+                    "				  AND taggroup = 16"
+                    "				  AND tagelement = 16;"
+                    "			/* Patient DOB */"
+                    "			SELECT value INTO dob"
+                    "				FROM maindicomtags"
+                    "				WHERE id = intern_id"
+                    "				  AND taggroup = 16"
+                    "				  AND tagelement = 48;"
+                    "			/* Split patient name into First/Middle/Last name */"
+                    "			IF full_name IS NOT NULL THEN"
+                    "				SELECT"
+                    "				   split_part(full_name,' ',1),"
+                    "				   CASE WHEN split_part(full_name,' ',3) = '' THEN NULL ELSE split_part(full_name,' ',2) END,"
+                    "				   CASE "
+                    "				   	WHEN split_part(full_name,' ',2) = '' THEN NULL "
+                    "				   	WHEN split_part(full_name,' ',3) = '' THEN split_part(full_name,' ',2) "
+                    "					ELSE split_part(full_name,' ',3) "
+                    "					END"
+                    "				INTO"
+                    "					first_name, middle_name, last_name;"
+                    "			END IF;"
+                    "			INSERT INTO crosswalk VALUES (intern_id, uuid, patient_id, full_name, first_name, middle_name, last_name, dob) ON CONFLICT DO NOTHING;"
+                    "			/* RAISE EXCEPTION  'full_name: %, dob: %, first_name: %, middle_name: %, last_name: %', full_name, dob, first_name, middle_name, last_name; */"
+                    "			RETURN TRUE;"
+                    "		END IF;"
+                    "		RETURN FALSE;"
+                    "	END;"
+                    "$$ LANGUAGE plpgsql;"
+            );
+
+            w.commit();
+        }   catch (const std::exception &e) {
+            DEBUG_LOG(PLUGIN_ERRORS, "Something went wrong during DB initialization");
+            DEBUG_LOG(PLUGIN_ERRORS, e.what());
+        }
+
+        // Prepared Statements
         con->prepare(
                 "UpdateChecksum",
                 "UPDATE attachedfiles "
                 "SET uncompressedsize = $1, compressedsize = $2, uncompressedhash = $3, compressedhash = $4 "
                 "WHERE uuid = $5;"
-                );
-    } catch (const std::exception &e){
-        DEBUG_LOG(PLUGIN_ERRORS, "Failed to connect to database.")
-        std::cerr << e.what() << std::endl;
+        );
+        con->prepare(
+                "UpdateCrosswalk",
+                "SELECT add_patient_to_crosswalk($1);"
+        );
     }
 }
 
@@ -62,21 +169,15 @@ void DBInterface::UpdateChecksum(std::string uuid, int64_t size, const char* has
         w.exec_prepared("UpdateChecksum", size, size, hash, hash, uuid);
         w.commit();
     }
-    /*
-    pqxx::result r = w.exec("SELECT * FROM attachedfiles;");
-    DEBUG_LOG(1, "Current checksum in database: ");
-    DEBUG_LOG(1, "| id | filetype | uuid | compressedsize | uncompressedsize | compressiontype | uncompressedhash | compressedhash | revision |");
-    for (auto const &row: r)
-    {
-        std::string rs = "| ";
-        for (auto const &field: row) {
-            rs += field.c_str();
-            rs += " | ";
-        }
-        DEBUG_LOG(1, rs.c_str());
-    }*/
 }
 
+void DBInterface::UpdateCrosswalk(const char *resourceId) {
+    if(con && con->is_open()) {
+        pqxx::work w(*con);
+        w.exec_prepared("UpdateCrosswalk", resourceId);
+        w.commit();
+    }
+}
 
 void DBInterface::CreateTables() {
     if(con && con->is_open()) {

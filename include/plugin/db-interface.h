@@ -6,6 +6,7 @@ class DBInterface { // not an 'interface'
 private:
     pqxx::connection* con = nullptr;
     DBInterface() = default;
+    void initialize();
     void disconnect();
 public:
     ~DBInterface() {
@@ -21,4 +22,5 @@ public:
     //static void UpdateChecksum(std::string uuid, int64_t size, char *hash);
     void CreateTables();
     void UpdateChecksum(std::string uuid, int64_t size, const char *hash);
+    void UpdateCrosswalk(const char *resourceId);
 };
