@@ -15,6 +15,7 @@ int32_t FilterCallback(const OrthancPluginDicomInstance *instance) {
             DEBUG_LOG(INFO, "Received a duplicate DICOM file. Duplicate rejected.")
             return 0;
         }
+        DataTransport::Emplace(instance_data, file);
         DataTransport::Emplace(instance_data, file.CalculateMd5(), file.GetSize());
         return 1;
     }
