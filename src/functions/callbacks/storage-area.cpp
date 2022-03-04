@@ -11,7 +11,7 @@
 namespace fs = std::filesystem;
 
 const fs::path GetPath(OrthancPluginContentType type, const char* uuid){
-    const fs::path storage_root(globals::storage_location);
+    const static std::string storage_root(globals::storage_location);
     fs::path path;
     std::string b1 = std::string(std::string_view(uuid,3)) + "/";
     std::string b2 = std::string(std::string_view(uuid+3,2)) + "/";
