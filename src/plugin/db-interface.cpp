@@ -35,90 +35,91 @@ void DBInterface::initialize() {
         try {
             pqxx::work w(*con);
             // Create crosswalk table
-            w.exec(
-                    "DO $$"
-                    "BEGIN"
-                    "	BEGIN"
-                    "		ALTER TABLE resources ADD CONSTRAINT unique_publicid UNIQUE(publicid);"
-                    "	EXCEPTION"
-                    "		WHEN duplicate_object THEN RAISE NOTICE 'Table constraint unique_publicid already exists';"
-                    "	END;"
-                    "END $$;"
+            w.exec(""
+                "DO $$"
+                "BEGIN"
+                "	BEGIN"
+                "		ALTER TABLE resources ADD CONSTRAINT unique_publicid UNIQUE(publicid);"
+                "	EXCEPTION"
+                "		WHEN duplicate_object THEN RAISE NOTICE 'Table constraint unique_publicid already exists';"
+                "	END;"
+                "END $$;"
 
-                    "CREATE TABLE IF NOT EXISTS crosswalk ("
-                    "	internalid BIGINT NOT NULL UNIQUE,"
-                    "	publicid CHARACTER VARYING(64) NOT NULL UNIQUE,"
-                    "	patient_id TEXT,"
-                    "	full_name TEXT,"
-                    "	first_name TEXT,"
-                    "	middle_name TEXT,"
-                    "	last_name TEXT,"
-                    "	dob TEXT,"
-                    "	PRIMARY KEY (internalid),"
-                    "	FOREIGN KEY (internalid) REFERENCES resources(internalid),"
-                    "	FOREIGN KEY (publicid) REFERENCES resources(publicid)"
-                    ");"
+                "CREATE TABLE IF NOT EXISTS crosswalk ("
+                "	internalid BIGINT NOT NULL UNIQUE,"
+                "	publicid CHARACTER VARYING(64) NOT NULL UNIQUE,"
+                "	patient_id TEXT,"
+                "	full_name TEXT,"
+                "	first_name TEXT,"
+                "	middle_name TEXT,"
+                "	last_name TEXT,"
+                "	dob TEXT,"
+                "	PRIMARY KEY (internalid),"
+                "	FOREIGN KEY (internalid, publicid) REFERENCES resources(internalid, publicid) ON DELETE CASCADE"
+                ");"
             );
-            w.exec("CREATE INDEX IF NOT EXISTS ON crosswalk (patient_id);");
-            w.exec("CREATE INDEX IF NOT EXISTS ON crosswalk (lower(full_name));");
-            w.exec("CREATE INDEX IF NOT EXISTS ON crosswalk (lower(first_name));");
-            w.exec("CREATE INDEX IF NOT EXISTS ON crosswalk (lower(middle_name));");
-            w.exec("CREATE INDEX IF NOT EXISTS ON crosswalk (lower(last_name));");
-            w.exec("CREATE INDEX IF NOT EXISTS ON crosswalk (dob);");
+            w.exec("CREATE INDEX IF NOT EXISTS i_patient_id ON crosswalk (patient_id);");
+            w.exec("CREATE INDEX IF NOT EXISTS i_lower_full_name ON crosswalk (lower(full_name));");
+            w.exec("CREATE INDEX IF NOT EXISTS i_lower_first_name ON crosswalk (lower(first_name));");
+            w.exec("CREATE INDEX IF NOT EXISTS i_lower_middle_name ON crosswalk (lower(middle_name));");
+            w.exec("CREATE INDEX IF NOT EXISTS i_lower_last_name ON crosswalk (lower(last_name));");
+            w.exec("CREATE INDEX IF NOT EXISTS i_dob ON crosswalk (dob);");
 
-            // Create functions
-            w.exec(
-                    "CREATE OR REPLACE FUNCTION add_patient_to_crosswalk(uuid text) RETURNS BOOLEAN AS $$"
-                    "	DECLARE"
-                    "		intern_id BIGINT DEFAULT NULL;"
-                    "		resource_type INT DEFAULT NULL;"
-                    "		patient_id TEXT DEFAULT NULL;"
-                    "		full_name TEXT DEFAULT NULL;"
-                    "        first_name TEXT DEFAULT NULL;"
-                    "        middle_name TEXT DEFAULT NULL;"
-                    "        last_name TEXT DEFAULT NULL;"
-                    "        dob TEXT DEFAULT NULL;"
-                    "	BEGIN"
-                    "		SELECT r.internalid, r.resourcetype INTO intern_id, resource_type FROM resources r WHERE r.publicid = uuid LIMIT 1;"
-                    "		IF intern_id IS NOT NULL AND resource_type = 0 THEN"
-                    "			/* Patient ID */"
-                    "			SELECT value INTO patient_id"
-                    "				FROM maindicomtags"
-                    "				WHERE id = intern_id"
-                    "				  AND taggroup = 16"
-                    "				  AND tagelement = 32; "
-                    "			/* Full Name */"
-                    "			SELECT value INTO full_name"
-                    "				FROM maindicomtags"
-                    "				WHERE id = intern_id"
-                    "				  AND taggroup = 16"
-                    "				  AND tagelement = 16;"
-                    "			/* Patient DOB */"
-                    "			SELECT value INTO dob"
-                    "				FROM maindicomtags"
-                    "				WHERE id = intern_id"
-                    "				  AND taggroup = 16"
-                    "				  AND tagelement = 48;"
-                    "			/* Split patient name into First/Middle/Last name */"
-                    "			IF full_name IS NOT NULL THEN"
-                    "				SELECT"
-                    "				   split_part(full_name,' ',1),"
-                    "				   CASE WHEN split_part(full_name,' ',3) = '' THEN NULL ELSE split_part(full_name,' ',2) END,"
-                    "				   CASE "
-                    "				   	WHEN split_part(full_name,' ',2) = '' THEN NULL "
-                    "				   	WHEN split_part(full_name,' ',3) = '' THEN split_part(full_name,' ',2) "
-                    "					ELSE split_part(full_name,' ',3) "
-                    "					END"
-                    "				INTO"
-                    "					first_name, middle_name, last_name;"
-                    "			END IF;"
-                    "			INSERT INTO crosswalk VALUES (intern_id, uuid, patient_id, full_name, first_name, middle_name, last_name, dob) ON CONFLICT DO NOTHING;"
-                    "			/* RAISE EXCEPTION  'full_name: %, dob: %, first_name: %, middle_name: %, last_name: %', full_name, dob, first_name, middle_name, last_name; */"
-                    "			RETURN TRUE;"
-                    "		END IF;"
-                    "		RETURN FALSE;"
-                    "	END;"
-                    "$$ LANGUAGE plpgsql;"
+            // Create procedures for triggers
+            w.exec(""
+                "CREATE OR REPLACE FUNCTION add_id_to_crosswalk() RETURNS trigger AS $add_id_to_crosswalk$"
+                "	BEGIN"
+                "		INSERT INTO crosswalk (internalid, publicid) VALUES (NEW.internalid, NEW.publicid);"
+                "		RETURN NULL;"
+                "	END;"
+                "$add_id_to_crosswalk$ LANGUAGE plpgsql;"
+            );
+            w.exec(""
+                "CREATE OR REPLACE FUNCTION add_info_to_crosswalk() RETURNS trigger AS $add_info_to_crosswalk$"
+                "	DECLARE"
+                "		t_first_name TEXT DEFAULT NULL;"
+                "        t_middle_name TEXT DEFAULT NULL;"
+                "        t_last_name TEXT DEFAULT NULL;"
+                "    BEGIN"
+                "		IF NEW.taggroup = 16 THEN"
+                "			IF NEW.tagelement = 16 THEN"
+                "				UPDATE crosswalk SET full_name = NEW.value WHERE internalid = NEW.id;"
+                "				SELECT"
+                "					split_part(NEW.value,' ',1),"
+                "					CASE"
+                "						WHEN split_part(NEW.value,' ',3) = '' THEN NULL ELSE split_part(NEW.value,' ',2) END,"
+                "					CASE "
+                "						WHEN split_part(NEW.value,' ',2) = '' THEN NULL "
+                "						WHEN split_part(NEW.value,' ',3) = '' THEN split_part(NEW.value,' ',2) "
+                "						ELSE split_part(NEW.value,' ',3) "
+                "					END"
+                "				INTO"
+                "					t_first_name, t_middle_name, t_last_name;"
+                "				UPDATE crosswalk SET first_name = t_first_name, middle_name = t_middle_name, last_name = t_last_name WHERE internalid = NEW.id;"
+                "			ELSIF NEW.tagelement = 32 THEN"
+                "				UPDATE crosswalk SET patient_id = NEW.value WHERE internalid = NEW.id;"
+                "			ELSIF NEW.tagelement = 48 THEN"
+                "				UPDATE crosswalk SET dob = NEW.value WHERE internalid = NEW.id;"
+                "			END IF;"
+                "		END IF;"
+                "		RETURN NULL;"
+                "    END;"
+                "$add_info_to_crosswalk$ LANGUAGE plpgsql;"
+            );
+
+            // Create triggers
+            w.exec(""
+                "CREATE OR REPLACE TRIGGER new_data AFTER INSERT"
+                "    ON resources"
+                "	FOR EACH ROW"
+                "    WHEN (NEW.resourcetype = 0)"
+                "    EXECUTE PROCEDURE add_id_to_crosswalk();"
+            );
+            w.exec(""
+                "CREATE OR REPLACE TRIGGER new_data AFTER INSERT"
+                "    ON maindicomtags"
+                "	FOR EACH ROW"
+                "    EXECUTE PROCEDURE add_info_to_crosswalk();"
             );
 
             w.commit();
@@ -133,10 +134,6 @@ void DBInterface::initialize() {
                 "UPDATE attachedfiles "
                 "SET uncompressedsize = $1, compressedsize = $2, uncompressedhash = $3, compressedhash = $4 "
                 "WHERE uuid = $5;"
-        );
-        con->prepare(
-                "UpdateCrosswalk",
-                "SELECT add_patient_to_crosswalk($1);"
         );
     }
 }
@@ -167,14 +164,6 @@ void DBInterface::UpdateChecksum(std::string uuid, int64_t size, const char* has
     if(con && con->is_open()) {
         pqxx::work w(*con);
         w.exec_prepared("UpdateChecksum", size, size, hash, hash, uuid);
-        w.commit();
-    }
-}
-
-void DBInterface::UpdateCrosswalk(const char *resourceId) {
-    if(con && con->is_open()) {
-        pqxx::work w(*con);
-        w.exec_prepared("UpdateCrosswalk", resourceId);
         w.commit();
     }
 }

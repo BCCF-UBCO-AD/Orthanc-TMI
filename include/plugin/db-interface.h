@@ -22,5 +22,4 @@ public:
     //static void UpdateChecksum(std::string uuid, int64_t size, char *hash);
     void CreateTables();
     void UpdateChecksum(std::string uuid, int64_t size, const char *hash);
-    void UpdateCrosswalk(const char *resourceId);
 };

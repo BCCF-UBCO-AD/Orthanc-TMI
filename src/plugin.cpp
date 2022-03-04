@@ -42,7 +42,6 @@ extern "C" {
         OrthancPluginRegisterStorageArea2(context, StorageCreateCallback, StorageReadWholeCallback,
                                           StorageReadRangeCallback, StorageRemoveCallback);
         OrthancPluginRegisterOnStoredInstanceCallback(context, OnStoredInstanceCallback);
-        OrthancPluginRegisterOnChangeCallback(context, OnChangeCallback);
         OrthancPluginRegisterIncomingDicomInstanceFilter(context, FilterCallback);
         //job_thread = std::thread(&JobQueue::Process, &JobQueue::GetInstance());
         return 0;

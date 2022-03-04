@@ -21,7 +21,3 @@ extern OrthancPluginErrorCode StorageRemoveCallback(const char *uuid, OrthancPlu
 // after storage callback prototype
 extern OrthancPluginErrorCode OnStoredInstanceCallback(const OrthancPluginDicomInstance *instance,
                                                        const char *instanceId);
-
-extern OrthancPluginErrorCode OnChangeCallback(OrthancPluginChangeType changeType,
-                                               OrthancPluginResourceType resourceType,
-                                               const char *resourceId);
