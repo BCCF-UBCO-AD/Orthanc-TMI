@@ -106,15 +106,16 @@ void DicomFile::MakeHardlinks(const fs::path &master_path) {
                     .append(groupby)
                     .append(group)
                     .append(b1)
-                    .append(uuid)
-                    .append(".DCM");
+                    .append(uuid);
         } else {
             link = fs::path(storage_root)
                     .append(groupby)
                     .append(group)
-                    .append(uuid)
-                    .append(".DCM");
+                    .append(uuid);
         }
+        char msg[1024];
+        sprintf(msg,"Attempting to link %s -> %s", link.c_str(), master_path.c_str());
+        DEBUG_LOG(DEBUG_1,msg);
         fs::create_directories(link);
         fs::create_hard_link(master_path, link);
         fs::permissions(link, globals::file_permissions);
