@@ -114,8 +114,6 @@ void DicomFile::MakeHardlinks(const fs::path &master_path) {
                     .append(uuid);
         }
         char msg[1024];
-        sprintf(msg, "storage root: %s", storage_root.c_str());
-        DEBUG_LOG(DEBUG_1,msg);
         sprintf(msg,"Attempting to link %s -> %s", link.c_str(), master_path.c_str());
         DEBUG_LOG(DEBUG_1,msg);
         fs::create_directories(link.parent_path());
