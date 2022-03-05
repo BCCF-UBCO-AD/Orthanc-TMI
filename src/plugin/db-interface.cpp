@@ -34,17 +34,22 @@ void DBInterface::initialize() {
     if(con->is_open()){
         try {
             pqxx::work w(*con);
-            // Create crosswalk table
+
+            // Alter reousrces to add unique constraint
             w.exec(""
                 "DO $$"
-                "BEGIN"
                 "	BEGIN"
-                "		ALTER TABLE resources ADD CONSTRAINT unique_publicid UNIQUE(publicid);"
-                "	EXCEPTION"
-                "		WHEN duplicate_object THEN RAISE NOTICE 'Table constraint unique_publicid already exists';"
+                "		IF NOT EXISTS (SELECT constraint_name FROM information_schema.constraint_column_usage "
+                "					   WHERE table_name = 'resources' "
+                "					   AND constraint_name = 'unique_publicid') THEN"
+                "			ALTER TABLE resources ADD CONSTRAINT unique_publicid UNIQUE(publicid);"
+                "		END IF;"
                 "	END;"
-                "END $$;"
+                "$$ language 'plpgsql';"
+            );
 
+            // Create crosswalk table
+            w.exec(""
                 "CREATE TABLE IF NOT EXISTS crosswalk ("
                 "	internalid BIGINT NOT NULL UNIQUE,"
                 "	publicid CHARACTER VARYING(64) NOT NULL UNIQUE,"
@@ -55,9 +60,11 @@ void DBInterface::initialize() {
                 "	last_name TEXT,"
                 "	dob TEXT,"
                 "	PRIMARY KEY (internalid),"
-                "	FOREIGN KEY (internalid, publicid) REFERENCES resources(internalid, publicid) ON DELETE CASCADE"
+                "	FOREIGN KEY (internalid) REFERENCES resources(internalid) ON DELETE CASCADE,"
+                "	FOREIGN KEY (publicid) REFERENCES resources(publicid) ON DELETE CASCADE"
                 ");"
-
+            );
+            w.exec(""
                 "CREATE TABLE IF NOT EXISTS phi_mismatch ("
                 "	internalid BIGINT NOT NULL UNIQUE,"
                 "	publicid CHARACTER VARYING(64) NOT NULL UNIQUE,"
