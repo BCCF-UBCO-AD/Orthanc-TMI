@@ -6,6 +6,7 @@ class DBInterface { // not an 'interface'
 private:
     pqxx::connection* con = nullptr;
     DBInterface() = default;
+    void initialize();
     void disconnect();
 public:
     ~DBInterface() {
