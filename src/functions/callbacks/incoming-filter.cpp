@@ -11,11 +11,11 @@ int32_t FilterCallback(const OrthancPluginDicomInstance *instance) {
     DicomAnonymizer anon;
     if(anon.Anonymize(file)) {
         if(DataTransport::Emplace(file.CalculateMd5())){
-            // this is a duplicate DICOM instance
             DataTransport::Emplace(instance_data, file);
             DataTransport::Emplace(instance_data, file.CalculateMd5(), file.GetSize());
             return 1;
         }
+        // this is a duplicate DICOM instance
         DEBUG_LOG(INFO, "Received a duplicate DICOM file. Duplicate rejected.")
         return 0;
     }

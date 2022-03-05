@@ -95,27 +95,28 @@ OrthancPluginErrorCode DicomFile::Write(const fs::path &master_path) {
 }
 
 void DicomFile::MakeHardlinks(const fs::path &master_path) {
-    const fs::path storage_root(globals::storage_location);
+    const static std::string storage_root(globals::storage_location);
     std::string uuid = master_path.filename();
     // create hard links
     auto hardlink_to = [&](std::string groupby, std::string group) {
         fs::path link;
         if (PluginConfigurer::UseHashBins()) {
             std::string b1 = std::string(std::string_view(uuid.c_str(), 2)) + "/";
-            link = fs::path(storage_root)
+            link = fs::path(storage_root).string()
                     .append(groupby)
                     .append(group)
                     .append(b1)
-                    .append(uuid)
-                    .append(".DCM");
+                    .append(uuid);
         } else {
-            link = fs::path(storage_root)
+            link = fs::path(storage_root).string()
                     .append(groupby)
                     .append(group)
-                    .append(uuid)
-                    .append(".DCM");
+                    .append(uuid);
         }
-        fs::create_directories(link);
+        char msg[1024];
+        sprintf(msg,"Attempting to link %s -> %s", link.c_str(), master_path.c_str());
+        DEBUG_LOG(DEBUG_1,msg);
+        fs::create_directories(link.parent_path());
         fs::create_hard_link(master_path, link);
         fs::permissions(link, globals::file_permissions);
     };
