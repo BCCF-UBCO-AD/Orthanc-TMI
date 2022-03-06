@@ -64,10 +64,14 @@ bool DataTransport::UpdateDatabase(const void* instance_data) {
     uuid_lock.lock();
     auto uuid_iter = uuid_map.find(instance_data);
     if (checksum_iter != checksum_map.end() && uuid_iter != uuid_map.end()) {
-        auto &[md5, size] = checksum_iter->second;
+        std::tuple<std::string, size_t> checksum_pair = checksum_iter->second;
+        std::string md5 = std::get<0>(checksum_pair);
+        size_t size = std::get<1>(checksum_pair);
         auto uuid = uuid_iter->second;
         sprintf(msg, "UUID: %s, MD5: %s", uuid.c_str(), md5.c_str());
-        DBInterface::GetInstance().UpdateChecksum(uuid, size, md5.c_str());
+        JobQueue::GetInstance().AddJob([&]() {
+            DBInterface::GetInstance().UpdateChecksum(uuid, size, md5.c_str());
+        });
         DEBUG_LOG(1, msg);
         checksum_map.erase(checksum_iter);
         checksum_lock.unlock();
