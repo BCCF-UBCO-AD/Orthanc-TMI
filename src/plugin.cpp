@@ -3,8 +3,8 @@
 #include <configuration.h>
 #include <plugin-configure.h>
 #include <callbacks.h>
-//#include <job-queue.h>
-//#include <thread>
+#include <job-queue.h>
+#include <thread>
 
 namespace fs = std::filesystem;
 namespace globals {
@@ -14,7 +14,7 @@ namespace globals {
     fs::perms file_permissions = fs::perms::owner_all | fs::perms::group_all | fs::perms::others_read;
 }
 
-//static std::thread job_thread;
+static std::thread job_thread;
 
 // plugin foundation
 extern "C" {
@@ -43,12 +43,12 @@ extern "C" {
                                           StorageReadRangeCallback, StorageRemoveCallback);
         OrthancPluginRegisterOnStoredInstanceCallback(context, OnStoredInstanceCallback);
         OrthancPluginRegisterIncomingDicomInstanceFilter(context, FilterCallback);
-        //job_thread = std::thread(&JobQueue::Process, &JobQueue::GetInstance());
+        job_thread = std::thread(&JobQueue::Process, &JobQueue::GetInstance());
         return 0;
     }
 
     void OrthancPluginFinalize(){
-        //JobQueue::GetInstance().Stop();
-        //job_thread.join();
+        JobQueue::GetInstance().Stop();
+        job_thread.join();
     }
 }

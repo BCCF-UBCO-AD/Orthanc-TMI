@@ -28,7 +28,7 @@ int PluginConfigurer::InitializePlugin() {
             return -1;
         }
         DEBUG_LOG(DEBUG_1, "DBInterface: connection successful.");
-        DBInterface::GetInstance().CreateTables();
+        //DBInterface::GetInstance().CreateTables();
     } catch (const std::exception &e) {
         DEBUG_LOG(PLUGIN_ERRORS,"Failed inside PluginConfigurer::InitializePlugin");
         std::cerr << e.what() << std::endl;

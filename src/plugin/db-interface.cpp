@@ -2,7 +2,8 @@
 #include <db-interface.h>
 #include <pqxx/except.hxx>
 #include <iostream>
-
+#include <job-queue.h>
+#include <thread>
 //https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING
 //postgresql://[userspec@][hostspec][/dbname][?paramspec]
 //    where userspec is:
@@ -23,7 +24,10 @@ void DBInterface::Connect(std::string database, std::string host, uint16_t port,
         DEBUG_LOG(DEBUG_2, buffer);
         con = new pqxx::connection(buffer); // not using a pointer causes the function to throw an exception when invoked.. doesn't make any sense.. but let's just leave it as is
 
-        DBInterface::initialize();
+        JobQueue::GetInstance().AddJob([&](){
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+            DBInterface::initialize();
+        });
     } catch (const std::exception &e){
         DEBUG_LOG(PLUGIN_ERRORS, "Failed to connect to database.")
         std::cerr << e.what() << std::endl;
@@ -203,53 +207,12 @@ bool DBInterface::IsOpen() {
     return con && con->is_open();
 }
 
-//std::string DBInterface::get_uuid_from_instanceid(const char* instanceid) {
-//    pqxx::work w( *con);
-//    pqxx::result r = w.exec_prepared("get_uuid_from_instanceid", instanceid);
-//
-//    const pqxx::row row = r[0];
-//    const pqxx::field field = row[0];
-//    return std::string(field.c_str());
-//}
-
-
 void DBInterface::UpdateChecksum(std::string uuid, int64_t size, const char* hash) {
-    if(con && con->is_open()) {
-        pqxx::work w(*con);
-        w.exec_prepared("UpdateChecksum", size, size, hash, hash, uuid);
-        w.commit();
-    }
-}
-
-void DBInterface::CreateTables() {
-    if(con && con->is_open()) {
-        pqxx::work w(*con);
-        w.exec0("CREATE SEQUENCE IF NOT EXISTS public.id_sequence\n"
-                "INCREMENT 1\n"
-                "START 1\n"
-                "MINVALUE 1;\n"
-                "CREATE TABLE IF NOT EXISTS public.dicom_instances (\n"
-                "    uuid VARCHAR PRIMARY KEY,\n"
-                "    timestamp int NOT NULL\n"
-                ");\n"
-                "\n"
-                "CREATE TABLE IF NOT EXISTS public.dicom_identifiers (\n"
-                "    id INT DEFAULT nextval('id_sequence'::regclass) NOT NULL,\n"
-                "    uuid VARCHAR NOT NULL,\n"
-                "    tag_group VARCHAR NOT NULL,\n"
-                "    tag_element VARCHAR NOT NULL,\n"
-                "    value VARCHAR,\n"
-                "    PRIMARY KEY (id),\n"
-                "    FOREIGN KEY (uuid) REFERENCES public.dicom_instances(uuid)\n"
-                ");\n"
-                "\n"
-                "CREATE TABLE IF NOT EXISTS public.dicom_duplicates (\n"
-                "    uuid VARCHAR PRIMARY KEY,\n"
-                "    parent_uuid VARCHAR,\n"
-                "    FOREIGN KEY (uuid) REFERENCES public.dicom_instances(uuid),\n"
-                "    FOREIGN KEY (parent_uuid) REFERENCES public.dicom_instances(uuid)\n"
-                ");\n"
-               );
-        w.commit();
-    }
+    JobQueue::GetInstance().AddJob([&](){
+        if(con && con->is_open()) {
+            pqxx::work w(*con);
+            w.exec_prepared("UpdateChecksum", size, size, hash, hash, uuid);
+            w.commit();
+        }
+    });
 }

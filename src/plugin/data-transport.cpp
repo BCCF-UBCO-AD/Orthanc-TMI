@@ -1,6 +1,7 @@
 #include <data-transport.h>
 #include <db-interface.h>
 #include <iostream>
+#include <job-queue.h>
 
 std::unordered_map<const void *, std::tuple<std::string, size_t>> DataTransport::checksum_map;
 std::unordered_map<const void *, std::string> DataTransport::uuid_map;

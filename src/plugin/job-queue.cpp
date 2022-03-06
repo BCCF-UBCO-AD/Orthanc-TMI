@@ -1,4 +1,3 @@
-/*
 #include <job-queue.h>
 #include <thread>
 
