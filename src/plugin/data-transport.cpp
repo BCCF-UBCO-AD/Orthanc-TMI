@@ -66,7 +66,7 @@ bool DataTransport::UpdateDatabase(const void* instance_data) {
     if (checksum_iter != checksum_map.end() && uuid_iter != uuid_map.end()) {
         auto &[md5, size] = checksum_iter->second;
         auto &uuid = uuid_iter->second;
-        DBInterface::GetInstance().UpdateChecksum(uuid, md5, size);
+        DBInterface::UpdateChecksum(uuid, md5, size);
         sprintf(msg, "UUID: %s, MD5: %s", uuid.c_str(), md5.c_str());
         checksum_map.erase(checksum_iter);
         checksum_lock.unlock();
