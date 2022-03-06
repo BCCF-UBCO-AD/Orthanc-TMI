@@ -211,7 +211,7 @@ void DBInterface::UpdateChecksum(std::string uuid, std::string hash, int64_t siz
     try {
         if (con && con->is_open()) {
             pqxx::work w(*con);
-            w.exec_prepared("UpdateChecksum", size, size, hash, hash, uuid);
+            w.exec_prepared("UpdateChecksum", size, hash, uuid);
             w.commit();
         }
     } catch (const std::exception &e){
