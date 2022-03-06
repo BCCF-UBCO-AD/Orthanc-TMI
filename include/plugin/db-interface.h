@@ -18,6 +18,8 @@ public:
     }
     void Connect(std::string database, std::string host, uint16_t port, std::string username, std::string password);
     bool IsOpen();
-
-    void UpdateChecksum(std::string uuid, int64_t size, const char *hash);
+    
+    //static void UpdateChecksum(std::string uuid, int64_t size, char *hash);
+    void CreateTables();
+    void UpdateChecksum(const char* uuid, const char *hash, int64_t size);
 };

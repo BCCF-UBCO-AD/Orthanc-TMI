@@ -26,7 +26,7 @@ void DBInterface::Connect(std::string database, std::string host, uint16_t port,
 
         JobQueue::GetInstance().AddJob([&](){
             std::this_thread::sleep_for(std::chrono::seconds(2));
-            DBInterface::initialize();
+            initialize();
         });
     } catch (const std::exception &e){
         DEBUG_LOG(PLUGIN_ERRORS, "Failed to connect to database.")
@@ -207,7 +207,7 @@ bool DBInterface::IsOpen() {
     return con && con->is_open();
 }
 
-void DBInterface::UpdateChecksum(std::string uuid, int64_t size, const char* hash) {
+void DBInterface::UpdateChecksum(const char* uuid, const char* hash, int64_t size) {
     JobQueue::GetInstance().AddJob([&](){
         if(con && con->is_open()) {
             pqxx::work w(*con);
