@@ -3,8 +3,9 @@
 #include <configuration.h>
 #include <plugin-configure.h>
 #include <callbacks.h>
-#include <job-queue.h>
+#include <db-interface.h>
 #include <thread>
+#include <iostream>
 
 namespace fs = std::filesystem;
 namespace globals {
@@ -14,7 +15,7 @@ namespace globals {
     fs::perms file_permissions = fs::perms::owner_all | fs::perms::group_all | fs::perms::others_read;
 }
 
-static std::thread job_thread;
+std::thread db_init_job;
 
 // plugin foundation
 extern "C" {
@@ -43,12 +44,17 @@ extern "C" {
                                           StorageReadRangeCallback, StorageRemoveCallback);
         OrthancPluginRegisterOnStoredInstanceCallback(context, OnStoredInstanceCallback);
         OrthancPluginRegisterIncomingDicomInstanceFilter(context, FilterCallback);
-        job_thread = std::thread(&JobQueue::Process, &JobQueue::GetInstance());
+        db_init_job = std::thread([](){
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+            if(!DBInterface::Initialize()){
+                std::cerr << "DB Initialize job failed. Terminating.." << std::endl;
+                std::abort(); // abnormal termination
+            }
+        });
         return 0;
     }
 
     void OrthancPluginFinalize(){
-        JobQueue::GetInstance().Stop();
-        job_thread.join();
+        db_init_job.join();
     }
 }

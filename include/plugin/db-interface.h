@@ -8,5 +8,5 @@ private:
 public:
     //static void UpdateChecksum(std::string uuid, int64_t size, char *hash);
     static void UpdateChecksum(std::string uuid, std::string hash, int64_t size);
-    static void Initialize();
+    static bool Initialize();
 };

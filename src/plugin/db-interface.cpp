@@ -30,10 +30,11 @@ void DBInterface::UpdateChecksum(std::string uuid, std::string hash, int64_t siz
     }
 }
 
-void DBInterface::Initialize() {
+bool DBInterface::Initialize() {
     try {
         static std::once_flag flag;
-        std::call_once(flag, []() {
+        bool return_value = false;
+        std::call_once(flag, [&]() {
             pqxx::connection con(PluginConfigurer::GetDBConnectionInfo());
             if (con.is_open()) {
                 pqxx::work w(con);
@@ -179,11 +180,14 @@ void DBInterface::Initialize() {
                       );
                 w.commit();
                 con.close();
+                return_value = true;
             }
         });
+        return return_value;
         //con->prepare("my_simp","SELECT * FROM attachedfiles");
     } catch (const std::exception &e) {
         DEBUG_LOG(PLUGIN_ERRORS, "Something went wrong during DB initialization");
         DEBUG_LOG(PLUGIN_ERRORS, e.what());
     }
+    return false;
 }

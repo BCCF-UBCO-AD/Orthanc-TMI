@@ -38,11 +38,6 @@ int PluginConfigurer::InitializePlugin() {
         std::string username = cfg["PostgreSQL"]["Username"].get<std::string>();
         std::string password = cfg["PostgreSQL"]["Password"].get<std::string>();
         sprintf(connection_string, "postgresql://%s:%s@%s:%hu/%s", username.c_str(), password.c_str(), host.c_str(), port, database.c_str());
-        JobQueue::GetInstance().AddJob([](){
-            std::this_thread::sleep_for(std::chrono::seconds(2));
-            DBInterface::Initialize();
-        });
-        //DBInterface::GetInstance().CreateTables();
     } catch (const std::exception &e) {
         DEBUG_LOG(PLUGIN_ERRORS,"Failed inside PluginConfigurer::InitializePlugin");
         std::cerr << e.what() << std::endl;
