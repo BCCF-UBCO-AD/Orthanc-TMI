@@ -20,6 +20,5 @@ public:
     bool IsOpen();
     
     //static void UpdateChecksum(std::string uuid, int64_t size, char *hash);
-    void CreateTables();
-    void UpdateChecksum(const char* uuid, const char *hash, int64_t size);
+    void UpdateChecksum(std::string uuid, std::string hash, int64_t size);
 };

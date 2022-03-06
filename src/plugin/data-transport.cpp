@@ -1,7 +1,7 @@
 #include <data-transport.h>
 #include <db-interface.h>
-#include <iostream>
 #include <job-queue.h>
+#include <iostream>
 
 std::unordered_map<const void *, std::tuple<std::string, size_t>> DataTransport::checksum_map;
 std::unordered_map<const void *, std::string> DataTransport::uuid_map;
@@ -64,19 +64,15 @@ bool DataTransport::UpdateDatabase(const void* instance_data) {
     uuid_lock.lock();
     auto uuid_iter = uuid_map.find(instance_data);
     if (checksum_iter != checksum_map.end() && uuid_iter != uuid_map.end()) {
-        std::tuple<std::string, size_t> checksum_pair = checksum_iter->second;
-        std::string md5 = std::get<0>(checksum_pair);
-        size_t size = std::get<1>(checksum_pair);
-        auto uuid = uuid_iter->second;
+        auto &[md5, size] = checksum_iter->second;
+        auto &uuid = uuid_iter->second;
+        DBInterface::GetInstance().UpdateChecksum(uuid, md5, size);
         sprintf(msg, "UUID: %s, MD5: %s", uuid.c_str(), md5.c_str());
-        JobQueue::GetInstance().AddJob([&]() {
-            DBInterface::GetInstance().UpdateChecksum(uuid, size, md5.c_str());
-        });
-        DEBUG_LOG(1, msg);
         checksum_map.erase(checksum_iter);
         checksum_lock.unlock();
         uuid_map.erase(uuid_iter);
         uuid_lock.unlock();
+        DEBUG_LOG(1, msg);
         return true;
     }
     // Checksum not found in checksum_map

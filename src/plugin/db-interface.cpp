@@ -1,7 +1,6 @@
 #include <core.h>
 #include <db-interface.h>
 #include <pqxx/except.hxx>
-#include <iostream>
 #include <job-queue.h>
 #include <thread>
 //https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING
@@ -17,25 +16,28 @@
 //  postgresql://other@localhost/otherdb?connect_timeout=10&application_name=myapp
 //  postgresql://host1:123,host2:456/somedb?target_session_attrs=any&application_name=myapp
 void DBInterface::Connect(std::string database, std::string host, uint16_t port, std::string username, std::string password) {
-    try {
-        char buffer[1024];
-        DEBUG_LOG(DEBUG_2, "Preparing connection string");
-        sprintf(buffer, "postgresql://%s:%s@%s:%hu/%s", username.c_str(), password.c_str(), host.c_str(), port, database.c_str());
-        DEBUG_LOG(DEBUG_2, buffer);
-        con = new pqxx::connection(buffer); // not using a pointer causes the function to throw an exception when invoked.. doesn't make any sense.. but let's just leave it as is
+    if(!con || !con->is_open()) {
+        delete con;
+        try {
+            char buffer[1024];
+            DEBUG_LOG(DEBUG_2, "Preparing connection string");
+            sprintf(buffer, "postgresql://%s:%s@%s:%hu/%s", username.c_str(), password.c_str(), host.c_str(), port, database.c_str());
+            DEBUG_LOG(DEBUG_2, buffer);
+            con = new pqxx::connection(buffer); // not using a pointer causes the function to throw an exception when invoked.. doesn't make any sense.. but let's just leave it as is
 
-        JobQueue::GetInstance().AddJob([&](){
-            std::this_thread::sleep_for(std::chrono::seconds(2));
-            initialize();
-        });
-    } catch (const std::exception &e){
-        DEBUG_LOG(PLUGIN_ERRORS, "Failed to connect to database.")
-        std::cerr << e.what() << std::endl;
+            JobQueue::GetInstance().AddJob([&]() {
+                std::this_thread::sleep_for(std::chrono::seconds(2));
+                initialize();
+            });
+        } catch (const std::exception &e) {
+            DEBUG_LOG(PLUGIN_ERRORS, "Failed to connect to database.")
+            DEBUG_LOG(PLUGIN_ERRORS, e.what());
+        }
     }
 }
 
 void DBInterface::initialize() {
-    if(con->is_open()){
+    if(con && con->is_open()){
         try {
             pqxx::work w(*con);
 
@@ -180,18 +182,17 @@ void DBInterface::initialize() {
             );
 
             w.commit();
+            // Prepared Statements
+            con->prepare(
+                    "UpdateChecksum",
+                    "UPDATE attachedfiles "
+                    "SET uncompressedsize = $1, compressedsize = $2, uncompressedhash = $3, compressedhash = $4 "
+                    "WHERE uuid = $5;"
+                        );
         }   catch (const std::exception &e) {
             DEBUG_LOG(PLUGIN_ERRORS, "Something went wrong during DB initialization");
             DEBUG_LOG(PLUGIN_ERRORS, e.what());
         }
-
-        // Prepared Statements
-        con->prepare(
-                "UpdateChecksum",
-                "UPDATE attachedfiles "
-                "SET uncompressedsize = $1, compressedsize = $2, uncompressedhash = $3, compressedhash = $4 "
-                "WHERE uuid = $5;"
-        );
     }
 }
 
@@ -207,12 +208,15 @@ bool DBInterface::IsOpen() {
     return con && con->is_open();
 }
 
-void DBInterface::UpdateChecksum(const char* uuid, const char* hash, int64_t size) {
-    JobQueue::GetInstance().AddJob([&](){
-        if(con && con->is_open()) {
+void DBInterface::UpdateChecksum(std::string uuid, std::string hash, int64_t size) {
+    try {
+        if (con && con->is_open()) {
             pqxx::work w(*con);
             w.exec_prepared("UpdateChecksum", size, size, hash, hash, uuid);
             w.commit();
         }
-    });
+    } catch (const std::exception &e){
+        DEBUG_LOG(PLUGIN_ERRORS, "UpdateChecksum() encountered an exception");
+        DEBUG_LOG(PLUGIN_ERRORS, e.what());
+    }
 }
