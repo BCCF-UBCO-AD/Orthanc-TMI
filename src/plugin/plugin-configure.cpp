@@ -39,6 +39,7 @@ int PluginConfigurer::InitializePlugin() {
         std::string password = cfg["PostgreSQL"]["Password"].get<std::string>();
         sprintf(connection_string, "postgresql://%s:%s@%s:%hu/%s", username.c_str(), password.c_str(), host.c_str(), port, database.c_str());
         JobQueue::GetInstance().AddJob([](){
+            std::this_thread::sleep_for(std::chrono::seconds(2));
             DBInterface::Initialize();
         });
         //DBInterface::GetInstance().CreateTables();
