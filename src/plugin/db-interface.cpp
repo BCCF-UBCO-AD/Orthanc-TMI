@@ -8,7 +8,7 @@ void DBInterface::UpdateChecksum(std::string uuid, std::string hash, int64_t siz
     try {
         static pqxx::connection con(PluginConfigurer::GetDBConnectionInfo());
         if (con.is_open()) {
-            std::once_flag flag;
+            static std::once_flag flag;
             std::call_once(flag, [&]() {
                 // Prepared Statements
                 con.prepare(
