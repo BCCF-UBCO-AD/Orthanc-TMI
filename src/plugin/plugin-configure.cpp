@@ -1,11 +1,26 @@
 #include <plugin-configure.h>
-#include <db-interface.h>
 #include <dicom-anonymizer.h>
+#include <db-interface.h>
+#include <job-queue.h>
 #include <iostream>
 
 nlm::json PluginConfigurer::config;
 nlm::json PluginConfigurer::hardlinks;
 bool PluginConfigurer::hardlinks_use_bins = false;
+char PluginConfigurer::connection_string[1024];
+
+//https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING
+//postgresql://[userspec@][hostspec][/dbname][?paramspec]
+//    where userspec is:
+//     user[:password]
+//    and hostspec is:
+//     [host][:port][,...]
+//    and paramspec is:
+//     name=value[&...]
+// ex:
+//  postgresql://user:secret@localhost
+//  postgresql://other@localhost/otherdb?connect_timeout=10&application_name=myapp
+//  postgresql://host1:123,host2:456/somedb?target_session_attrs=any&application_name=myapp
 
 int PluginConfigurer::InitializePlugin() {
     try {
@@ -22,12 +37,10 @@ int PluginConfigurer::InitializePlugin() {
         uint16_t port = cfg["PostgreSQL"]["Port"].get<uint16_t>();
         std::string username = cfg["PostgreSQL"]["Username"].get<std::string>();
         std::string password = cfg["PostgreSQL"]["Password"].get<std::string>();
-        DBInterface::GetInstance().Connect(database, host, port, username, password);
-        if(!DBInterface::GetInstance().IsOpen()){
-            DEBUG_LOG(PLUGIN_ERRORS, "DBInterface failed to connect to DB.");
-            return -1;
-        }
-        DEBUG_LOG(DEBUG_1, "DBInterface: connection successful.");
+        sprintf(connection_string, "postgresql://%s:%s@%s:%hu/%s", username.c_str(), password.c_str(), host.c_str(), port, database.c_str());
+        JobQueue::GetInstance().AddJob([](){
+            DBInterface::Initialize();
+        });
         //DBInterface::GetInstance().CreateTables();
     } catch (const std::exception &e) {
         DEBUG_LOG(PLUGIN_ERRORS,"Failed inside PluginConfigurer::InitializePlugin");
@@ -69,6 +82,11 @@ int PluginConfigurer::Initialize_impl(nlm::json &cfg) {
     return 0;
 }
 
+const std::string& PluginConfigurer::GetDBConnectionInfo() {
+    static std::string str(connection_string);
+    return str;
+}
+
 std::string PluginConfigurer::GetDateFormat(tag_uint64_t tag) {
     auto dadt = config.at("DataAnon").at("DateTruncation");
     auto tag_key = HexToKey(DecToHex(tag, 4));
@@ -76,7 +94,4 @@ std::string PluginConfigurer::GetDateFormat(tag_uint64_t tag) {
         return dadt.at(tag_key).get<std::string>();
     }
     return dadt.at("default").get<std::string>();
-}
-const nlm::json& PluginConfigurer::GetHardlinksJson() {
-    return hardlinks;
 }
