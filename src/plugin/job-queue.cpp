@@ -6,7 +6,7 @@ JobQueue& JobQueue::GetInstance() {
     return jq;
 }
 
-bool JobQueue::AddJob(std::function<void()> job) {
+void JobQueue::AddJob(std::function<void()> job) {
     queue_lock.lock();
     jqueue.emplace(job);
     queue_lock.unlock();

@@ -17,7 +17,7 @@ private:
     JobQueue(){}
 public:
     static JobQueue& GetInstance();
-    bool AddJob(std::function<void()> job);
+    void AddJob(std::function<void()> job);
     void Process();
     void Stop();
 };
