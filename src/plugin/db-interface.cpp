@@ -186,8 +186,8 @@ void DBInterface::initialize() {
             con->prepare(
                     "UpdateChecksum",
                     "UPDATE attachedfiles "
-                    "SET uncompressedsize = $1, compressedsize = $2, uncompressedhash = $3, compressedhash = $4 "
-                    "WHERE uuid = $5;"
+                    "SET uncompressedsize = $1, compressedsize = $1, uncompressedhash = $2, compressedhash = $2 "
+                    "WHERE uuid = $3;"
                         );
         }   catch (const std::exception &e) {
             DEBUG_LOG(PLUGIN_ERRORS, "Something went wrong during DB initialization");
