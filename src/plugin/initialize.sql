@@ -105,6 +105,16 @@ CREATE OR REPLACE FUNCTION detect_phi_mismatch() RETURNS trigger AS $detect_phi_
 	END;
 $detect_phi_mismatch$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION disable_crosswalk() RETURNS trigger AS $disable_crosswalk$
+	ALTER TABLE resources DISABLE TRIGGER new_data;
+	ALTER TABLE maindicomtags DISABLE TRIGGER new_data;
+	EXECUTE PROCEDURE disable_phi_mismatch();
+$disable_crosswalk$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION disable_phi_mismatch() RETURNS trigger AS $disable_phi_mismatch$
+	ALTER TABLE crosswalk DISABLE TRIGGER new_patient;
+$disable_phi_mismatch$ LANGUAGE plpgsql;
+
 CREATE OR REPLACE TRIGGER new_data AFTER INSERT
     ON resources
 	FOR EACH ROW
