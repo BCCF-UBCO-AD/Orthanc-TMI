@@ -1,6 +1,6 @@
 #include <dicom-file.h>
-#include <dicom-checksum.h>
-#include <plugin-configure.h>
+#include <data-transport.h>
+#include <dicom-anonymizer.h>
 //#include <db-interface.h>
 //#include <job-queue.h>
 
@@ -11,7 +11,7 @@
 namespace fs = std::filesystem;
 
 const fs::path GetPath(OrthancPluginContentType type, const char* uuid){
-    const fs::path storage_root(globals::storage_location);
+    const static std::string storage_root(globals::storage_location);
     fs::path path;
     std::string b1 = std::string(std::string_view(uuid,3)) + "/";
     std::string b2 = std::string(std::string_view(uuid+3,2)) + "/";
@@ -63,20 +63,15 @@ OrthancPluginErrorCode StorageCreateCallback(const char *uuid,
                                              int64_t size,
                                              OrthancPluginContentType type) {
     char msg[1024] = {0};
-    sprintf(msg,"StorageCreateCallback:\nuuid: %s\ncontent: %zu\n", uuid, content);
+    sprintf(msg,"StorageCreateCallback: uuid: %s, content: %zu", uuid, (size_t)content);
     DEBUG_LOG(DEBUG_1,msg)
     fs::path path = GetPath(type, uuid);
     switch (type) {
         case OrthancPluginContentType_Dicom: {
-            DicomFile file(content, size);
-            DicomAnonymizer anon;
-            if (anon.Anonymize(file)) {
-                DicomChecksum::SaveChecksum(content, uuid, file.CalculateMd5(), file.GetSize());
-                fs::create_directories(path.parent_path());
-                return file.Write(path);
-            }
-            DEBUG_LOG(PLUGIN_ERRORS, "StorageCreateCallback: unable to anonymize input");
-            return OrthancPluginErrorCode_CannotWriteFile;
+            DicomFile file = DataTransport::PopFile(content);
+            DataTransport::Emplace(content, uuid);
+            fs::create_directories(path.parent_path());
+            return file.Write(path);
         }
         // todo: do these require special processing? or is the content correct already?
         case OrthancPluginContentType_Unknown:

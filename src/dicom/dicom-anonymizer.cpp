@@ -1,8 +1,9 @@
 #include <dicom-anonymizer.h>
 #include <dicom-tag.h>
 #include <plugin-configure.h>
-#include <date-truncation.h>
 #include <iostream>
+
+extern std::string TruncateDate(std::string date, std::string format);
 
 std::unordered_set<uint64_t> DicomAnonymizer::blacklist;
 std::unordered_set<uint64_t> DicomAnonymizer::whitelist;

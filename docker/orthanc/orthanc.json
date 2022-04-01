@@ -35,10 +35,6 @@
     }
   },
   "StorageDirectory": "/var/lib/orthanc/dicom",
-  "StorageSettings": {
-    "LinkDOB": true,
-    "LinkPID": true
-  },
   "IndexDirectory": "/var/lib/orthanc/db",
   "StorageCompression": false,
   "MaximumStorageSize": 0,

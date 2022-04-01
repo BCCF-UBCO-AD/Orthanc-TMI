@@ -1,3 +1,4 @@
+/*
 #include <job-queue.h>
 #include <thread>
 
@@ -6,18 +7,12 @@ JobQueue& JobQueue::GetInstance() {
     return jq;
 }
 
-bool JobQueue::AddJob(std::function<void()> job) {
-    // check the atomic bool, if it indicates the job queue is still running we can add to the queue
-    if(keep_running.load()){
-        queue_lock.lock();
-        jqueue.emplace(job);
-        queue_lock.unlock();
-        cv.notify_all();
-        has_work = true;
-        return true;
-    }
-    // we return false to indicate the queue didn't accept the job
-    return false;
+void JobQueue::AddJob(std::function<void()> job) {
+    queue_lock.lock();
+    jqueue.emplace(job);
+    queue_lock.unlock();
+    cv.notify_all();
+    has_work = true;
 }
 
 void JobQueue::Process() {
@@ -49,3 +44,4 @@ void JobQueue::Process() {
 void JobQueue::Stop() {
     keep_running = false;
 }
+/**/

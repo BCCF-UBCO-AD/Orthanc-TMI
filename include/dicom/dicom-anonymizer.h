@@ -1,7 +1,13 @@
 #pragma once
+#include <core.h>
+#include <json.h>
 #include <dicom-file.h>
 #include <dicom-element-view.h>
 #include <dicom-tag.h>
+
+#include <unordered_set>
+#include <unordered_map>
+#include <vector>
 
 /* class: DicomAnonymizer
  *  Used to anonymize DICOM files.

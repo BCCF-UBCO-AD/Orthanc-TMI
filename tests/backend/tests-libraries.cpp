@@ -66,8 +66,7 @@ TEST(libraries, pqxx){
     //  postgresql://host1:123,host2:456/somedb?target_session_attrs=any&application_name=myapp
     //pqxx::connection c("postgresql://postgres:example@localhost:5432");
     //pqxx::work w(c);
-    DBInterface::connect("localhost", "example");
-    ASSERT_TRUE(DBInterface::is_open());
-    DBInterface::disconnect();
+    pqxx::connection c{"postgresql://postgres:example@localhost:5432"};
+    ASSERT_TRUE(c.is_open());
     std::cout << "Test Complete.\n" << std::endl;
 }

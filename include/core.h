@@ -1,13 +1,8 @@
 #pragma once
 #include <orthanc/OrthancCPlugin.h>
-#include <unordered_set>
 #include <filesystem>
-#include <memory>
-#include <string>
 #include <cstdint>
-#include <nlohmann/json.hpp>
 
-namespace nlm = nlohmann;
 namespace fs = std::filesystem;
 
 // plugin.cpp externs

@@ -1,5 +1,4 @@
 #include <string>
-#include "date-truncation.h"
 using namespace std;
 
 inline int get_days_for_month(int month, int year);
