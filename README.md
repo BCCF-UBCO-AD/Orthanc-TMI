@@ -16,6 +16,10 @@
    - [Special Branches](#special-branches)
    - [Branching](#branching)
  - [Testing](#testing)
+ - [Configuration](#plugin-configuration-json)
+   - [Hard Links](#hard-links)
+   - [Date Truncation](#date-truncation)
+   - [Filter](#filter---removing-dicom-elements)
 
 This software has been developed as a plugin to run on Orthanc DICOM servers.
 ## Getting Started
@@ -79,6 +83,9 @@ ninja
 ```
 
 ### Docker
+
+<details>
+
 To test locally you'll need to launch docker with..
 ```bash
 $ sudo docker-compose up
@@ -109,7 +116,12 @@ You can edit `docker-compose.yml` where..
 ~/docker/postgres:/var/lib/postgresql/data
 ```
 
+</details>
+
 ## Contributing
+
+<details>
+
 ### Style Guide
 The C++ auto style settings can be found in CLion at `Settings -> Editor -> Code Style -> C++`, here you can import our styles from `c++styles.xml` in the project root.
 
@@ -205,3 +217,78 @@ As a general guide to naming branches:
   - Google_Test Framework for unit Testing. [Here](https://github.com/google/googletest.git)
   - Github Actions for continuous integration.
   - Github Actions to test pull requests to master and develop branches
+
+</details>
+
+# Plugin Configuration (json)
+To configure this plugin you'll need to add a section to your json file with the key `"DataAnon" : {}` under this section different parts of the plugin can be configured. Here is an empty configuration showing the different sections. ***These are the parts of the configuration that must be present. If missing Orthanc will fail to start.***
+```json
+  "DataAnon": {
+    "HardlinksUseHashBins" : true,
+    "Hardlinks": { },
+    "DateTruncation": {
+      "default": "YYYYMMDD"
+    },
+    "Filter": {
+      "blacklist": [ ],
+      "whitelist": [ ]
+    }
+  },
+  ```
+**note:  changing the configuration does not (currently) affect existing DICOM files that have already been received and processed by the server.**
+
+# Hard Links
+Hard links are a special type of file on a filesystem that allow you to alias another file such that even if you rename the underlying file the hard link will still point to that file. In fact you could delete the underlying file and the hard link will take its place so to speak, which is to say the data is not lost because there is still a file referencing that spot on the storage medium. **note: not all filesystem types support hard links (eg. FAT32)**
+
+For users of this data anonymization plugin, hard links allow us to provide a way to conveniently customize how data is organized on the filesystem. Hard links can be configured in the json using a `"/folder-name/" : "group,element"` pair.
+
+**For example:**
+Say you want to organize your DICOM files according to the patients' date of births. You would add `"/by-dob/": "0010,0030"` to the `"Hardlinks" : {}` section like so
+```json
+"Hardlinks" : {
+   "/by-dob/": "0010,0030"
+}
+```
+This will create a directory named `by-dob` in which dicom files will be grouped according to their date of birth. For a patient who's date of birth is recorded in an incoming DICOM file as `19880404` the relative path to that file from Orthanc's storage directory will be `by-dob/19880404/`.
+
+You can add multiple hardlinks by separating them by commas. The directory you use can be anything, the plugin will ensure the directory is created if it does not exist, and you can find them under the Orthanc storage directory seen in the orthanc configuration json under `"StorageDirectory"` this too can be customized.
+
+### Hash Bins
+You may have more files than your file system is willing to manage under a particular group (eg. `by-dob/19880404/`) and so you can enable the use of hash bins which will use the first two characters of the DICOM file's name as part of the path. eg. `by-dob/19880404/4A/`; the file names are `uuid.DCM` where uuid is the file's rather long uuid. To enable or disable this feature you would set the `"HardlinksUseHashBins"` field accordingly (ie. `true` or `false`).
+
+# Date Truncation
+You may want to keep dates, but also anonymize them to a certain degree which you can accomplish via the date truncation feature. You can configure different dates to be truncated differently even. The date truncation code will take the configuration and simply mask the date with it.
+**For example:**
+```
+date: 19880404
+config: YYYY0101
+result: 19880101
+```
+So in practice you could configure the date truncater to give you weird results by using a config such as `99YYM1DD`. This would result in the example date turning into `99880104` or `19881212` becoming `99881112`. Probably not what you'd want, so just be sure you set it correctly.
+
+### Formatting
+Dates in DICOM files should be in the format `YYYYMMDD` and our plugin uses this same format to configure date truncation.
+
+### Default configuration
+The date truncation requires a default truncation otherwise the plugin will not load. You can configure the truncation to do nothing by simply using `YYYYMMDD` (technically you could use any non-digits, but might as well make sense). To configure this you would just add `"default" : "YYYYMMDD"` to the `"DateTruncation": { }` section. The example at the top shows what this would look like.
+
+### Truncating Different Dates Differently
+Say you want all dates to be truncated by month, except date of birth which you want truncated by year. That is to say you only care about what year they were born, and everything else you care up to the month but not the day. To achieve this you would add an entry to the `"DateTruncation": { }` section using the DOB's `group,element` which would be `"0010,0030"` along with the truncation mask.. in the end you'd have the following.
+```json
+    "DateTruncation": {
+      "default": "YYYYMM01",
+      "0010,0030": "YYYY0101"
+    },
+```
+1. **note: you can add a different mask for each and every type of date you can find in a DICOM file just add the appropriate tag (group,element) and the mask you want for each.**
+2. **note: specific dates configured for truncation will be automatically be added to the Filter whitelist (inside the plugin, not the json).**
+
+# Filter - Removing Dicom Elements
+If you want to completely remove data, you can use the `"Filter" : { "blacklist" : [] }` section to achieve it.
+
+### Blacklist
+The blacklist can be configured in two ways, you can either remove an entire group of DICOM elements, or specific elements. To remove an entire group you simply use the group tag eg. `"0010"` and for a specific element it would be something like `"00FF,0010"`
+
+### Whitelist
+The whitelist can only be configured for specific DICOM elements because it is intended to counter-act blacklisting an entire group.
+**note: dates specified under the `"DateTruncation": { }` section will automatically be added to the whitelist.**
