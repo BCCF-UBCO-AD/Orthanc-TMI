@@ -4,7 +4,7 @@
  - [Getting Started](#getting-started)
    - [Clone](#clone)
      - [Dependencies](#dependencies)
-     - [Submodules](#submodules)
+       - [Submodules](#submodules)
    - [Building](#building)
      - [Tools](#tools)
      - [Build](#build)
@@ -43,17 +43,22 @@ git submodule update
 </details>
 
 #### Dependencies
+
+<details>
+
 First and foremost this project [creates an Orthanc plugin](https://book.orthanc-server.com/developers/creating-plugins.html#structure-of-the-plugins), so the Orthanc [plugin SDK](https://sdk.orthanc-server.com/index.html) is required. Which is available as [OrthancCPlugin.h](https://hg.orthanc-server.com/orthanc/file/Orthanc-1.9.7/OrthancServer/Plugins/Include/orthanc/OrthancCPlugin.h)
 
 This repo has a copy of that file under [include/orthanc/](include/orthanc/)
 
-#### Submodules
+##### Submodules
 The submodules you need to initialize.
 | Library | Purpose | URI |
 |---------|---------|-----|
 | [libpqxx](lib) | libpq wrapper | <ul><li>[external repo](https://github.com/jtv/libpqxx.git) <li>[docs - API](https://libpqxx.readthedocs.io/en/stable/a01382.html) |
 | [nlohmann/json](lib) | json API | <ul><li>[external repo](https://github.com/nlohmann/json.git) <li>[docs - integration](https://github.com/nlohmann/json#integration) <li>[docs - API](https://nlohmann.github.io/json/api/basic_json/) |
 | [googletest](lib) | unit testing | <ul><li>[external repo](https://github.com/google/googletest.git) |
+
+</details>
 
 ### Building
 The project is configured to build a plugin (dll/so) (target `'data-anonymizer'`) binary, then copy it to `docker/plugins` where the orthanc docker server can read it.
