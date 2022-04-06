@@ -35,13 +35,13 @@ private:
     bool is_valid = true;
 protected:
     void MakeHardlinks(const fs::path &master_path);
-    std::string GetElementValue(tag_uint64_t tag);
 public:
     DicomFile(std::shared_ptr<char[]> &buffer, size_t size);
     DicomFile(const void* data, size_t size);
     DicomFile()= default;
 
     static bool Parse(void* data, size_t size);
+    std::string GetElementValue(tag_uint64_t tag);
     bool Parse();
     bool IsValid() const { return is_valid; }
     OrthancPluginErrorCode Write(const fs::path &master_path);
