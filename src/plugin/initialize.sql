@@ -1,13 +1,3 @@
-DO $$
-	BEGIN
-		IF NOT EXISTS (SELECT constraint_name FROM information_schema.constraint_column_usage 
-					   WHERE table_name = 'resources' 
-					   AND constraint_name = 'unique_publicid') THEN
-			ALTER TABLE resources ADD CONSTRAINT unique_publicid UNIQUE(publicid);
-		END IF;
-	END;
-$$ language 'plpgsql';
-
 CREATE TABLE IF NOT EXISTS crosswalk (
 	id SERIAL NOT NULL,
 	internalid BIGINT NOT NULL,
