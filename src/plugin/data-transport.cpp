@@ -57,6 +57,20 @@ DicomFile DataTransport::PopFile(const void* instance_data) {
     }
 }
 
+DicomFile DataTransport::PeekFile(const void* instance_data) {
+    try {
+        file_lock.lock();
+        auto iter = file_map.find(instance_data);
+        DicomFile file = iter->second;
+        file_lock.unlock();
+        return file;
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+        DEBUG_LOG(PLUGIN_ERRORS, "FATAL ERROR, unable to obtain the filtered DicomFile. This shouldn't be possible, logically speaking.")
+        exit(-1);
+    }
+}
+
 bool DataTransport::UpdateDatabase(const void* instance_data) {
     char msg[1024];
     checksum_lock.lock();
@@ -64,9 +78,14 @@ bool DataTransport::UpdateDatabase(const void* instance_data) {
     uuid_lock.lock();
     auto uuid_iter = uuid_map.find(instance_data);
     if (checksum_iter != checksum_map.end() && uuid_iter != uuid_map.end()) {
+        DicomFile file = PopFile(instance_data);
         auto &[md5, size] = checksum_iter->second;
         auto &uuid = uuid_iter->second;
         DBInterface::UpdateChecksum(uuid, md5, size);
+        DBInterface::InsertCrosswalk(uuid,
+                                     file.GetElementValue(DicomTag::PID),
+                                     file.GetElementValue(DicomTag::PName),
+                                     file.GetElementValue(DicomTag::DOB));
         sprintf(msg, "UUID: %s, MD5: %s", uuid.c_str(), md5.c_str());
         checksum_map.erase(checksum_iter);
         checksum_lock.unlock();

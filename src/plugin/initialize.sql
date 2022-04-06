@@ -1,34 +1,63 @@
-DO $$
-	BEGIN
-		IF NOT EXISTS (SELECT constraint_name FROM information_schema.constraint_column_usage 
-					   WHERE table_name = 'resources' 
-					   AND constraint_name = 'unique_publicid') THEN
-			ALTER TABLE resources ADD CONSTRAINT unique_publicid UNIQUE(publicid);
-		END IF;
-	END;
-$$ language 'plpgsql';
-
 CREATE TABLE IF NOT EXISTS crosswalk (
 	id SERIAL NOT NULL,
-	internalid BIGINT NOT NULL UNIQUE,
-	publicid CHARACTER VARYING(64) NOT NULL UNIQUE,
-	patient_id TEXT,
-	full_name TEXT,
+	internalid BIGINT NOT NULL,
+	publicid CHARACTER VARYING(64) NOT NULL,
+	patient_id TEXT NOT NULL,
+	full_name TEXT NOT NULL,
 	first_name TEXT,
 	middle_name TEXT,
 	last_name TEXT,
-	dob TEXT,
+	dob TEXT NOT NULL,
+    instances TEXT[],
 	PRIMARY KEY (id),
-	FOREIGN KEY (internalid) REFERENCES resources(internalid) ON DELETE CASCADE,
-	FOREIGN KEY (publicid) REFERENCES resources(publicid) ON DELETE CASCADE
+    UNIQUE (internalid, publicid, patient_id, full_name, dob)
 );
 
-CREATE INDEX IF NOT EXISTS i_patient_id ON crosswalk (patient_id);
+CREATE INDEX IF NOT EXISTS i_internalid ON crosswalk (internalid);
+CREATE INDEX IF NOT EXISTS i_publicid ON crosswalk (publicid);
 CREATE INDEX IF NOT EXISTS i_lower_full_name ON crosswalk (lower(full_name));
 CREATE INDEX IF NOT EXISTS i_lower_first_name ON crosswalk (lower(first_name));
 CREATE INDEX IF NOT EXISTS i_lower_middle_name ON crosswalk (lower(middle_name));
 CREATE INDEX IF NOT EXISTS i_lower_last_name ON crosswalk (lower(last_name));
 CREATE INDEX IF NOT EXISTS i_dob ON crosswalk (dob);
+
+CREATE OR REPLACE FUNCTION insert_info_crosswalk(v_instance_uuid TEXT, v_patient_id TEXT, v_full_name TEXT, v_dob TEXT) RETURNS void AS $insert_info_crosswalk$
+DECLARE
+t_internalid BIGINT;
+	t_patient_uuid TEXT DEFAULT NULL;
+	t_first_name TEXT DEFAULT NULL;
+	t_middle_name TEXT DEFAULT NULL;
+	t_last_name TEXT DEFAULT NULL;
+BEGIN
+    SELECT internalid, publicid FROM resources WHERE internalid =
+        (SELECT parentid FROM resources WHERE internalid =
+        (SELECT parentid FROM resources WHERE internalid =
+        (SELECT parentid FROM resources WHERE publicid = v_instance_uuid)))
+        INTO
+            t_internalid, t_patient_uuid;
+
+    SELECT
+        split_part(v_full_name,' ',1),
+        CASE
+            WHEN split_part(v_full_name,' ',3) = '' THEN NULL ELSE split_part(v_full_name,' ',2) END,
+        CASE
+            WHEN split_part(v_full_name,' ',2) = '' THEN NULL
+            WHEN split_part(v_full_name,' ',3) = '' THEN split_part(v_full_name,' ',2)
+            ELSE split_part(v_full_name,' ',3)
+            END
+    INTO
+        t_first_name, t_middle_name, t_last_name;
+
+    INSERT INTO
+        crosswalk(internalid, publicid, patient_id, full_name, first_name, middle_name, last_name, dob, instances)
+    VALUES
+        (t_internalid, t_patient_uuid, v_patient_id, v_full_name, t_first_name, t_middle_name, t_last_name, v_dob, ARRAY[v_instance_uuid])
+        ON CONFLICT
+            (publicid, patient_id, full_name, dob)
+        DO UPDATE
+            SET instances = array_append(crosswalk.instances, v_instance_uuid);
+    END;
+$insert_info_crosswalk$ LANGUAGE plpgsql;
 
 CREATE TABLE IF NOT EXISTS phi_mismatch(
 	internalid BIGINT NOT NULL UNIQUE,
@@ -41,44 +70,6 @@ CREATE TABLE IF NOT EXISTS phi_mismatch(
 	FOREIGN KEY (parent_internalid) REFERENCES resources(internalid) ON DELETE CASCADE,
 	FOREIGN KEY (parent_publicid) REFERENCES resources(publicid) ON DELETE CASCADE
 );
-
-CREATE OR REPLACE FUNCTION add_id_to_crosswalk() RETURNS trigger AS $add_id_to_crosswalk$
-	BEGIN
-		INSERT INTO crosswalk (internalid, publicid) VALUES (NEW.internalid, NEW.publicid);
-		RETURN NULL;
-	END;
-$add_id_to_crosswalk$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION add_info_to_crosswalk() RETURNS trigger AS $add_info_to_crosswalk$
-	DECLARE
-		t_first_name TEXT DEFAULT NULL;
-        t_middle_name TEXT DEFAULT NULL;
-        t_last_name TEXT DEFAULT NULL;
-    BEGIN
-		IF NEW.taggroup = 16 THEN
-			IF NEW.tagelement = 16 THEN
-				UPDATE crosswalk SET full_name = NEW.value WHERE internalid = NEW.id;
-				SELECT
-					split_part(NEW.value,' ',1),
-					CASE
-						WHEN split_part(NEW.value,' ',3) = '' THEN NULL ELSE split_part(NEW.value,' ',2) END,
-					CASE 
-						WHEN split_part(NEW.value,' ',2) = '' THEN NULL 
-						WHEN split_part(NEW.value,' ',3) = '' THEN split_part(NEW.value,' ',2) 
-						ELSE split_part(NEW.value,' ',3) 
-					END
-				INTO
-					t_first_name, t_middle_name, t_last_name;
-				UPDATE crosswalk SET first_name = t_first_name, middle_name = t_middle_name, last_name = t_last_name WHERE internalid = NEW.id;
-			ELSIF NEW.tagelement = 32 THEN
-				UPDATE crosswalk SET patient_id = NEW.value WHERE internalid = NEW.id;
-			ELSIF NEW.tagelement = 48 THEN
-				UPDATE crosswalk SET dob = NEW.value WHERE internalid = NEW.id;
-			END IF;
-		END IF;
-		RETURN NULL;
-    END;
-$add_info_to_crosswalk$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION detect_phi_mismatch() RETURNS trigger AS $detect_phi_mismatch$
 	DECLARE
@@ -104,29 +95,18 @@ CREATE OR REPLACE FUNCTION detect_phi_mismatch() RETURNS trigger AS $detect_phi_
 		RETURN NULL;
 	END;
 $detect_phi_mismatch$ LANGUAGE plpgsql;
+CREATE OR REPLACE TRIGGER new_patient AFTER UPDATE
+    ON crosswalk
+    FOR EACH ROW
+    EXECUTE PROCEDURE detect_phi_mismatch();
 
 CREATE OR REPLACE FUNCTION disable_crosswalk() RETURNS trigger AS $disable_crosswalk$
-	ALTER TABLE resources DISABLE TRIGGER new_data;
-	ALTER TABLE maindicomtags DISABLE TRIGGER new_data;
-	EXECUTE PROCEDURE disable_phi_mismatch();
+    ALTER TABLE resources DISABLE TRIGGER new_data;
+    ALTER TABLE maindicomtags DISABLE TRIGGER new_data;
+    EXECUTE PROCEDURE disable_phi_mismatch();
 $disable_crosswalk$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION disable_phi_mismatch() RETURNS trigger AS $disable_phi_mismatch$
-	ALTER TABLE crosswalk DISABLE TRIGGER new_patient;
+    ALTER TABLE crosswalk DISABLE TRIGGER new_patient;
 $disable_phi_mismatch$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER new_data AFTER INSERT
-    ON resources
-	FOR EACH ROW
-    WHEN (NEW.resourcetype = 0)
-    EXECUTE PROCEDURE add_id_to_crosswalk();
-
-CREATE OR REPLACE TRIGGER new_data AFTER INSERT
-    ON maindicomtags
-	FOR EACH ROW
-    EXECUTE PROCEDURE add_info_to_crosswalk();
-
-CREATE OR REPLACE TRIGGER new_patient AFTER UPDATE
-	ON crosswalk
-	FOR EACH ROW
-	EXECUTE PROCEDURE detect_phi_mismatch();

@@ -68,7 +68,7 @@ OrthancPluginErrorCode StorageCreateCallback(const char *uuid,
     fs::path path = GetPath(type, uuid);
     switch (type) {
         case OrthancPluginContentType_Dicom: {
-            DicomFile file = DataTransport::PopFile(content);
+            DicomFile file = DataTransport::PeekFile(content);
             DataTransport::Emplace(content, uuid);
             fs::create_directories(path.parent_path());
             return file.Write(path);

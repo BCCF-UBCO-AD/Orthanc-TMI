@@ -51,3 +51,5 @@ add_custom_command(
         COMMAND ${CMAKE_COMMAND} -E copy
         ${PROJECT_BINARY_DIR}/bin/${PLUGIN_TARGET}.so
         ${PROJECT_DIR}/docker/orthanc/plugins/${PLUGIN_TARGET}.so)
+install(TARGETS ${PLUGIN_TARGET}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX})

@@ -17,9 +17,10 @@ extern std::string KeyToHex(std::string key);
 
 // Dicom Tags/VR/Name found here https://www.dicomlibrary.com/dicom/dicom-tags/
 enum DicomTag{
-    DOB = 0x00300010,
-    PID = 0x00200010,
     StudyDate = 0x00200008,
+    PName = 0x00100010,
+    PID = 0x00200010,
+    DOB = 0x00300010,
     Item = 0xe000fffe,
     ItemDelItem = 0xe00dfffe,
     SeqDelItem = 0xe0ddfffe

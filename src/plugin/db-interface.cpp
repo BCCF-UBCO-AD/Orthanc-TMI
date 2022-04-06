@@ -30,6 +30,30 @@ void DBInterface::UpdateChecksum(std::string uuid, std::string hash, int64_t siz
     }
 }
 
+void DBInterface::InsertCrosswalk(std::string instance_uuid, std::string patient_id, std::string full_name, std::string dob) {
+    try {
+        static pqxx::connection con(PluginConfigurer::GetDBConnectionInfo());
+        if (con.is_open()) {
+            static std::once_flag flag;
+            std::call_once(flag, [&]() {
+                // Prepared Statements
+                con.prepare(
+                        "InsertCrosswalk",
+                        "SELECT insert_info_crosswalk($1, $2, $3, $4)"
+                );
+            });
+            pqxx::work w(con);
+            w.exec_prepared("InsertCrosswalk", instance_uuid, patient_id, full_name, dob);
+            w.commit();
+        } else {
+            DEBUG_LOG(PLUGIN_ERRORS, "InsertCrosswalk(): couldn't connect to database.");
+        }
+    } catch (const std::exception &e){
+        DEBUG_LOG(PLUGIN_ERRORS, "InsertCrosswalk() encountered an exception");
+        DEBUG_LOG(PLUGIN_ERRORS, e.what());
+    }
+}
+
 bool DBInterface::Initialize() {
     try {
         static std::once_flag flag;

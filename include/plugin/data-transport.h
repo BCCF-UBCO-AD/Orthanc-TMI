@@ -25,5 +25,6 @@ public:
     static void Emplace(const void* instance_data, const DicomFile& file);
     static bool Emplace(std::string md5);
     static DicomFile PopFile(const void* instance_data);
+    static DicomFile PeekFile(const void* instance_data);
     static bool UpdateDatabase(const void* instance_data);
 };
