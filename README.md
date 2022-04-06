@@ -25,6 +25,9 @@ This software has been developed as a plugin to run on Orthanc DICOM servers.
 ## Getting Started
 ### Clone
 Don't forget to populate submodules.
+
+<details>
+
 ```bash
 # clone repo
 git clone https://github.com/BCCF-UBCO-AD/Orthanc-TMI.git orthanc-tmi
@@ -35,6 +38,9 @@ git checkout develop
 git submodule init
 git submodule update
 ```
+
+</details>
+
 #### Dependencies
 First and foremost this project [creates an Orthanc plugin](https://book.orthanc-server.com/developers/creating-plugins.html#structure-of-the-plugins), so the Orthanc [plugin SDK](https://sdk.orthanc-server.com/index.html) is required. Which is available as [OrthancCPlugin.h](https://hg.orthanc-server.com/orthanc/file/Orthanc-1.9.7/OrthancServer/Plugins/Include/orthanc/OrthancCPlugin.h)
 
@@ -53,12 +59,17 @@ The project is configured to build a plugin (dll/so) (target `'data-anonymizer'`
 
 #### Tools
 Some tools will be needed. Please refer to your system package manager, or each tool's website, in order to install.
+
+<details>
+
 * GCC - compiler
 * Cmake compatible build system (eg. GNU Make, Ninja)
 * Cmake 3.20 - configures build system
 * Docker - local testing ([docker image](https://hub.docker.com/r/jodogne/orthanc-plugins))
 * Github Actions - remote testing
 * CLion (recommended)
+
+</details>
 
 #### Build
 You'll need some tools, but below is all you'll need to do to build everything.
@@ -177,7 +188,12 @@ void Foo(int foo_bar){
 }
 ```
 
+</details>
+
 ### Special Branches
+
+<details>
+
 | Name | Purpose |
 |------|---------|
 | master | stable branch |
@@ -187,8 +203,12 @@ void Foo(int foo_bar){
 | ci | continuous integration branch for independent updating of ci configs |
 | samples | for independent updating of dicom files, should be converted into a submodule |
 
+</details>
 
 ### Branching
+
+<details>
+
 Our strategy is simple: 
  1. develop code in a branch
     - test
@@ -212,11 +232,6 @@ As a general guide to naming branches:
 | `patch-` | fixes for tracked issues | no |
 | `fix-` | other fixes | no |
 | `*` | some special branch with an ongoing purpose | no |
-
-## Testing
-  - Google_Test Framework for unit Testing. [Here](https://github.com/google/googletest.git)
-  - Github Actions for continuous integration.
-  - Github Actions to test pull requests to master and develop branches
 
 </details>
 
