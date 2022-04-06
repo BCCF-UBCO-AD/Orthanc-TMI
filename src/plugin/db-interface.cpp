@@ -30,6 +30,46 @@ void DBInterface::UpdateChecksum(std::string uuid, std::string hash, int64_t siz
     }
 }
 
+void DBInterface::InsertCrosswalk(std::string instance_uuid, std::string patient_id,
+                                  std::string full_name, std::string first_name, std::string middle_name, std::string last_name,
+                                  std::string dob) {
+    try {
+        static pqxx::connection con(PluginConfigurer::GetDBConnectionInfo());
+        if (con.is_open()) {
+            static std::once_flag flag;
+            std::call_once(flag, [&]() {
+                // Prepared Statements
+                con.prepare(
+                        "InsertCrosswalk",
+                        "INSERT INTO corsswalk(publicid, patient_id, full_name, first_name, middle_name, last_name, dob, instances) "
+                        "VALUES ("
+                        "   (SELECT publicid FROM resources WHERE internalid = "
+                        "   (SELECT parentid FROM resources WHERE internalid = "
+                        "   (SELECT parentid FROM resources WHERE internalid = "
+                        "   (SELECT parentid FROM resources WHERE publicid = $1)))), "
+                        "   $2, $3, $4, $5, $6, $7 ,ARRAY[$1]) "
+                        "ON CONFLICT (publicid, patient_id, full_name, dob) "
+                        "DO UPDATE SET instances = array_append(instances, $1)"
+                        "WHERE publicid = "
+                        "   (SELECT publicid FROM resources WHERE internalid = "
+                        "   (SELECT parentid FROM resources WHERE internalid = "
+                        "   (SELECT parentid FROM resources WHERE internalid = "
+                        "   (SELECT parentid FROM resources WHERE publicid = '$1'))))"
+                        "   AND patient_id = $2 AND full_name = $3 AND dob = $7;"
+                );
+            });
+            pqxx::work w(con);
+            w.exec_prepared("InsertCrosswalk", instance_uuid, patient_id, full_name, first_name, middle_name, last_name, dob);
+            w.commit();
+        } else {
+            DEBUG_LOG(PLUGIN_ERRORS, "InsertCrosswalk(): couldn't connect to database.");
+        }
+    } catch (const std::exception &e){
+        DEBUG_LOG(PLUGIN_ERRORS, "InsertCrosswalk() encountered an exception");
+        DEBUG_LOG(PLUGIN_ERRORS, e.what());
+    }
+}
+
 bool DBInterface::Initialize() {
     try {
         static std::once_flag flag;
