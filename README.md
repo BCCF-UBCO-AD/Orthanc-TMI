@@ -8,6 +8,7 @@
    - [Building](#building)
      - [Tools](#tools)
      - [Build](#build)
+     - [Install](#install)
    - [Docker](#docker)
      - [Build Image](#build-image)
      - [WSL](#windows-subsystem-for-linux)
@@ -91,6 +92,15 @@ mkdir build
 cd build
 cmake .. -G Ninja
 ninja
+```
+ 
+#### Install
+We don't currently provide binaries so you'll have to build and install yourself.
+```bash
+$ mkdir build
+$ cd build
+$ cmake .. -G Ninja -DCMAKE_INSTALL_PREFIX=/usr/share/orthanc/plugins
+$ ninja install
 ```
 
 ### Docker
