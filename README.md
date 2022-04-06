@@ -105,7 +105,7 @@ We don't currently provide binaries so you'll have to build and install yourself
 $ mkdir build
 $ cd build
 $ cmake .. -G Ninja -DCMAKE_INSTALL_PREFIX=/usr/share/orthanc/plugins
-$ ninja install
+$ sudo ninja install
 ```
 
 ### Docker
