@@ -100,7 +100,7 @@ ninja
 ```
  
 #### Install
-We don't currently provide binaries so you'll have to build and install yourself. We can't guarantee your plugin directory will be in this location, so verify its location for yourself and update the install prefix as needed.
+We don't currently provide binaries, so you'll have to build and install yourself. We can't guarantee your plugin directory will be in this location, so verify its location for yourself and update the install prefix as needed.
 ```bash
 $ mkdir build
 $ cd build
