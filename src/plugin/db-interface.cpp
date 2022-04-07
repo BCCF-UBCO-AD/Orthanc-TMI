@@ -30,7 +30,7 @@ void DBInterface::UpdateChecksum(std::string uuid, std::string hash, int64_t siz
     }
 }
 
-void DBInterface::InsertCrosswalk(std::string instance_uuid, std::string patient_id, std::string full_name, std::string dob) {
+void DBInterface::InsertCrosswalk(std::string file_uuid, std::string patient_id, std::string full_name, std::string dob) {
     try {
         static pqxx::connection con(PluginConfigurer::GetDBConnectionInfo());
         if (con.is_open()) {
@@ -43,7 +43,7 @@ void DBInterface::InsertCrosswalk(std::string instance_uuid, std::string patient
                 );
             });
             pqxx::work w(con);
-            w.exec_prepared("InsertCrosswalk", instance_uuid, patient_id, full_name, dob);
+            w.exec_prepared("InsertCrosswalk", file_uuid, patient_id, full_name, dob);
             w.commit();
         } else {
             DEBUG_LOG(PLUGIN_ERRORS, "InsertCrosswalk(): couldn't connect to database.");
@@ -75,7 +75,7 @@ bool DBInterface::Initialize() {
                        "	middle_name TEXT,"
                        "	last_name TEXT,"
                        "	dob TEXT NOT NULL,"
-                       "    instances TEXT[],"
+                       "    files TEXT[],"
                        "	PRIMARY KEY (id),"
                        "    UNIQUE (internalid, publicid, patient_id, full_name, dob)"
                        ");"
@@ -105,7 +105,7 @@ bool DBInterface::Initialize() {
 
                 // Create procedures for triggers
                 w.exec(""
-                       "CREATE OR REPLACE FUNCTION insert_info_crosswalk(v_instance_uuid TEXT, v_patient_id TEXT, v_full_name TEXT, v_dob TEXT) RETURNS void AS $insert_info_crosswalk$"
+                       "CREATE OR REPLACE FUNCTION insert_info_crosswalk(v_file_uuid TEXT, v_patient_id TEXT, v_full_name TEXT, v_dob TEXT) RETURNS void AS $insert_info_crosswalk$"
                        "    DECLARE"
                        "    t_internalid BIGINT;"
                        "        t_patient_uuid TEXT DEFAULT NULL;"
@@ -113,10 +113,12 @@ bool DBInterface::Initialize() {
                        "        t_middle_name TEXT DEFAULT NULL;"
                        "        t_last_name TEXT DEFAULT NULL;"
                        "    BEGIN"
+                       ""
                        "        SELECT internalid, publicid FROM resources WHERE internalid ="
                        "            (SELECT parentid FROM resources WHERE internalid ="
                        "            (SELECT parentid FROM resources WHERE internalid ="
-                       "            (SELECT parentid FROM resources WHERE publicid = v_instance_uuid)))"
+                       "            (SELECT parentid FROM resources WHERE internalid ="
+                       "            (SELECT id FROM attachedfiles WHERE uuid = v_file_uuid))))"
                        "            INTO"
                        "                t_internalid, t_patient_uuid;"
                        ""
@@ -133,13 +135,13 @@ bool DBInterface::Initialize() {
                        "            t_first_name, t_middle_name, t_last_name;"
                        ""
                        "        INSERT INTO"
-                       "            crosswalk(internalid, publicid, patient_id, full_name, first_name, middle_name, last_name, dob, instances)"
+                       "            crosswalk(internalid, publicid, patient_id, full_name, first_name, middle_name, last_name, dob, files)"
                        "        VALUES"
-                       "            (t_internalid, t_patient_uuid, v_patient_id, v_full_name, t_first_name, t_middle_name, t_last_name, v_dob, ARRAY[v_instance_uuid])"
+                       "            (t_internalid, t_patient_uuid, v_patient_id, v_full_name, t_first_name, t_middle_name, t_last_name, v_dob, ARRAY[v_file_uuid])"
                        "            ON CONFLICT"
-                       "                (publicid, patient_id, full_name, dob)"
+                       "                (internalid, publicid, patient_id, full_name, dob)"
                        "            DO UPDATE"
-                       "                SET instances = array_append(crosswalk.instances, v_instance_uuid);"
+                       "                SET files = array_append(crosswalk.files, v_file_uuid);"
                        "    END;"
                        "$insert_info_crosswalk$ LANGUAGE plpgsql;"
                        );

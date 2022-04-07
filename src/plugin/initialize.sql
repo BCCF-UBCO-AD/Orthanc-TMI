@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS crosswalk (
 	middle_name TEXT,
 	last_name TEXT,
 	dob TEXT NOT NULL,
-    instances TEXT[],
+    files TEXT[],
 	PRIMARY KEY (id),
     UNIQUE (internalid, publicid, patient_id, full_name, dob)
 );
@@ -30,7 +30,7 @@ CREATE INDEX IF NOT EXISTS i_lower_middle_name ON crosswalk (lower(middle_name))
 CREATE INDEX IF NOT EXISTS i_lower_last_name ON crosswalk (lower(last_name));
 CREATE INDEX IF NOT EXISTS i_dob ON crosswalk (dob);
 
-CREATE OR REPLACE FUNCTION insert_info_crosswalk(v_instance_uuid TEXT, v_patient_id TEXT, v_full_name TEXT, v_dob TEXT) RETURNS void AS $insert_info_crosswalk$
+CREATE OR REPLACE FUNCTION insert_info_crosswalk(v_file_uuid TEXT, v_patient_id TEXT, v_full_name TEXT, v_dob TEXT) RETURNS void AS $insert_info_crosswalk$
     DECLARE
     t_internalid BIGINT;
         t_patient_uuid TEXT DEFAULT NULL;
@@ -38,10 +38,12 @@ CREATE OR REPLACE FUNCTION insert_info_crosswalk(v_instance_uuid TEXT, v_patient
         t_middle_name TEXT DEFAULT NULL;
         t_last_name TEXT DEFAULT NULL;
     BEGIN
+
         SELECT internalid, publicid FROM resources WHERE internalid =
             (SELECT parentid FROM resources WHERE internalid =
             (SELECT parentid FROM resources WHERE internalid =
-            (SELECT parentid FROM resources WHERE publicid = v_instance_uuid)))
+            (SELECT parentid FROM resources WHERE internalid =
+            (SELECT id FROM attachedfiles WHERE uuid = v_file_uuid))))
             INTO
                 t_internalid, t_patient_uuid;
 
@@ -58,13 +60,13 @@ CREATE OR REPLACE FUNCTION insert_info_crosswalk(v_instance_uuid TEXT, v_patient
             t_first_name, t_middle_name, t_last_name;
 
         INSERT INTO
-            crosswalk(internalid, publicid, patient_id, full_name, first_name, middle_name, last_name, dob, instances)
+            crosswalk(internalid, publicid, patient_id, full_name, first_name, middle_name, last_name, dob, files)
         VALUES
-            (t_internalid, t_patient_uuid, v_patient_id, v_full_name, t_first_name, t_middle_name, t_last_name, v_dob, ARRAY[v_instance_uuid])
+            (t_internalid, t_patient_uuid, v_patient_id, v_full_name, t_first_name, t_middle_name, t_last_name, v_dob, ARRAY[v_file_uuid])
             ON CONFLICT
-                (publicid, patient_id, full_name, dob)
+                (internalid, publicid, patient_id, full_name, dob)
             DO UPDATE
-                SET instances = array_append(crosswalk.instances, v_instance_uuid);
+                SET files = array_append(crosswalk.files, v_file_uuid);
     END;
 $insert_info_crosswalk$ LANGUAGE plpgsql;
 
