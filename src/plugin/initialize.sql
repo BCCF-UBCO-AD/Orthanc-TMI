@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS phi_mismatch(
     publicid CHARACTER VARYING(64) NOT NULL UNIQUE,
     parent_internalid BIGINT NOT NULL,
     parent_publicid CHARACTER VARYING(64) NOT NULL,
-    PRIMARY KEY (id),
+    PRIMARY KEY (id)
 );
 
 CREATE INDEX IF NOT EXISTS i_internalid ON crosswalk (internalid);
@@ -31,40 +31,40 @@ CREATE INDEX IF NOT EXISTS i_lower_last_name ON crosswalk (lower(last_name));
 CREATE INDEX IF NOT EXISTS i_dob ON crosswalk (dob);
 
 CREATE OR REPLACE FUNCTION insert_info_crosswalk(v_instance_uuid TEXT, v_patient_id TEXT, v_full_name TEXT, v_dob TEXT) RETURNS void AS $insert_info_crosswalk$
-DECLARE
-t_internalid BIGINT;
-	t_patient_uuid TEXT DEFAULT NULL;
-	t_first_name TEXT DEFAULT NULL;
-	t_middle_name TEXT DEFAULT NULL;
-	t_last_name TEXT DEFAULT NULL;
-BEGIN
-    SELECT internalid, publicid FROM resources WHERE internalid =
-        (SELECT parentid FROM resources WHERE internalid =
-        (SELECT parentid FROM resources WHERE internalid =
-        (SELECT parentid FROM resources WHERE publicid = v_instance_uuid)))
+    DECLARE
+    t_internalid BIGINT;
+        t_patient_uuid TEXT DEFAULT NULL;
+        t_first_name TEXT DEFAULT NULL;
+        t_middle_name TEXT DEFAULT NULL;
+        t_last_name TEXT DEFAULT NULL;
+    BEGIN
+        SELECT internalid, publicid FROM resources WHERE internalid =
+            (SELECT parentid FROM resources WHERE internalid =
+            (SELECT parentid FROM resources WHERE internalid =
+            (SELECT parentid FROM resources WHERE publicid = v_instance_uuid)))
+            INTO
+                t_internalid, t_patient_uuid;
+
+        SELECT
+            split_part(v_full_name,' ',1),
+            CASE
+                WHEN split_part(v_full_name,' ',3) = '' THEN NULL ELSE split_part(v_full_name,' ',2) END,
+            CASE
+                WHEN split_part(v_full_name,' ',2) = '' THEN NULL
+                WHEN split_part(v_full_name,' ',3) = '' THEN split_part(v_full_name,' ',2)
+                ELSE split_part(v_full_name,' ',3)
+                END
         INTO
-            t_internalid, t_patient_uuid;
+            t_first_name, t_middle_name, t_last_name;
 
-    SELECT
-        split_part(v_full_name,' ',1),
-        CASE
-            WHEN split_part(v_full_name,' ',3) = '' THEN NULL ELSE split_part(v_full_name,' ',2) END,
-        CASE
-            WHEN split_part(v_full_name,' ',2) = '' THEN NULL
-            WHEN split_part(v_full_name,' ',3) = '' THEN split_part(v_full_name,' ',2)
-            ELSE split_part(v_full_name,' ',3)
-            END
-    INTO
-        t_first_name, t_middle_name, t_last_name;
-
-    INSERT INTO
-        crosswalk(internalid, publicid, patient_id, full_name, first_name, middle_name, last_name, dob, instances)
-    VALUES
-        (t_internalid, t_patient_uuid, v_patient_id, v_full_name, t_first_name, t_middle_name, t_last_name, v_dob, ARRAY[v_instance_uuid])
-        ON CONFLICT
-            (publicid, patient_id, full_name, dob)
-        DO UPDATE
-            SET instances = array_append(crosswalk.instances, v_instance_uuid);
+        INSERT INTO
+            crosswalk(internalid, publicid, patient_id, full_name, first_name, middle_name, last_name, dob, instances)
+        VALUES
+            (t_internalid, t_patient_uuid, v_patient_id, v_full_name, t_first_name, t_middle_name, t_last_name, v_dob, ARRAY[v_instance_uuid])
+            ON CONFLICT
+                (publicid, patient_id, full_name, dob)
+            DO UPDATE
+                SET instances = array_append(crosswalk.instances, v_instance_uuid);
     END;
 $insert_info_crosswalk$ LANGUAGE plpgsql;
 
@@ -106,8 +106,6 @@ CREATE OR REPLACE FUNCTION detect_phi_mismatch() RETURNS trigger AS $detect_phi_
                 RAISE NOTICE 'PHI mismatch detected - DOB & Last Name matched: parent_internalid: %, parent_publicid: %', dob_lastname_internalid, dob_lastname_publicid;
             END IF;
         END IF;
-
-
 		RETURN NULL;
 	END;
 $detect_phi_mismatch$ LANGUAGE plpgsql;
