@@ -32,12 +32,16 @@ CREATE INDEX IF NOT EXISTS i_dob ON crosswalk (dob);
 
 CREATE OR REPLACE FUNCTION insert_info_crosswalk(v_file_uuid TEXT, v_patient_id TEXT, v_full_name TEXT, v_dob TEXT) RETURNS void AS $insert_info_crosswalk$
     DECLARE
-    t_internalid BIGINT;
+        t_internalid BIGINT DEFAULT NULL;
         t_patient_uuid TEXT DEFAULT NULL;
         t_first_name TEXT DEFAULT NULL;
         t_middle_name TEXT DEFAULT NULL;
         t_last_name TEXT DEFAULT NULL;
     BEGIN
+        v_file_uuid := BTRIM(v_file_uuid);
+        v_patient_id := BTRIM(v_patient_id);
+        v_full_name := BTRIM(v_full_name);
+        v_dob := BTRIM(v_dob);
 
         SELECT internalid, publicid FROM resources WHERE internalid =
             (SELECT parentid FROM resources WHERE internalid =
@@ -108,6 +112,8 @@ CREATE OR REPLACE FUNCTION detect_phi_mismatch() RETURNS trigger AS $detect_phi_
                 RAISE NOTICE 'PHI mismatch detected - DOB & Last Name matched: parent_internalid: %, parent_publicid: %', dob_lastname_internalid, dob_lastname_publicid;
             END IF;
         END IF;
+
+
 		RETURN NULL;
 	END;
 $detect_phi_mismatch$ LANGUAGE plpgsql;
