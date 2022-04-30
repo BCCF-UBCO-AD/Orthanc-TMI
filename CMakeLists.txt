@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.20)
 set(CMAKE_CXX_STANDARD 20)
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_compile_options("-fsanitize=address,undefined")
+    add_link_options("-fsanitize=address,undefined")
+endif()
 set(BSL ${BUILD_SHARED_LIBS})
 
 # project variables
@@ -27,6 +31,10 @@ set(BUILD_SHARED_LIBS ${BSL})
 
 # include directories
 include_directories(include)
+include_directories(include/dicom)
+include_directories(include/data)
+include_directories(include/plugin)
+include_directories(include/functions)
 include_directories(extern/nlohmann-json/single_include/)
 
 # test targets
@@ -43,3 +51,5 @@ add_custom_command(
         COMMAND ${CMAKE_COMMAND} -E copy
         ${PROJECT_BINARY_DIR}/bin/${PLUGIN_TARGET}.so
         ${PROJECT_DIR}/docker/orthanc/plugins/${PLUGIN_TARGET}.so)
+install(TARGETS ${PLUGIN_TARGET}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX})

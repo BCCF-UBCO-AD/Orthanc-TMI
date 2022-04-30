@@ -15,14 +15,21 @@ services:
       POSTGRES_PASSWORD: example
     networks:
       - postgres-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   orthanc:
-    image: brianzhouzc/orthanc-tmi-plugins:latest
-    entrypoint: ['Orthanc']#, '--verbose']
+    build: ./docker/images/orthanc
+    entrypoint: ['Orthanc', '--verbose']
     container_name: orthanc-server
+    restart: always
     command: /run/secrets/  # Path to the configuration files (stored as secrets)
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     ports:
       - 4242:4242
       - 8042:8042
@@ -36,6 +43,24 @@ services:
       - orthanc.json
     environment:
       - ORTHANC_NAME=TMI
+      - ASAN_OPTIONS=verify_asan_link_order=0
+    networks:
+      - postgres-network
+
+  orthanc_client:
+    image: jodogne/orthanc
+    container_name: orthanc-client
+    restart: always
+    command: /run/secrets/  # Path to the configuration files (stored as secrets)
+    depends_on:
+      - orthanc
+    ports:
+      - 4243:4243
+      - 8043:8043
+    secrets:
+      - orthanc_client.json
+    environment:
+      - ORTHANC_NAME=ORTHANC_CLIENT
     networks:
       - postgres-network
 
@@ -55,3 +80,5 @@ networks:
 secrets:
   orthanc.json:
     file: ./docker/orthanc/orthanc.json
+  orthanc_client.json:
+    file: ./docker/orthanc/orthanc_client.json

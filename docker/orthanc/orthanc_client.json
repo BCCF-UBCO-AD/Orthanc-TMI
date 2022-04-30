@@ -1,40 +1,10 @@
 {
   "Name": "Orthanc inside Docker",
-  "PostgreSQL": {
-    "EnableIndex": true,
-    "EnableStorage": false,
-    "Host": "postgres",
-    "Port": 5432,
-    "Database": "orthanc",
-    "Username": "postgres",
-    "Password": "example",
-    "Lock": false,
-    "EnableSsl": false,
-    "MaximumConnectionRetries": 10,
-    "ConnectionRetryInterval": 5,
-    "IndexConnectionsCount": 2
-  },
-  "DataAnon": {
-    "HardlinksUseHashBins" : true,
-    "Hardlinks": {
-      "/by-study-date/": "0008,0020",
-      "/by-pid/": "0010,0020",
-      "/by-dob/": "0010,0030"
-    },
-    "DateTruncation": {
-      "default": "YYYYMM01",
-      "0010,0030": "YYY0MM01"
-    },
-    "Filter": {
-      "blacklist": [
-        "0010"
-      ],
-      "whitelist": [
-        "0010,0030"
-      ]
-    }
-  },
   "StorageDirectory": "/var/lib/orthanc/dicom",
+  "StorageSettings": {
+    "LinkDOB": true,
+    "LinkPID": true
+  },
   "IndexDirectory": "/var/lib/orthanc/db",
   "StorageCompression": false,
   "MaximumStorageSize": 0,
@@ -48,16 +18,16 @@
   "ConcurrentJobs": 2,
   "HttpServerEnabled": true,
   "OrthancExplorerEnabled": true,
-  "HttpPort": 8042,
+  "HttpPort": 8043,
   "HttpDescribeErrors": true,
   "HttpCompressionEnabled": true,
   "WebDavEnabled": true,
   "WebDavDeleteAllowed": false,
   "WebDavUploadAllowed": true,
   "DicomServerEnabled": true,
-  "DicomAet": "ORTHANC",
+  "DicomAet": "ORTHANC_CLIENT",
   "DicomCheckCalledAet": false,
-  "DicomPort": 4242,
+  "DicomPort": 4243,
   "DefaultEncoding": "Latin1",
   "AcceptedTransferSyntaxes": [
     "1.2.840.10008.1.*"
@@ -81,7 +51,7 @@
   "DicomAlwaysAllowMove": false,
   "DicomCheckModalityHost": false,
   "DicomModalities": {
-    "orthanc-client" : [ "ORTHANC_CLIENT", "orthanc-client", 4243 ]
+    "orthanc" : [ "ORTHANC", "orthanc", 4242 ]
   },
   "DicomModalitiesInDatabase": false,
   "DicomEchoChecksFind": false,

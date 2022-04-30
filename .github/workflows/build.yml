@@ -4,6 +4,8 @@
         - master
         - develop
         - feat-filter
+        - feat-phi
+    workflow_dispatch:
 
   env:
     BUILD_TYPE: Debug
@@ -38,18 +40,21 @@
               -S . \
               -B build \
               -G Ninja
-            ninja -C build data-anonymizer
-            ninja -C build all-tests
-        - name: Launch Docker
+            ninja -C build
+        - name: Launch Docker Compose
           run: |
             cd .github
-            docker-compose down
-            docker-compose up -d && sleep 5s
+            docker-compose up -d && sleep 2s
+        - name: Check PostgreSQL
+          run: |
+            status=$(docker ps --all --filter name=postgres --format '{{.Status}}')
+            echo PostgreSQL Docker Container: $status
+            if echo $status | grep Up &>/dev/null; then :; else docker logs --details postgres && exit 1; fi
         - name: Check Docker Status
           run: |
             status=$(docker ps --all --filter name=orthanc-server --format '{{.Status}}')
             echo Orthanc Docker Container: $status
-            if echo $status | grep Up &>/dev/null; then :; else docker logs orthanc-server && exit 1; fi
+            if echo $status | grep Up &>/dev/null; then :; else docker logs --details orthanc-server && exit 1; fi
         - name: Run Unit Tests
           run: |
             build/bin/all-tests --gtest_output=xml:build/

@@ -7,42 +7,36 @@ services:
     ports:
       - 5432:5432
     volumes:
-      #  WARNING: FOR WSL USE THE FOLLOWING LINE INSTEAD:
-      #- ~/docker/postgres/data:/var/lib/postgresql/data
-      - ../docker/postgres/data:/var/lib/postgresql/data
       - ../docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql # Create database for Orthanc
     environment:
       POSTGRES_PASSWORD: example
     networks:
       - postgres-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   orthanc:
     image: brianzhouzc/orthanc-tmi:latest
+    entrypoint: ['Orthanc', '--verbose']
     container_name: orthanc-server
+    restart: always
     command: /run/secrets/  # Path to the configuration files (stored as secrets)
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     ports:
       - 4242:4242
       - 8042:8042
     volumes:
-      #  WARNING: FOR WSL USE THE FOLLOWING LINE INSTEAD:
-      #- ~/docker/orthanc/db:/var/lib/orthanc/db
-      - ../docker/orthanc/db:/var/lib/orthanc/db
       - ../docker/orthanc/plugins:/usr/share/orthanc/plugins
     secrets:
       - orthanc.json
     environment:
       - ORTHANC_NAME=TMI
-    networks:
-      - postgres-network
-
-  adminer:
-    image: adminer:latest
-    container_name: adminer
-    restart: always
-    ports:
-      - 8080:8080
+      - ASAN_OPTIONS=verify_asan_link_order=0
     networks:
       - postgres-network
 
