@@ -1,13 +1,8 @@
 #pragma once
 #include <orthanc/OrthancCPlugin.h>
-#include <unordered_set>
 #include <filesystem>
-#include <memory>
-#include <string>
 #include <cstdint>
-#include <nlohmann/json.hpp>
 
-namespace nlm = nlohmann;
 namespace fs = std::filesystem;
 
 // plugin.cpp externs
@@ -22,22 +17,28 @@ namespace globals {
 
 #define PLUGIN_ERRORS (-1)
 #define INFO 0
-#define VERBOSE_1 1
-#define VERBOSE_2 2
+#define DEBUG_1 1
+#define DEBUG_2 2
 
-#define LOGGING_LEVEL VERBOSE_1
 #ifndef NDEBUG
+    #define LOGGING_LEVEL DEBUG_1
     #ifndef UNIT_TEST
      #define DEBUG_LOG(L,msg) if(globals::context && L <= LOGGING_LEVEL) switch(L){ \
         case PLUGIN_ERRORS: OrthancPluginLogError(globals::context, msg);break;     \
-        case INFO: OrthancPluginLogInfo(globals::context, msg); break;              \
-        case VERBOSE_1:                                                             \
-        case VERBOSE_2: OrthancPluginLogWarning(globals::context, msg); break;      \
+        case INFO: OrthancPluginLogWarning(globals::context, msg); break;           \
+        case DEBUG_1:                                                             \
+        case DEBUG_2: OrthancPluginLogInfo(globals::context, msg); break;         \
       }
     #else
+     #undef LOGGING_LEVEL
+     #define LOGGING_LEVEL INFO
      #include <iostream>
      #define DEBUG_LOG(L,msg) if(L <= LOGGING_LEVEL) printf("%s\n",msg);
     #endif
 #else
- #define DEBUG_LOG(L,msg)
+  #define LOGGING_LEVEL INFO
+  #define DEBUG_LOG(L,msg) if(globals::context && L <= LOGGING_LEVEL) switch(L){ \
+     case PLUGIN_ERRORS: OrthancPluginLogError(globals::context, msg);break;     \
+     case INFO: OrthancPluginLogWarning(globals::context, msg); break;           \
+   }
 #endif

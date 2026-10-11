@@ -1,5 +1,9 @@
 #pragma once
-#define UNIT_TEST
+//commented out for CI (uncomment for local testing)
+//#define UNIT_TEST
+#include <core.h>
+#include <functional>
+
 extern fs::path GetProjRoot();
 extern void TestWithDicomFiles(std::function<void(const fs::path&)> test);
 namespace uuid {
